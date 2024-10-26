@@ -40,9 +40,7 @@ class LabelPlacementTest {
    */
   constructor(annotation, options = {}) {
     this._annotation = annotation;
-    // this._initialLabelLineLength = annotation._labelLineLength;
-    // MAKE IT OBVIOUS THIS IS THE TEST:
-    this._initialLabelLineLength = annotation._labelLineLength * 3;
+    this._initialLabelLineLength = annotation._labelLineLength;
     this._labelLineMarginInner = annotation._labelLineMarginInner;
     this._labelLineMarginOuter = annotation._labelLineMarginOuter;
   }
@@ -144,10 +142,10 @@ class LabelPlacementTest {
        && object1.rect.bottom > object2.rect.top) {
         // collide(object1, object2);
         interactions.push([object1, object2]);
-        object1.rect.x -= 3;
-        object2.rect.x += 3;
+        object1.rect.x -= 1;
+        object2.rect.x += 2;
         object1.rect.y -= 1;
-        object2.rect.y -= 1;
+        object2.rect.y -= 3;
       }
     }
 
