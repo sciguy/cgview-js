@@ -41,12 +41,61 @@ loadMapFromID(defaultMap);
 // Add maps from maps.js to Select
 // Using global variable 'maps' from maps.js
 const mapSelect = document.getElementById('map-select');
-let options = '';
+// let options = '';
+let options = `
+  <option value='' disabled ${(defaultMap == '') ? 'selected' : ''}>Select an input...</option>
+  <option disabled>─────────</option>
+  <option value='file' ${(defaultMap == 'file') ? 'selected' : ''}>Open a file...</option>
+  <option disabled>─────────</option>
+`;
 for (const map of Object.keys(maps)) {
   const selected = (map === defaultMap) ? 'selected' : '';
   options += `<option value='${map}' ${selected}>${maps[map].name}</option>`;
 }
 mapSelect.innerHTML = options;
+
+// Choose a predefined file or show the file input section
+// Load map when select changes
+mapSelect.innerHTML = options;
+// mapSelect.addEventListener('change', (e) => {
+//   const id = e.target.value;
+//   const fileSection = document.getElementById('file-section');
+//   if (id === 'file') {
+//     fileSection.style.display = 'block';
+//     return;
+//   } else {
+//     fileSection.style.display = 'none';
+//     clearFileInput();
+//   }
+//   loadInputFromID(id);
+// });
+
+// Clear the file input when the file section is closed
+function clearFileInput() {
+  const fileInput = document.getElementById('file-input');
+  fileInput.value = '';
+}
+
+// Load from file chooser
+const fileInput = document.getElementById('file-input');
+fileInput.addEventListener('change', (event) => {
+  var file = event.target.files[0];
+  if (!file) { return; }
+
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    // const inputTextDiv = document.getElementById('input-text');
+    // var contents = e.target.result;
+    // inputTextDiv.innerHTML = contents;
+    runParse();
+  };
+
+  reader.onerror = function(e) {
+    console.error("File could not be read! Error: " + e.target.error);
+  };
+
+  reader.readAsText(file);
+});
 
 // Load map when select changes
 mapSelect.addEventListener('change', (e) => {
@@ -54,8 +103,9 @@ mapSelect.addEventListener('change', (e) => {
   loadMapFromID(id);
 });
 
-// Load map method
+// Load local predefined map by id
 function loadMapFromID(id) {
+  if (id === 'file') { return; }
   const url = maps[id].url
   console.log(`Loading Map: ${url}`);
   var request = new XMLHttpRequest();
@@ -204,6 +254,42 @@ drawRangeOption.addEventListener('click', (e) => {
 //     document.onmousemove = null;
 //   }
 // }
+
+///////////////////////////////////////////////////////////////////////////////
+// Open in Proksee API
+///////////////////////////////////////////////////////////////////////////////
+
+function openInProksee(cgv, origin, open=false) {
+  let responseData = {};
+  const url = 'https://proksee.ca/api/v1/projects.json';
+  const data = { origin, data: JSON.stringify(cgv.io.toJSON()) };
+  const response = fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  })
+  .then((response) => response.json())
+  .then((data) => {
+    console.log(data);
+    if (data?.status === 'success' && data?.url) {
+      if (open) {
+        window.location.href = data.url;
+      }
+    } else {
+      alert(`Unable to send map to Proksee: ${data?.error} `)
+    }
+  })
+  .catch((error) => {
+    console.log('Error:', error);
+  });
+  return responseData;
+}
+
+// Add openInProksee to a button with id of 'open-in-proksee-btn'
+const openInProkseeBtn = document.getElementById('open-in-proksee-btn');
+openInProkseeBtn.addEventListener('click', (e) => {
+  openInProksee(cgv, 'CGParse', true)
+});
 
 
 ///////////////////////////////////////////////////////////////////////////////

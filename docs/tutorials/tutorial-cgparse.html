@@ -20,8 +20,10 @@
     <!-- D3 -->
     <script src="../scripts/d3.min.js"></script>
     <!-- CGView -->
-    <script src='../dist/cgview.min.js'></script>
+    <!-- <script src='../dist/cgview.min.js'></script> -->
     <link rel="stylesheet" href="../dist/cgview.css" />
+    <!-- CGParse -->
+    <script src='../scripts/CGParse.min.js'></script>
 
     <!-- Plausible Analytics -->
     <script defer data-domain="js.cgview.ca" src="https://stats.stothardresearch.ca/js/plausible.outbound-links.js"></script>
@@ -60,9 +62,9 @@
         <li><a class="side-link nav-index" href="index.html">Index</a></li>
         <p>Tutorials</p>
         <li><a class="side-link indent" href="tutorial-basic.html">Basic Map</a></li>
-        <li class='active'><a class="side-link indent" href="tutorial-sequence.html">Sequence Map</a></li>
+        <li><a class="side-link indent" href="tutorial-sequence.html">Sequence Map</a></li>
         <li><a class="side-link indent" href="tutorial-json.html">JSON Map</a></li>
-        <li><a class="side-link indent" href="tutorial-cgparse.html">CGParse</a></li>
+        <li class='active'><a class="side-link indent" href="tutorial-cgparse.html">CGParse</a></li>
         <li><a class="side-link indent" href="tutorial-builder.html">CGViewBuilder</a></li>
         <li><a class="side-link indent" href="tutorial-controls.html">Map Controls</a></li>
         <p>Details</p>
@@ -79,135 +81,133 @@
       <div id='my-viewer'></div>
       <!-- Compiled final code will be inserted here -->
       <div id='final-code'>
-        <h2>Complete Code without Comments:</h2>
-        <pre class='prettyprint'><code class='lang-js final'></code></pre>
+        <h2>Code used to generate map (<a href=''>Download Script - NIY</a>)</h2>
+        <pre class='prettyprint'><code id='final-code-content' class='lang-js final'></code></pre>
       </div>
     </main>
 
     <div id='markdown-in' style='display:none;'>
 
-# Sequence Map
+# Using CGParse.js
 
-Maps that have a sequence provided have two main benefits: 1) when zoomed in far enough
-you will be able to see the sequence on the map; and 2) additional tracks can be easily
-created with plots (e.g. GC Skew, GC Content) or features (e.g. start/stop codons, ORFs)
-extracted directly from the sequence.
+[CGParse.js](https://github.com/sciguy/cgview-parse) is a JavaScript
+library that converts a sequence file (e.g. GenBank, EMBL, FASTA) into JSON that
+can be loaded into CGView.js.
 
-## Create a new [Viewer](../api/Viewer.html) ##
+This tutorial will create a map for the _Mycoplasma pneumoniae_ FH genome.
 
-In this example we will provide a random sequence using the [Sequence#random](../api/Sequence.html#random) method.
+## Download CGViewBuilder
+
+Install CGViewBuilder from npm...
+```bash
+npm install cgview-parse
+```
+
+
+For more installation options, see the [CGParse.js on GitHub](https://github.com/sciguy/cgview-parse#installation).
+
+## Create JSON from a GenBank file
+
+Download a GenBank file from NCBI. 
+
+- _Mycoplasma pneumoniae_ FH (NZ_CP010546) [[NCBI](https://www.ncbi.nlm.nih.gov/nuccore/NZ_CP010546.1), <a href='../data/seq/NZ_CP010546.gbk' download>Download</a>]
+
 
 ```js
-// The first argument is the id of the container that will hold the viewer.
+// First create the viewer
 cgv = new CGV.Viewer('#my-viewer', {
   height: 500,
-  width: 500,
-  sequence: {
-    // Provide the sequence.
-    seq: CGV.Sequence.random(10000)
-  }
+  width: 500
 });
 ```
 
-## Create a [Track](../api/Track.html) with ORFs extracted from the sequence ##
+Fetch the GenBank file.
 
 ```js
-cgv.addTracks({
-  // Name for the track.
-  name: 'ORFs',
-  // Draw the features separated into 1 or more slots.
-  // Options:
-  //   - 'none': 1 slot for all features.
-  //   - 'strand': 2 slots (one for each strand).
-  //   - 'readingFrame: 6 slots (one for each reading frame).
-  separateFeaturesBy: 'readingFrame',
-  // Where to draw the track in relation to the backbone.
-  // Options: 'inside', 'outside', 'both'.
-  position: 'both',
-  // The data* properties describe what features or plot will be in the track.
-  // Type of track. Options: 'feature', 'plot'
-  // The type is set automatically when extracting from the sequence.
-  dataType: 'feature',
-  // Methods used to extract the features/plot. Options:
-  //  - 'source'   : the source property of the features/plots will be used for selection
-  //  - 'sequence' : the features/plot will be generated from the sequence
-  dataMethod: 'sequence',
-  // Key values used to extract the features/plot.
-  // For 'source', the dataKeys can be a single value or an array of values.
-  // For 'sequence', the dataKeys can be one of the following:
-  //   'orfs', 'start-stop-codons', 'gc-skew', 'gc-content'
-  // e.g. In this example, the ORF features will be extracted from the sequence.
-  dataKeys: 'orfs',
-  // Additional options may be passed to the data extractor
-  // The following are the default options
-  dataOptions: {
-    start: 'ATG',
-    stop: 'TAA,TAG,TGA',
-    minORFLength: 100
-  }
-});
+// TODO: This will be an addtional example on this page with code that can be downloaded.
+// USING await/async to fetch the GenBank file
+// Here we use the Fetch API to get the GenBank file from the js.cgview.ca server.
+//let seqFileText;
+
+//const response = await fetch('https://js.cgview.ca/data/seq/NZ_CP010546.gbk');
+//seqFileText = await response.json();
+// Parse a file
+// const seqFile = new CGParse.SequenceFile(data)
+// const cgvJSON = seqFile.toCGViewJSON();
+// console.log(cgvJSON)
+
+let data;
+fetch('https://js.cgview.ca/data/seq/NZ_CP010546.gbk')
+  .then(response => response.json())
+  .then(json => {
+    data = json;
+    // Parse a file
+    const seqFile = new CGParse.SequenceFile(data);
+    const cgvJSON = seqFile.toCGViewJSON();
+    console.log(cgvJSON);
+    // Load the JSON into CGView.js
+    cgv.io.loadJSON(cgvJSON);
+    cgv.draw();
+  });
 ```
 
-## Create a [Track](../api/Track.html) with a GC Skew plot extracted from the sequence ##
+Run CGViewBuilder to generate the CGView JSON from the GenBank file.
+
+
+
+An optional config file can be provided to adjust the map ([config_example.yaml](../data/config/config_example.yaml))
+
+JSON Output: [NZ_CP010546.json](../data/json/NZ_CP010546.json)
+
+## Load JSON into CGView.js
+
+See [JSON Map](tutorial-json.html) and [JSON Files](details-json-files.html) for more details on loading JSON files into CGview.js.
+
 
 ```js
-cgv.addTracks({
-  name: 'GC Skew',
-  position: 'inside',
-  dataType: 'feature',
-  dataMethod: 'sequence',
-  // e.g. In this example, GC Skew plot will be extracted from the sequence.
-  dataKeys: 'gc-skew',
-  // By default, the step and window values are calculated based on the sequence length,
-  // but they can be overridden here.
-  dataOptions: {
-    step: 1,
-    window: 100
-  }
-});
+// Load the JSON file
+//var request = new XMLHttpRequest();
+//request.open('GET', '../data/json/NZ_CP010546.json', true);
+//request.onload = function() {
+//  var response = request.response;
+//  const json = JSON.parse(response);
+//  cgv.io.loadJSON(json);
+//  cgv.draw()
+//};
+//request.send();
+
 ```
 
-## Create a [Track](../api/Track.html) with a GC Content plot extracted from the sequence ##
+## More Examples
 
-```js
-cgv.addTracks({
-  name: 'GC Content',
-  position: 'inside',
-  dataType: 'feature',
-  dataMethod: 'sequence',
-  // e.g. In this example, GC Content plot will be extracted from the sequence.
-  dataKeys: 'gc-content',
-  // By default, the step and window values are calculated based on the sequence length,
-  // but they can be overridden here.
-  dataOptions: {
-    step: 1,
-    window: 100
-  }
-});
-```
+See the CGView.js [examples](../examples/index.html) for more maps created by
+CGViewBuilder. Each example, contains the original GenBank file, CGViewBuilder
+config file and the resulting JSON file.
 
-## TODO
-* Have image of map and parts (e.g. track, slot, caption, ruler, etc)
-
-
-## Draw the Map ##
-
-```js
-cgv.draw();
-```
+## Map
 
 The resulting Viewer (id='my-viewer') is below. You can move the map around by clicking and dragging.
-You can zoom, using your mouse scroll wheel. The Legend colors can be changed by clicking on the swatches in the Legend.
-If you want to play around with the viewer object, open your browser web inspector. In the console, you can access the viewer as *cgv*.
-
+You can zoom, using your mouse scroll wheel. The Lenged colors can be changed by clicking on the swatches in the Legend.
+If you want play around with the viewer object, open your browser web inspector. In the console, you can access the viewer as *cgv*.
 
     </div> <!-- End of markdown in -->
 
     <script>
-      tutorialMarkdown(marked, true);
-      autoResizeMyViewer();
+      tutorialMarkdown(marked, false);
+      //autoResizeMyViewer();
+      fetch('../scripts/tutorial-cgparse.js')
+        .then(response => response.text())
+        .then(scriptText => {
+          const codeBlock = document.getElementById('final-code-content')
+          codeBlock.textContent = scriptText;
+          Prism.highlightAll();
+        })
+        .catch(err => {
+          console.error('Failed to load script text:', err);
+        });
     </script>
 
+    <script type="module" src="../scripts/tutorial-cgparse.js"></script>
     <script src="../scripts/prism.js"></script>
 
     <!-- Bootstrap JavaScript -->
