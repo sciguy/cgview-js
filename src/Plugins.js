@@ -60,10 +60,11 @@ export const PluginsStandard = [
  * - uninstall: function(cgv) {}
  *   - (NIY) This function will be called when the plugin is unstalled.
  *   - Typlically this is where event listeners are removed.
- *
+ * @private
  */
 
-export default class Plugins {
+// export default class Plugins {
+class Plugins {
 
   /**
    * Create a new Plugins object (one per viewer).
@@ -225,3 +226,5 @@ export default class Plugins {
 
 }
 
+
+export default Plugins;
