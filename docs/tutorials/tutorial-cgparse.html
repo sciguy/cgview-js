@@ -20,7 +20,7 @@
     <!-- D3 -->
     <script src="../scripts/d3.min.js"></script>
     <!-- CGView -->
-    <!-- <script src='../dist/cgview.min.js'></script> -->
+    <script src='../dist/cgview.min.js'></script>
     <link rel="stylesheet" href="../dist/cgview.css" />
     <!-- CGParse -->
     <script src='../scripts/CGParse.min.js'></script>
@@ -50,7 +50,7 @@
             <a class="nav-link" href="../docs.html">Docs</a>
             <a class="nav-link" href="../api/index.html">API</a>
             <a class="nav-link" href="../json.html">JSON</a>
-            <a class="nav-link github-logo" href="https://github.com/stothard-group/cgview-js"><img src='../images/GitHub-Mark-Light-64px.png' /></a>
+            <a class="nav-link github-logo" href="https://github.com/sciguy/cgview-js"><img src='../images/GitHub-Mark-Light-64px.png' /></a>
           </div>
         </div>
       </div>
@@ -94,94 +94,111 @@
 library that converts a sequence file (e.g. GenBank, EMBL, FASTA) into JSON that
 can be loaded into CGView.js.
 
-This tutorial will create a map for the _Mycoplasma pneumoniae_ FH genome.
+This tutorial will create a map for the _Mycoplasma pneumoniae_ FH genome from a GenBank file.
 
-## Download CGViewBuilder
+## Setting up CGParse.js
 
-Install CGViewBuilder from npm...
-```bash
-npm install cgview-parse
+### Install CGParse.js
+
+Add the CGParse.js library as as script tag in your HTML file:
+```html
+<script src="https://cdn.jsdelivr.net/npm/cgview/dist/CGParse.min.js"></script>
 ```
 
+This will load the CGParse.js library as the global variable `CGParse`. For more installation options, see the [CGParse.js on GitHub](https://github.com/sciguy/cgview-parse#installation).
 
-For more installation options, see the [CGParse.js on GitHub](https://github.com/sciguy/cgview-parse#installation).
-
-## Create JSON from a GenBank file
-
-Download a GenBank file from NCBI. 
-
-- _Mycoplasma pneumoniae_ FH (NZ_CP010546) [[NCBI](https://www.ncbi.nlm.nih.gov/nuccore/NZ_CP010546.1), <a href='../data/seq/NZ_CP010546.gbk' download>Download</a>]
-
+## Create a new [Viewer](../api/Viewer.html) ##
 
 ```js
-// First create the viewer
+// Frist create the viewer
 cgv = new CGV.Viewer('#my-viewer', {
   height: 500,
-  width: 500
+  width: 500,
 });
 ```
 
-Fetch the GenBank file.
+## Config file
 
 ```js
-// TODO: This will be an addtional example on this page with code that can be downloaded.
-// USING await/async to fetch the GenBank file
-// Here we use the Fetch API to get the GenBank file from the js.cgview.ca server.
-//let seqFileText;
-
-//const response = await fetch('https://js.cgview.ca/data/seq/NZ_CP010546.gbk');
-//seqFileText = await response.json();
-// Parse a file
-// const seqFile = new CGParse.SequenceFile(data)
-// const cgvJSON = seqFile.toCGViewJSON();
-// console.log(cgvJSON)
-
-let data;
-fetch('https://js.cgview.ca/data/seq/NZ_CP010546.gbk')
-  .then(response => response.json())
-  .then(json => {
-    data = json;
-    // Parse a file
-    const seqFile = new CGParse.SequenceFile(data);
-    const cgvJSON = seqFile.toCGViewJSON();
-    console.log(cgvJSON);
-    // Load the JSON into CGView.js
-    cgv.io.loadJSON(cgvJSON);
-    cgv.draw();
-  });
+config = {
+  "settings": {
+    "backgroundColor": "white",
+    "showShading": true,
+    "arrowHeadLength": 0.3
+  },
+  "ruler": {
+    "font": "sans-serif, plain, 10",
+    "color": "black"
+  },
+  "legend": {
+    "position": "top-right",
+    "defaultFont": "sans-serif, plain, 14",
+    "items": [
+      {
+        "name": "CDS",
+        "swatchColor": "rgba(0,0,153,0.5)",
+        "decoration": "arrow"
+      },
+      {
+        "name": "tRNA",
+        "swatchColor": "rgba(153,0,153,0.5)"
+      },
+      {
+        "name": "rRNA",
+        "swatchColor": "rgba(0,153,53,0.5)"
+      }
+    ]
+  },
+  "tracks": [
+    {
+      "name": "CG Content",
+      "thicknessRatio": 2,
+      "position": "inside",
+      "dataType": "plot",
+      "dataMethod": "sequence",
+      "dataKeys": "gc-content"
+    },
+    {
+      "name": "CG Skew",
+      "thicknessRatio": 2,
+      "position": "inside",
+      "dataType": "plot",
+      "dataMethod": "sequence",
+      "dataKeys": "gc-skew"
+    }
+  ]
+}
 ```
 
-Run CGViewBuilder to generate the CGView JSON from the GenBank file.
+## Download a GenBank file and load it with CGParse.js
 
-
-
-An optional config file can be provided to adjust the map ([config_example.yaml](../data/config/config_example.yaml))
-
-JSON Output: [NZ_CP010546.json](../data/json/NZ_CP010546.json)
-
-## Load JSON into CGView.js
-
-See [JSON Map](tutorial-json.html) and [JSON Files](details-json-files.html) for more details on loading JSON files into CGview.js.
+GenBank file: _Mycoplasma pneumoniae_ FH (NZ_CP010546) [[NCBI](https://www.ncbi.nlm.nih.gov/nuccore/NZ_CP010546.1), <a href='../data/seq/NZ_CP010546.gbk' download>Download</a>]
 
 
 ```js
-// Load the JSON file
-//var request = new XMLHttpRequest();
-//request.open('GET', '../data/json/NZ_CP010546.json', true);
-//request.onload = function() {
-//  var response = request.response;
-//  const json = JSON.parse(response);
-//  cgv.io.loadJSON(json);
-//  cgv.draw()
-//};
-//request.send();
+// Download the JSON file
+var request = new XMLHttpRequest();
+request.open('GET', '../data/seq/NZ_CP010546.gbk', true);
+request.onload = function() {
+  // Get the GenBank file text
+  var genbankText = request.response;
 
+  // Parse a file
+  var seqFile = new CGParse.SequenceFile(genbankText);
+  var cgvJSON = seqFile.toCGViewJSON({config: config});
+
+  // Load the JSON into CGView.js
+  cgv.io.loadJSON(cgvJSON);
+  // Draw the map
+  cgv.draw()
+};
+request.send();
 ```
 
 ## More Examples
 
 See the CGView.js [examples](../examples/index.html) for more maps created by
-CGViewBuilder. Each example, contains the original GenBank file, CGViewBuilder
+CGParse.js. Each example, contains the original GenBank file, CGViewBuilder
 config file and the resulting JSON file.
 
 ## Map
@@ -193,21 +210,12 @@ If you want play around with the viewer object, open your browser web inspector.
     </div> <!-- End of markdown in -->
 
     <script>
-      tutorialMarkdown(marked, false);
-      //autoResizeMyViewer();
-      fetch('../scripts/tutorial-cgparse.js')
-        .then(response => response.text())
-        .then(scriptText => {
-          const codeBlock = document.getElementById('final-code-content')
-          codeBlock.textContent = scriptText;
-          Prism.highlightAll();
-        })
-        .catch(err => {
-          console.error('Failed to load script text:', err);
-        });
+      tutorialMarkdown(marked, true);
+      autoResizeMyViewer();
     </script>
 
-    <script type="module" src="../scripts/tutorial-cgparse.js"></script>
+    <!-- <script type="module" src="../scripts/tutorial-cgparse.js"></script> -->
+
     <script src="../scripts/prism.js"></script>
 
     <!-- Bootstrap JavaScript -->

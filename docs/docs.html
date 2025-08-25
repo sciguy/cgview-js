@@ -43,7 +43,7 @@
             <a class="nav-link active" href="docs.html">Docs</a>
             <a class="nav-link" href="api/index.html">API</a>
             <a class="nav-link" href="json.html">JSON</a>
-            <a class="nav-link github-logo" href="https://github.com/stothard-group/cgview-js"><img src='images/GitHub-Mark-Light-64px.png' /></a>
+            <a class="nav-link github-logo" href="https://github.com/sciguy/cgview-js"><img src='images/GitHub-Mark-Light-64px.png' /></a>
           </div>
         </div>
       </div>
@@ -105,6 +105,14 @@
 - When using CGView via script tags, D3 will have to be sourced first.
 
 ### Install via [npm](https://npmjs.com) or [yarn](https://yarnpkg.com)
+
+### IMPORT METHODS
+- Have this as a tutorial and point to it here
+- Import CGView.js as an ES6 module:
+- Import as scripts
+- import in a script module using esm.sh
+- Files can be access form jsDelivr
+- Show SVG example
 
 - Install:
 ```bash
@@ -562,6 +570,7 @@ Attribute                        | Type     | Description
 [visible](api/CGObject.html#visible) | Boolean  | Feature is visible [Default: true]
 [meta](api/CGObject.html#meta)       | Object   | [Meta data](tutorials/details-meta-data.html) for Feature
 [qualifiers](api/Feature.html#qualifiers)        | Object   | Qualifiers associated with the feature (from GenBank/EMBL) [Default: {}]
+[translation](api/Feature.html#translation)      | String   | Static translation of the feature. If set, this will be used instead of translating the sequence.
 
 <sup>rc</sup> Required on Feature creation
 <sup>ic</sup> Ignored on Record creation

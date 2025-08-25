@@ -17,12 +17,17 @@
     <script src='../scripts/marked.min.js'></script>
     <script src='../scripts/general.js'></script>
 
+    <!-- Load CGViewBuild JSON Config as a global variable: exampleConfig -->
+    <script src='../data/config/example.config.js'></script>
+
     <!-- D3 -->
     <script src="../scripts/d3.min.js"></script>
     <!-- CGView -->
     <script src='../dist/cgview.min.js'></script>
     <link rel="stylesheet" href="../dist/cgview.css" />
     <link rel="stylesheet" href="../styles/controls.css" />
+    <!-- CGParse -->
+    <script src='../scripts/CGParse.min.js'></script>
 
     <!-- Plausible Analytics -->
     <script defer data-domain="js.cgview.ca" src="https://stats.stothardresearch.ca/js/plausible.outbound-links.js"></script>
@@ -49,7 +54,7 @@
             <a class="nav-link" href="../docs.html">Docs</a>
             <a class="nav-link" href="../api/index.html">API</a>
             <a class="nav-link" href="../json.html">JSON</a>
-            <a class="nav-link github-logo" href="https://github.com/stothard-group/cgview-js"><img src='../images/GitHub-Mark-Light-64px.png' /></a>
+            <a class="nav-link github-logo" href="https://github.com/sciguy/cgview-js"><img src='../images/GitHub-Mark-Light-64px.png' /></a>
           </div>
         </div>
       </div>
@@ -116,7 +121,8 @@ Controls</a>.
     <script src="../scripts/bootstrap.min.js"></script>
 
     <script>
-      createViewerAndLoadJSON('../data/json/NC_000908.json');
+      // createViewerAndLoadJSON('../data/json/NC_000908.json');
+      createViewerAndLoadGenBank('../data/seq/NC_000908.gbk', exampleConfig);
     </script>
     <script src='../scripts/controls.js'></script>
 

@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <!-- Icon -->
-    <link rel="shortcut icon" type="image/png" href="../images/logo-tab.png">
+    <link rel="icon" type="image/png" href="../images/logo-tab.png">
 
     <!-- Bootstrap CSS -->
     <link href="../styles/bootstrap.min.css" rel="stylesheet">
@@ -17,8 +17,11 @@
     <script src='../scripts/marked.min.js'></script>
     <script src='../scripts/general.js'></script>
 
+    <!-- Load CGViewBuild JSON Config as a global variable: exampleConfig -->
+    <script src='../data/config/example.config.js'></script>
+
     <!-- D3 -->
-    <script src="../scripts/d3.v4.min.js"></script>
+    <script src="../scripts/d3.min.js"></script>
     <!-- CGView -->
     <script src='../dist/cgview.min.js'></script>
     <link rel="stylesheet" href="../dist/cgview.css" />
@@ -48,7 +51,7 @@
             <a class="nav-link" href="../docs.html">Docs</a>
             <a class="nav-link" href="../api/index.html">API</a>
             <a class="nav-link" href="../json.html">JSON</a>
-            <a class="nav-link github-logo" href="https://github.com/stothard-group/cgview-js"><img src='../images/GitHub-Mark-Light-64px.png' /></a>
+            <a class="nav-link github-logo" href="https://github.com/sciguy/cgview-js"><img src='../images/GitHub-Mark-Light-64px.png' /></a>
           </div>
         </div>
       </div>
@@ -71,6 +74,9 @@
     <main>
       <!-- Processed Markdown will be inserted here -->
       <div id='markdown-out'></div>
+
+      <div>Example Config (<a href="../data/config/example.config.js">Download</a>) - defined in <em>data/config/example.config.js</em></div>
+      <pre><code class='language-javascript'>var exampleConfig = <span id="json-config"></span> </code></pre> 
     </main>
 
     <div id='markdown-in' style='display:none;'>
@@ -91,15 +97,62 @@ Example                              | Species                  | Size (bp) | De
 ## How Examples were Created
 
 All the examples were created with
-[CGViewBuilder](https://github.com/stothard-group/cgview-builder) (see the
-[CGViewBuilder tutorial](../tutorials/tutorial-builder.html) for details).
+[CGParse.js](https://github.com/sciguy/cgview-parse) (see the
+[CGParse.js tutorial](../tutorials/tutorial-cgparse.html) for details).
 Each example contains links to the GenBank and config file used to generate the
 map as well as the resulting JSON file.
 
+```js
+// Example code to create a map from JSON
+// TODO...
+// - Create JSON
+// - Adjust as needed
+// - Added GC Skew/Content plots
+// - Downloaded JSON for each example
+// - Say you could parse everytime, but for speed, we just load the JSON
+```
+
+Each example is created using the following function.
+Where `path` is the path to the GenBank file and config is a JSON object
+containing the configuration for the map (shown below).
+
+```js
+// Example code to create a map from JSON
+// TODO: load this code from script file
+function createViewerAndLoadGenBank(path, config={}) {
+  // Create Viewer in default div: #my-viewer
+  const cgv = new CGV.Viewer('#my-viewer', {height: 500});
+  // Auto resize viewer
+  autoResizeMyViewer();
+  // Add viewer as global variable 'cgv'
+  window.cgv = cgv;
+  // Request GenBank file
+  var request = new XMLHttpRequest();
+  request.open('GET', path, true);
+  request.onload = function() {
+    // Get the GenBank file text
+    var genbank = request.response;
+    // Parse the file with CGParse.js
+    var seqFile = new CGParse.SequenceFile(genbank);
+    var cgvJSON = seqFile.toCGViewJSON({config: config});
+    // Load the JSON into CGView.js
+    cgv.io.loadJSON(cgvJSON);
+    // Draw the map
+    cgv.draw()
+  };
+  request.send();
+}
+```
 
     </div> <!-- End of markdown in -->
 
+
     <script>
+      // Add the example config to the page (before converting markdown)
+      const jsonSpan = document.querySelector('#json-config');
+      jsonSpan.innerHTML = JSON.stringify(exampleConfig, null, 2);
+      console.log('marked', marked)
+
       tutorialMarkdown(marked);
     </script>
 

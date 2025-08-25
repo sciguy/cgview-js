@@ -72,7 +72,6 @@ function autoResizeMyViewer() {
   const setHeight = 500;
   const mainPadding = 20 * 2;
   function myResize() {
-    const myViewer = document.querySelector('#my-viewer');
     const main = document.getElementsByTagName('main')[0];
     const mainWidth = main.clientWidth - mainPadding;
     const height = Math.min(mainWidth, setHeight);
@@ -113,6 +112,93 @@ function createViewerAndLoadJSON(path) {
   };
   request.send();
 }
+
+// var tempConfig = {
+//   "settings": {
+//     "backgroundColor": "white",
+//     "showShading": true,
+//     "arrowHeadLength": 0.3
+//   },
+//   "ruler": {
+//     "font": "sans-serif, plain, 10",
+//     "color": "black"
+//   },
+//   "legend": {
+//     "position": "top-right",
+//     "defaultFont": "sans-serif, plain, 14",
+//     "items": [
+//       {
+//         "name": "CDS",
+//         "swatchColor": "rgba(0,0,153,0.5)",
+//         "decoration": "arrow"
+//       },
+//       {
+//         "name": "tRNA",
+//         "swatchColor": "rgba(153,0,153,0.5)"
+//       },
+//       {
+//         "name": "rRNA",
+//         "swatchColor": "rgba(0,153,53,0.5)"
+//       }
+//     ]
+//   },
+//   "tracks": [
+//     {
+//       "name": "CG Content",
+//       "thicknessRatio": 2,
+//       "position": "inside",
+//       "dataType": "plot",
+//       "dataMethod": "sequence",
+//       "dataKeys": "gc-content"
+//     },
+//     {
+//       "name": "CG Skew",
+//       "thicknessRatio": 2,
+//       "position": "inside",
+//       "dataType": "plot",
+//       "dataMethod": "sequence",
+//       "dataKeys": "gc-skew"
+//     }
+//   ]
+// };
+
+function createViewerAndLoadGenBank(path, config={}) {
+  // Create Viewer in default div: #my-viewer
+  const cgv = new CGView.Viewer('#my-viewer', {height: 500});
+
+  // Auto resize viewer
+  autoResizeMyViewer();
+
+  // Add viewer as global variable 'cgv'
+  window.cgv = cgv;
+
+  // Request data and draw map
+  var request = new XMLHttpRequest();
+  request.open('GET', path, true);
+  request.onload = function() {
+    // Get the GenBank file text
+    var genbank = request.response;
+
+    // var config = tempConfig;
+
+    // Parse a file
+    var builder = new CGParse.CGViewBuilder(genbank, {
+      config: config,
+      excludeFeatures: ['source', 'gene', 'exon'],
+      excludeQualifiers: ['translation'],
+    });
+    // var seqFile = new CGParse.SequenceFile(genbank);
+    // var cgvJSON = seqFile.toCGViewJSON({config: config});
+
+    // Load the JSON into CGView.js
+    cgv.io.loadJSON(builder.toJSON());
+
+    // Draw the map
+    cgv.draw()
+  };
+  request.send();
+}
+
 
 ////////////////////////////////////////////////////////////////////////////////
 // Add tables to example

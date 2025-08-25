@@ -21,6 +21,32 @@ const banner_license = `/*!
 
  const banner_cgview = '// +-------------------------------------------------------+\n// |             _____________    ___                      |\n// |            / ____/ ____/ |  / (_)__ _      __         |\n// |           / /   / / __ | | / / / _ \\ | /| / /         |\n// |          / /___/ /_/ / | |/ / /  __/ |/ |/ /          |\n// |          \\____/\\____/  |___/_/\\___/|__/|__/           |\n// +-------------------------------------------------------+\n'
 
+ const cgv_deprecation_warning = `
+(function () {
+  var g = typeof globalThis !== 'undefined' ? globalThis : window;
+  if (!g.CGV) {
+    let warned = false;
+    Object.defineProperty(g, 'CGV', {
+      configurable: true,
+      get() {
+        if (!warned && typeof console !== 'undefined' && console.warn) {
+          console.warn('[CGView] "CGV" is deprecated and will be removed in v1.8. Use "CGView" instead.');
+          warned = true;
+        }
+        return g.CGView;
+      },
+      set(v) {
+        if (!warned && console && console.warn) {
+          console.warn('[CGView] Setting "window.CGV" is deprecated. Use "window.CGView".');
+          warned = true;
+        }
+        g.CGView = v;
+      }
+    });
+  }
+})();
+`;
+
 export default {
   input: 'src/index.js',
   watch: true,
@@ -29,17 +55,19 @@ export default {
     {
       file: 'docs/dist/cgview.js',
       format: 'iife',
-      name: 'CGV',
+      name: 'CGView',
       globals: {d3: 'd3', svgcanvas: 'svgcanvas'},
       banner: banner_cgview,
+      footer: cgv_deprecation_warning,
     },
     {
       file: 'docs/dist/cgview.min.js',
       format: 'iife',
-      name: 'CGV',
+      name: 'CGView',
       globals: {d3: 'd3', svgcanvas: 'svgcanvas'},
       plugins: [terser()],
       banner: banner_license,
+      footer: cgv_deprecation_warning,
     },
     {
       file: 'docs/dist/cgview.esm.min.js',
