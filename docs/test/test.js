@@ -2,6 +2,10 @@
 // Settings
 ///////////////////////////////////////////////////////////////////////////////
 
+// 'maps' is from maps.js
+console.log('Maps (from map.js):', maps)
+
+// Deafult Map
 const defaultMap = 'small';
 // const defaultMap = 'locations';
 // const defaultMap = 'blast';
@@ -14,10 +18,11 @@ const defaultMap = 'small';
 // const defaultMap = 'version_0_1';
 // const defaultMap = 'small_noplots';
 // const defaultMap = 'test';
+
+// The non-full size dimensions of the map
+// Performanace tests should be done at this size for consistency
 const defaultSize = 600; // 6oo is the size to run perfance test at
-// 'maps' is from maps.js
-// console.log('Maps (from map.js):')
-// console.log(maps)
+
 
 // Add CGView
 cgv = new CGV.Viewer('#my-viewer', {
@@ -26,11 +31,11 @@ cgv = new CGV.Viewer('#my-viewer', {
   SVGContext: svgcanvas.Context,
   // debug: {sections: ['time', 'position']}
 });
-cgv.annotation.labelPlacement = 'angled';
 loadMapFromID(defaultMap);
 // setTimeout(function() {
 //   moveFeatures(-15050);
 // }, 500);
+cgv.annotation.labelPlacement = 'angled';
 
 
 

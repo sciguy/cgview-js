@@ -14,6 +14,7 @@ docs/test/maps/test_wrapping_features.json
 docs/test/maps/phastest.json
 docs/test/maps/blast_big.json
 docs/test/maps/full_circle*.json
+docs/test/TEMP
 
 # Temp
 src/LabelPlacementTemp.js
