@@ -1,0 +1,69 @@
+#logo-container {
+ display: flex;
+ align-items: center;
+ gap: 10px;
+}
+
+.logo-wrap {
+  position: relative;
+  display: inline-block;
+}
+
+#app-logo img {
+  height: 36px;
+  width: 36px;
+}
+
+#cg-apps img {
+  height: 24px;
+  width: 24px;
+}
+
+/* Panel base state: hidden via max-height for smooth slide */
+#cg-apps {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 220px;            /* tweak as you like */
+  overflow: hidden;
+  max-height: 0;
+  transition: max-height 200ms ease, opacity 200ms ease;
+  /* background: #fff; */
+  background: #f5f5f5;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+  padding: 0;              /* padding handled by row styling below */
+  z-index: 1000;
+  opacity: 0;
+}
+
+/* Open state: set a max-height big enough to fit contents */
+#cg-apps.open {
+  max-height: 160px; /* should exceed the content height for the slide */
+  opacity: 1;
+}
+
+/* Row links */
+#cg-apps a[role="menuitem"] {
+  display: block;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  padding: 10px 12px;
+  text-decoration: none;
+  color: #111827;
+  font-weight: 500;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+#cg-apps a[role="menuitem"]:last-child {
+  border-bottom: 0;
+}
+
+#cg-apps a[role="menuitem"]:hover,
+#cg-apps a[role="menuitem"]:focus {
+  /* background: #f3f4f6; */
+  background: #bfe4ec;
+  outline: none;
+}

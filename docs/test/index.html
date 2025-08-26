@@ -25,7 +25,9 @@
 
     <link rel="stylesheet" href="../dist/cgview.css" />
     <link rel="stylesheet" href="../styles/controls.css" />
-    <!-- CGView Daya -->
+
+    <!-- CGParse -->
+    <script src='../scripts/CGParse.min.js'></script>
 
     <!-- Dev Page -->
     <script src='performance.js'></script>
@@ -90,7 +92,7 @@
 						<button id='download-svg' type="button" class="btn btn-sm btn-outline-success">Download SVG</button>
 					</div>
 				</div>
-      <div class='test-options'>
+      <div class='test-sidebar'>
         <div class='map-select-section'>
           <div class='test-heading'>Choose Map</div>
           <select id='map-select' class='form-select form-select-sm'></select>
@@ -99,7 +101,40 @@
           <input type='file' id='file-input' />
         </div>
         <hr />
-        <div class='performance-section'>
+        <div class='section-options'>
+          <div class='test-heading'>Options</div>
+          <div class='options-container'>
+            <div>
+              <div><input id='option-full-size' type='checkbox' /> Full Size</div>
+              <div><input id='option-debug' type='checkbox' /> Debug Print</div>
+              <div><input id='test-draw-range' type='checkbox' /> Test Draw Range</div>
+            </div>
+            <div>
+              <div><input id='option-show-labels' type='checkbox' /> Labels Testing</div>
+              <div><input id='option-show-performance' type='checkbox' /> Performance Testing</div>
+              <div><input id='option-show-svg' type='checkbox' /> SVG Testing</div>
+            </div>
+          </div>
+
+          <div id='open-proksee-div'><a href="#" id='open-in-proksee-btn'>Open in Proksee</a></div> 
+
+        <hr />
+        </div>
+        <div class='section-labels'>
+          <div class='test-heading'>Label Testing</div>
+          <div class='label-row'>
+            <button id='labels-default' type="button" class="btn btn-sm btn-outline-secondary">Default</button>
+            <button id='labels-angled' type="button" class="btn btn-sm btn-outline-secondary">Angled</button>
+            <span>Font Size: <input id='labels-font-size' type='number' /></span>
+          </div>
+          <div class='label-row'>
+            <button id='labels-move-back' type="button" class="btn btn-sm btn-outline-secondary">Back</button>
+            <button id='labels-move-forward' type="button" class="btn btn-sm btn-outline-secondary">Forward</button>
+            <span><input id='labels-move-distance' type='number' /> bp</span>
+          </div>
+          <hr />
+        </div>
+        <div class='section-performance'>
           <div class='test-heading'>Performanace Test</div>
           <div class='my-row'>
             <div>
@@ -115,26 +150,34 @@
             <button id='performance-clear' type="button" class="btn btn-sm btn-outline-secondary">Clear</button>
           </div>
           <div id='results' data-placeholder='Results...'></div>
+          <hr />
         </div>
-        <hr />
-        <div class='more-options'>
-          <div class='test-heading'>Options</div>
-          <div><input id='test-draw-range' type='checkbox' /> Test Draw Range</div>
-          <div><input id='option-full-size' type='checkbox' /> Full Size</div>
-          <div><input id='option-debug' type='checkbox' /> Debug Print</div>
-          <div><input id='option-svg' type='checkbox' /> SVG Testing</div>
 
-          <hr />
-          <div class='test-heading'>Labels</div>
-          <button id='labels-move-back' type="button" class="btn btn-sm btn-outline-secondary">Back</button>
-          <button id='labels-move-forward' type="button" class="btn btn-sm btn-outline-secondary">Forward</button>
-          <span><input id='labels-move-distance' type='number' /> bp</span>
-          <div>Font Size: <input id='labels-font-size' type='number' /></div>
-          <button id='labels-default' type="button" class="btn btn-sm btn-outline-secondary">Default</button>
-          <button id='labels-angled' type="button" class="btn btn-sm btn-outline-secondary">Angled</button>
-          <hr />
-          <button id='open-in-proksee-btn'>Open in Proksee</button>
+        <div class='sidebar-help-logs'>
+          <!-- Navigation links -->
+          <div class="sidebar-nav-btns">
+            <a href="#" id="show-help" class='btn-selected'>Help</a>
+            <span class='btn-separator muted'>•</span>
+            <a href="#" id="show-log">Log</a>
+          </div>
+          <!-- Log section -->
+          <div class="sidebar-log"  style="display: none;">
+            <!-- <div class='section-heading'>Log</div> -->
+            <div id="log-text">A log is only shown when using '<em>Open a file...'</em></div>
+          </div>
+          <!-- Help section -->
+          <div class="sidebar-help">
+            <!-- <div class='section-heading muted'>help</div> -->
+            <ul>
+              <li>The Test Page is a convienent place to experiment with CGView maps and features.</li>
+              <li>In addition to the built-in maps, , you can upload your own CGView JSON file or a sequence file (e.g. GenBank, EMBL, FASTA). Sequence files are converted to CGView JSON with <a href='https://parse.cgview.ca'>CGParse.js</a>.</li>
+              <li>The viewer object for this map can be accessed in your browser JavaScript console as <em>cgv</em>.</li>
+              <li>Performance tests render the current map at different zoom levels and record both fast and full draw times. This can help evaluate the performance of new features. For meaningful comparisons, tests should be run under the same conditions (e.g. computer, browser, map size).</li>
+              <li>Clicking <strong>Open in Proksee</strong> sends the CGView JSON to <a href='https://proksee.ca'>Proksee</a> to start a new project.</li>
+            </ul>
+          </div>
         </div>
+
       </div>
     </main>
 

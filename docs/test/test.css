@@ -12,7 +12,7 @@ main {
   flex-wrap: nowrap;
 }
 
-.test-options {
+.test-sidebar {
   position: absolute;
   right: 10px;
   top: 60px;
@@ -20,6 +20,8 @@ main {
   border: solid #DDD 1px;
   width: 400px;
   bottom: 40px;
+  display: flex;
+  flex-direction: column;
 }
 
 .dev-title {
@@ -51,13 +53,37 @@ hr {
   margin-bottom: 6px;
 }
 
-.performance-section {
-  margin-top: 5px;
+#file-section {
+  margin: 10px 0;
+  font-size: 12px;
 }
+
+/* .section-performance {
+  margin-top: 5px;
+} */
 
 .my-row {
   display: flex;
   justify-content: space-between;
+}
+
+.options-container {
+  font-size: 14px;
+  display: flex;
+  justify-content: space-between;
+  max-height: 200px;
+  overflow: auto;
+}
+
+#open-proksee-div {
+  text-align: center;
+  margin-top: 7px;
+}
+#open-in-proksee-btn {
+  font-size: 14px;
+  border: 0.5px solid #888;
+  border-radius: 4px;
+  padding: 2px 6px;
 }
 
 #results {
@@ -70,10 +96,6 @@ hr {
 #results:empty:before {
   content:attr(data-placeholder);
   color:gray
-}
-
-.more-options {
-  margin-top: 10px;
 }
 
 .performance-section .btn {
@@ -121,4 +143,75 @@ hr {
   border: 1px lightgrey solid;
   overflow: hidden;
 	margin-bottom: 5px;
+}
+
+/* .section-labels .btn {
+  height: 24px;
+} */
+
+.section-labels .btn {
+  width: 72px;
+}
+.section-labels div.label-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+.section-labels #labels-font-size {
+  width: 80px;
+}
+.section-labels #labels-move-distance {
+  width: 160px;
+}
+
+
+/* Sidebar Help/Logs */
+.sidebar-help-logs {
+  overflow: auto;
+}
+.sidebar-help {
+  overflow: auto;
+}
+.sidebar-nav-btns {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  cursor: pointer;
+  text-decoration: none;
+}
+.sidebar-nav-btns .btn-separator {
+  padding: 0 5px;
+}
+.sidebar-nav-btns .btn-selected {
+  color: black;
+  font-size: 18px;
+  cursor: default;
+}
+.sidebar-nav-btns .btn-selected:hover {
+  text-decoration: none;
+}
+.sidebar-log {
+  overflow: auto;
+}
+#log-text {
+  font-family: monospace;
+  font-size: 10px;
+  color: gray;
+  margin: 10px;
+  /* white-space: break-spaces; */
+  white-space: pre;
+  line-height: 1.5;;
+}
+.sidebar-help ul {
+  padding-left: 10px;
+  margin-left: 0;
+  list-style-position: outside;
+}
+.sidebar-help li {
+  font-family: monospace;
+  font-size: 10px;
+  color: gray;
+  margin: 5px;
 }
