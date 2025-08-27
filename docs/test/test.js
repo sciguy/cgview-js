@@ -10,17 +10,15 @@ console.log('Available Maps (from map.js):', maps)
 // const defaultMap = '';     // Empty
 // const defaultMap = 'file'; // File Choose
 const defaultMap = 'small';
+// const defaultMap = 'small_noplots';
+// const defaultMap = 'medium';
 // const defaultMap = 'locations';
 // const defaultMap = 'blast';
-// const defaultMap = 'full_circle_2mbp';
-// const defaultMap = 'linear_1_6';
 // const defaultMap = 'labels';
 // const defaultMap = 'labels3';
 // const defaultMap = 'pcET30c';
 // const defaultMap = 'pcDNA3';
-// const defaultMap = 'version_0_1';
-// const defaultMap = 'small_noplots';
-// const defaultMap = 'test';
+
 
 // Default Checkbox Options
 const fullSize = true;
@@ -83,7 +81,7 @@ loadMapFromID(defaultMap);
 // Using global variable 'maps' from maps.js
 const mapSelect = document.getElementById('map-select');
 const groups = { labels: 'Labels', test: 'Tests', basic: 'Basic', large: 'Large', contigs: 'Contigs', version: 'Versions', bad: 'Bad' };
-const order = ['basic', 'labels', 'test', 'contigs', 'large', 'version', 'bad'];
+const order = ['basic', 'contigs', 'large', 'test', 'labels', 'version', 'bad'];
 const optionsByGroup = {};
 for (const inputKey of Object.keys(maps)) {
   const input = maps[inputKey];

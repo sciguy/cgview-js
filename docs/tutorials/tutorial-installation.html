@@ -16,27 +16,21 @@
     <link href="../styles/bootstrap.min.css" rel="stylesheet">
 
     <link rel="stylesheet" href="../styles/prism.css" />
-    <link rel="stylesheet" href="../styles/tables.css" />
+    <!-- <link rel="stylesheet" href="../styles/tables.css" /> -->
     <link rel="stylesheet" href="../styles/general.css" />
     <script src='../scripts/marked.min.js'></script>
     <script src='../scripts/general.js'></script>
-
-    <!-- Load CGViewBuild JSON Config as a global variable: exampleConfig -->
-    <script src='../data/config/example.config.js'></script>
 
     <!-- D3 -->
     <script src="../scripts/d3.min.js"></script>
     <!-- CGView -->
     <script src='../dist/cgview.min.js'></script>
     <link rel="stylesheet" href="../dist/cgview.css" />
-    <link rel="stylesheet" href="../styles/controls.css" />
-    <!-- CGParse -->
-    <script src='../scripts/CGParse.min.js'></script>
 
     <!-- Plausible Analytics -->
     <script defer data-domain="js.cgview.ca" src="https://stats.stothardresearch.ca/js/plausible.outbound-links.js"></script>
 
-    <title>CGView.js - Examples</title>
+    <title>CGView.js - Tutorials</title>
   </head>
   <body>
     <!-- Nav Bar -->
@@ -67,8 +61,8 @@
         </button>
         <div class="collapse navbar-collapse" id="navbarNavDropdown">
           <div class="navbar-nav">
-            <a class="nav-link active" aria-current="page"  href="index.html">Examples</a>
-            <a class="nav-link" href="../tutorials/index.html">Tutorials</a>
+            <a class="nav-link" href="../examples/index.html">Examples</a>
+            <a class="nav-link active" aria-current="page" href="index.html">Tutorials</a>
             <a class="nav-link" href="../docs.html">Docs</a>
             <a class="nav-link" href="../api/index.html">API</a>
             <a class="nav-link" href="../json.html">JSON</a>
@@ -83,55 +77,126 @@
     <nav id='sidebar-nav'>
       <ul id='gumshoe-list' class='sidebar-list'>
         <li><a class="side-link nav-index" href="index.html">Index</a></li>
-        <p>Examples</p>
-        <li><a class="side-link indent" href="example-plasmid.html">Plasmid<span class='subtitle'>E. coli pB171_90</span></a></li>
-        <li><a class="side-link indent" href="example-mito.html">Mitochondiron <span class='subtitle'>R. americana</span></a></li>
-        <li class='active'><a class="side-link indent" href="example-small.html">Small Bacteria <span class='subtitle'>M. gentalia</span></a></li>
-        <li><a class="side-link indent" href="example-average.html">Average Bacteria <span class='subtitle'>C. botulinum</span></a></li>
-        <li><a class="side-link indent" href="example-contigs.html">Contigs <span class='subtitle'>E. coli PA2</span></a></li>
-        <li><a class="side-link indent" href="example-large.html">Large Bacteria <span class='subtitle'>L. guizhouensis</span></a></li>
+        <p>Tutorials</p>
+        <li class='active'><a class="side-link indent" href="tutorial-installation.html">Installation</a></li>
+        <li><a class="side-link indent" href="tutorial-basic.html">Basic Map</a></li>
+        <li><a class="side-link indent" href="tutorial-sequence.html">Sequence Map</a></li>
+        <li><a class="side-link indent" href="tutorial-json.html">JSON Map</a></li>
+        <li><a class="side-link indent" href="tutorial-cgparse.html">CGParse</a></li>
+        <li><a class="side-link indent" href="tutorial-builder.html">CGViewBuilder</a></li>
+        <li><a class="side-link indent" href="tutorial-controls.html">Map Controls</a></li>
+        <p>Details</p>
+        <li><a class="side-link indent" href="details-json-files.html">JSON Files</a></li>
+        <li><a class="side-link indent" href="details-meta-data.html">Meta & Qualifiers</a></li>
+        <li><a class="side-link indent" href="details-map-scales.html">Map Scales</a></li>
       </ul>
     </nav>
 
     <main>
       <!-- Processed Markdown will be inserted here -->
       <div id='markdown-out'></div>
+
+      <h1 id="complete-example">Complete Example (using jsDelivr)</h1>
+      <p>This is a complete example using jsDelivr CDN showing the full HTML and the resulting map.</p>
+      <p>
+        View the other tutorials for <a href="tutorial-basic.html">adding features</a>,
+        <a href="tutorial-sequence.html">GC Content/Skew plots</a>, <a href="tutorial-cgparse.html">parsing GenBank files</a>
+        and adding <a href="tutorial-controls.html">custom controls</a>.
+      </p>
+      <h3>HTML (<a href='example.html'>Download</a>)</h3>
+      <pre><code id="example-html" class="language-html"> ...your HTML here... </code></pre>
+      <h3>Map using above HTML (as iFrame) [view in separate <a href='example.html'>page</a>]</h3>
+      <iframe src="example.html"
+        style="width: 425px; height: 425px; border: 1px solid #ccc; border-radius: 8px;">
+      </iframe>
     </main>
 
     <div id='markdown-in' style='display:none;'>
 
-# Small Bacterial Genome
+---
+---
+# CONFIRM ALL METHODS!!!!!!!!!
+- SVG example?
+---
 
-<div id='my-viewer'></div>
-<div class='cgv-controls'>
-  <div class='cgv-btn' id='btn-reset' title='Reset Map'></div>
-  <div class='cgv-btn' id='btn-zoom-in' title='Zoom In'></div>
-  <div class='cgv-btn' id='btn-zoom-out' title='Zoom Out'></div>
-  <div class='cgv-btn' id='btn-move-left' title='Move Left/Counterclockwise'></div>
-  <div class='cgv-btn' id='btn-move-right' title='Move Right/Clockwise'></div>
-  <div class='cgv-btn' id='btn-toggle-format' title='Toggle Linear/Circular Format'></div>
-  <div class='cgv-btn' id='btn-invert-colors' title='Invert Map Colors'></div>
-  <div class='cgv-btn' id='btn-download' title='Download Map PNG'></div>
-  <div class='cgv-btn' id='btn-toggle-labels' title='Toggle Labels'></div>
-  <div class='cgv-btn' id='btn-animate' title='Start/Stop Animation'></div>
-</div>
 
-<div id='example-tables'></div>
+# Dependencies
 
-<div class='viewer-help'>
-The map above can be moved around by dragging and zoomed by using your
-touchpad/mouse scroll. The legend colors can be changed by clicking on the
-swatches. The viewer object for this map can be accessed in your browser
-JavaScript console as <em>cgv</em>.  Note, that the controls below the map are
-custom controls created in the tutorial <a href='tutorials/tutorial-controls.html'>Map
-Controls</a>.
-</div>
+- CGView.js has only one required dependency: [D3](http://d3js.org) (Version 6 or 7).
+
+- When using CGView via script tags, D3 will have to be sourced first.
+
+## Optional dependency
+
+-	svgcanvas [[GitHub](https://github.com/zenozeng/svgcanvas), [npm](https://www.npmjs.com/package/svgcanvas)]  - required only if exporting SVG maps (see [SVG Support](#svg-support) below).
+
+# Installation
+
+CGView.js can be added to your project either via npm/yarn or through a CDN (jsDelivr).
+
+## Option 1: Install via [npm](https://npmjs.com) or [yarn](https://yarnpkg.com)
+
+```bash
+# Using npm
+npm install cgview
+
+# Using yarn
+yarn add cgview
+```
+
+Then import it into your project:
+```js
+import * as CGView from 'cgview';
+import 'cgview/cgview.css';
+```
+
+Note: When using npm/yarn you do not need to import D3 separately - CGView.js manages this internally.
+
+## Option 2: Install via jsDelivr CDN
+
+Add the following to your HTML:
+
+```html
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cgview/dist/cgview.css" />
+<script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+<script src="https://cdn.jsdelivr.net/npm/cgview"></script>
+```
+This will expose `CGView` as a global variable. See a complete example [below](#complete-example).
+
+# SVG Support
+
+## Installation
+
+Install via jsDelivr CDN (could also be installed via npm/yarn):
+
+```html
+<script src="https://cdn.jsdelivr.net/npm/svgcanvas@2.6.0/dist/svgcanvas.min.js"></script>
+<!-- This will expose `svgcanvas` as a global variable -->
+```
+
+## Add the SVG context to CGView
+
+```js
+// Initialize CGView
+cgv = new CGView.Viewer('#my-viewer', {
+  SVGContext: svgcanvas.Context,
+});
+```
+
+## Export SVG
+
+```js
+// Now you can export the currently drawn map as an SVG file
+cgv.io.downloadSVG('cgview.svg');
+```
+
+
+
 
     </div> <!-- End of markdown in -->
 
     <script>
-      tutorialMarkdown(marked);
-      addExampleTables('NC_000908', 'Mycoplasma genitalium', '580,076');
+      tutorialMarkdown(marked, false);
     </script>
 
     <script src="../scripts/prism.js"></script>
@@ -139,11 +204,16 @@ Controls</a>.
     <!-- Bootstrap JavaScript -->
     <script src="../scripts/bootstrap.min.js"></script>
 
+    <!-- Fetch the example HTML file to see a complete working example. -->
     <script>
-      // createViewerAndLoadJSON('../data/json/NC_000908.json');
-      createViewerAndLoadGenBank('../data/seq/NC_000908.gbk', exampleConfig);
+      fetch('example.html')
+        .then(r => r.text())
+        .then(html => {
+           const el = document.getElementById('example-html')
+           el.textContent = html;
+           Prism.highlightElement(el); 
+        });
     </script>
-    <script src='../scripts/controls.js'></script>
 
   </body>
 </html>

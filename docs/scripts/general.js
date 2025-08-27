@@ -36,7 +36,10 @@ function tutorialMarkdown(marked, addFinalCode) {
       code = code.replaceAll('&lt;', '<');
       code = code.replaceAll('&gt;', '>');
       // console.log(code);
-      eval( code );
+      // Delay evaulation, to make sure the page content is loaded quickly
+      setTimeout( () => {
+        eval( code );
+      }, 100);
       var textNode = document.createTextNode( code + "\n" );
       finalCode.appendChild(textNode);
     });

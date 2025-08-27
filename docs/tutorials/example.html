@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>CGView.js - Installation Test</title>
+
+    <!-- CGView stylesheet -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cgview/dist/cgview.css" />
+
+    <!-- Dependencies (order matters): D3 first, then CGView -->
+    <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+    <script src="https://cdn.jsdelivr.net/npm/cgview/dist/cgview.min.js"></script>
+  </head>
+  <body>
+
+    <!-- Div to contain the viewer -->
+    <div id="my-viewer"></div>
+
+    <script>
+      // Wait until DOM is ready
+      window.addEventListener('DOMContentLoaded', () => {
+        // The CGView variable is availalble globally
+        // FIXME: this needs to become CGView
+        const cgv = new CGV.Viewer('#my-viewer', {height: 400, width: 400});
+        cgv.addFeatures([{ start: 120, stop: 600, name: 'Feature 1', legend: 'Features', source: 'example' }]);
+        cgv.addTracks([{ name: 'Track 1', dataKeys: 'example' }]);
+        cgv.draw();
+      });
+    </script>
+  </body>
+</html>

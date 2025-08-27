@@ -11,7 +11,13 @@
   - Testing with CaptionTrackList plugin
 - Added option to invertColors (`excludeLegends`) to exclude legend item swatch colors
 - Transferred repo to @sciguy [2025-06-03]
-- add highlightRegion to contigs
+- Add highlightRegion to contigs
+- Updating js.cgview.ca
+  - Add CGParse.js tutorial
+  - Add installation tutorial
+  - Update examples to use CGParse.js
+  - Add nav link to the test page
+- `CGV` as a global variable is deprecated, use `CGView` instead
 
 
 ## 1.7.1 - 2024-10-22

@@ -30,7 +30,7 @@ const banner_license = `/*!
       configurable: true,
       get() {
         if (!warned && typeof console !== 'undefined' && console.warn) {
-          console.warn('[CGView] "CGV" is deprecated and will be removed in v1.8. Use "CGView" instead.');
+          console.warn('[CGView] "CGV" is deprecated and will be removed in v1.9. Use "CGView" instead.');
           warned = true;
         }
         return g.CGView;

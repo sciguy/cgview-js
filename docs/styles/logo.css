@@ -1,3 +1,12 @@
+.logo-fallback {
+  height: 36px;
+  width: 36px;
+  margin-right: 10px;
+  margin-top: -5px;
+  margin-bottom: -5px;
+  vertical-align: text-bottom;
+}
+
 #logo-container {
  display: flex;
  align-items: center;

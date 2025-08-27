@@ -8,6 +8,10 @@
     <!-- Icon -->
     <link rel="shortcut icon" type="image/png" href="images/logo-tab.png">
 
+    <!-- CG Apps Logo -->
+    <script src='scripts/logo.js'></script>
+    <link href="styles/logo.css" rel="stylesheet">
+
     <!-- Bootstrap CSS -->
     <link href="styles/bootstrap.min.css" rel="stylesheet">
 
@@ -27,10 +31,6 @@
     <!-- CGView Data -->
     <script src='data/js/NZ_CP010546.js'></script>
 
-    <!-- CG Apps Logo -->
-    <script src='scripts/logo.js'></script>
-    <link href="styles/logo.css" rel="stylesheet">
-
     <!-- Plausible Analytics -->
     <script defer data-domain="js.cgview.ca" src="https://stats.stothardresearch.ca/js/plausible.outbound-links.js"></script>
 
@@ -48,15 +48,13 @@
         <div id="logo-container">
           <div class="logo-wrap">
             <a href="/" id="app-logo" aria-haspopup="true" aria-expanded="false">
-              <img src="images/logo.png" alt="CG Apps" />
+              <img src="images/cgview-logo.png" alt="CG Apps" />
             </a>
-
             <div id="cg-apps" role="menu" aria-label="CG Apps">
-              <a role="menuitem" href="https://js.cgview.ca"><img src='images/logo.png' />CGView.js</a>
+              <a role="menuitem" href="https://js.cgview.ca"><img src='images/cgview-logo.png' />CGView.js</a>
               <a role="menuitem" href="https://parse.cgview.ca"><img src='images/cgparse-logo.png' />CGParse.js</a>
             </div>
           </div>
-
           <a class="navbar-brand" href="index.html">CGView.js</a>
         </div>
 
@@ -137,7 +135,7 @@ This software is an adaptation of the Java program [CGView](https://paulstothard
 
 - Easily generate features and plots directly form the sequence (e.g. ORFs, GC-content and GC-Skew)
 
-- Save high resolution PNG maps up to 16,000x16,000px
+- Save maps as high-resolution PNGs (up to 16,000×16,000px) or export as SVG for scalable graphics
 
 - Fully documented API for interacting with CGView.js maps
 
@@ -148,15 +146,15 @@ This software is an adaptation of the Java program [CGView](https://paulstothard
 
 - Install with npm:
 ```bash
-npm install --save cgview
+npm install cgview
 ```
 
-- See [Installation Instructions](docs.html#s.setup)
+- See [Installation Instructions](tutorials/tutorial-installation.html)
 for additional ways to setup CGView.js.
 
 - See the [tutorials](tutorials/index.html) for how to create maps.
 
-- See the [CGParse.js tutorial](tutorials/tutorial-cgparse.html) to build maps directly from GenBank files.
+- See the [CGParse.js tutorial](tutorials/tutorial-cgparse.html) to build maps directly from GenBank, EMBL or FASTA files.
 
 - See the [docs](docs.html) for how to programmatically interact with maps.
 

@@ -27,9 +27,9 @@ tool for visualizing and interacting with small genomes.
 ## Install
 
 ```bash
-npm install --save cgview
+npm install cgview
 ```
-See [Installation Instructions](http://js.cgview.ca/docs.html#section-setup)
+See [Installation Instructions](http://js.cgview.ca/tutorials/tutorial-installation.html)
 for additional ways to setup CGView.js.
 
 ## Usage
