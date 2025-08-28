@@ -96,7 +96,7 @@ function autoResizeMyViewer() {
 
 function createViewerAndLoadJSON(path) {
   // Create Viewer in default div: #my-viewer
-  const cgv = new CGV.Viewer('#my-viewer', {height: 500});
+  const cgv = new CGView.Viewer('#my-viewer', {height: 500});
 
   // Auto resize viewer
   autoResizeMyViewer();

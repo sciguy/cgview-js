@@ -154,6 +154,7 @@ function createViewerAndLoadGenBank(path, config={}) {
     // Parse a file
     var builder = new CGParse.CGViewBuilder(genbank, {
       config: config,
+      // Common settings for parsing bacterial genomes
       excludeFeatures: ['source', 'gene', 'exon'],
       excludeQualifiers: ['translation'],
     });

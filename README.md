@@ -37,7 +37,7 @@ for additional ways to setup CGView.js.
 ```js
 import CGV from from 'cgview';
 
-cgv = new CGV.Viewer('#my-viewer', {
+cgv = new CGView.Viewer('#my-viewer', {
   height: 500,
   width: 500,
   sequence: {

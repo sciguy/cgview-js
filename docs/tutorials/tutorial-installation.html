@@ -22,10 +22,10 @@
     <script src='../scripts/general.js'></script>
 
     <!-- D3 -->
-    <script src="../scripts/d3.min.js"></script>
+    <!-- <script src="../scripts/d3.min.js"></script> -->
     <!-- CGView -->
-    <script src='../dist/cgview.min.js'></script>
-    <link rel="stylesheet" href="../dist/cgview.css" />
+    <!-- <script src='../dist/cgview.min.js'></script> -->
+    <!-- <link rel="stylesheet" href="../dist/cgview.css" /> -->
 
     <!-- Plausible Analytics -->
     <script defer data-domain="js.cgview.ca" src="https://stats.stothardresearch.ca/js/plausible.outbound-links.js"></script>
@@ -82,8 +82,7 @@
         <li><a class="side-link indent" href="tutorial-basic.html">Basic Map</a></li>
         <li><a class="side-link indent" href="tutorial-sequence.html">Sequence Map</a></li>
         <li><a class="side-link indent" href="tutorial-json.html">JSON Map</a></li>
-        <li><a class="side-link indent" href="tutorial-cgparse.html">CGParse</a></li>
-        <li><a class="side-link indent" href="tutorial-builder.html">CGViewBuilder</a></li>
+        <li><a class="side-link indent" href="tutorial-cgparse.html">CGParse.js</a></li>
         <li><a class="side-link indent" href="tutorial-controls.html">Map Controls</a></li>
         <p>Details</p>
         <li><a class="side-link indent" href="details-json-files.html">JSON Files</a></li>
@@ -149,11 +148,18 @@ Note: When using npm/yarn you do not need to import D3 separately - CGView.js ma
 
 Add the following to your HTML:
 
-```html
+<pre class="prettyprint language-html" tabindex="0"><code class=" language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>link</span> <span class="token attr-name">rel</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>stylesheet<span class="token punctuation">"</span></span> <span class="token attr-name">href</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>https://cdn.jsdelivr.net/npm/cgview/dist/cgview.css<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>script</span> <span class="token attr-name">src</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>https://cdn.jsdelivr.net/npm/d3@7<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span><span class="token script"></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>script</span><span class="token punctuation">&gt;</span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>script</span> <span class="token attr-name">src</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>https://cdn.jsdelivr.net/npm/cgview<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span><span class="token script"></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>script</span><span class="token punctuation">&gt;</span></span>
+</code></pre>
+
+<!-- Copied above code from generated HTML using below: -->
+<!-- ```html
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cgview/dist/cgview.css" />
 <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
 <script src="https://cdn.jsdelivr.net/npm/cgview"></script>
-```
+``` -->
+
 This will expose `CGView` as a global variable. See a complete example [below](#complete-example).
 
 # SVG Support

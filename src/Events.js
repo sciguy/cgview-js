@@ -54,7 +54,7 @@ class Events {
    * Accessible via [Viewer.on()](Viewer.html#on).
    *
    * ```js
-   * cgv = new CGV.Viewer('#my-viewer');
+   * cgv = new CGView.Viewer('#my-viewer');
    * cgv.on('zoom-start', function() { console.log('Zooming has begun!') };
    *
    * // The event can be namespaced for easier removal later

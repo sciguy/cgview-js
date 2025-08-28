@@ -82,8 +82,7 @@
         <li><a class="side-link indent" href="tutorial-basic.html">Basic Map</a></li>
         <li><a class="side-link indent" href="tutorial-sequence.html">Sequence Map</a></li>
         <li><a class="side-link indent" href="tutorial-json.html">JSON Map</a></li>
-        <li><a class="side-link indent" href="tutorial-cgparse.html">CGParse</a></li>
-        <li><a class="side-link indent" href="tutorial-builder.html">CGViewBuilder</a></li>
+        <li><a class="side-link indent" href="tutorial-cgparse.html">CGParse.js</a></li>
         <li><a class="side-link indent" href="tutorial-controls.html">Map Controls</a></li>
         <p>Details</p>
         <li class='active'><a class="side-link indent" href="details-json-files.html">JSON Files</a></li>
@@ -123,7 +122,7 @@ fetch('http://example.com/cgview.json')
   .then(response => response.json())
   .then(json => {
     // Create Viewer
-    cgv = new CGV.Viewer('#my-viewer', {
+    cgv = new CGView.Viewer('#my-viewer', {
       height: 500,
       width: 500
     });
@@ -142,7 +141,7 @@ request.onload = function() {
   var response = request.response;
   const json = JSON.parse(response);
   // Create Viewer
-  cgv = new CGV.Viewer('#my-viewer', {
+  cgv = new CGView.Viewer('#my-viewer', {
     height: 500,
     width: 500
   });
@@ -194,7 +193,7 @@ Then load the file and add to CGView:
 
 <script>
   // Create Viewer
-  cgv = new CGV.Viewer('#my-viewer', {
+  cgv = new CGView.Viewer('#my-viewer', {
     height: 500,
     width: 500
   });

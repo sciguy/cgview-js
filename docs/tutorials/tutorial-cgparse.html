@@ -84,8 +84,7 @@
         <li><a class="side-link indent" href="tutorial-basic.html">Basic Map</a></li>
         <li><a class="side-link indent" href="tutorial-sequence.html">Sequence Map</a></li>
         <li><a class="side-link indent" href="tutorial-json.html">JSON Map</a></li>
-        <li class='active'><a class="side-link indent" href="tutorial-cgparse.html">CGParse</a></li>
-        <li><a class="side-link indent" href="tutorial-builder.html">CGViewBuilder</a></li>
+        <li class='active'><a class="side-link indent" href="tutorial-cgparse.html">CGParse.js</a></li>
         <li><a class="side-link indent" href="tutorial-controls.html">Map Controls</a></li>
         <p>Details</p>
         <li><a class="side-link indent" href="details-json-files.html">JSON Files</a></li>
@@ -121,9 +120,12 @@ This tutorial will create a map for the _Mycoplasma pneumoniae_ FH genome from a
 ### Install CGParse.js
 
 Add the CGParse.js library as as script tag in your HTML file:
-```html
+<pre class="prettyprint language-html" tabindex="0"><code class=" language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>script</span> <span class="token attr-name">src</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>https://cdn.jsdelivr.net/npm/cgview/dist/CGParse.min.js<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span><span class="token script"></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>script</span><span class="token punctuation">&gt;</span></span>
+</code></pre>
+
+<!-- ```html
 <script src="https://cdn.jsdelivr.net/npm/cgview/dist/CGParse.min.js"></script>
-```
+``` -->
 
 This will load the CGParse.js library as the global variable `CGParse`. For more installation options, see [CGParse.js on GitHub](https://github.com/sciguy/cgview-parse#installation).
 
@@ -131,7 +133,7 @@ This will load the CGParse.js library as the global variable `CGParse`. For more
 
 ```js
 // Frist create the viewer
-cgv = new CGV.Viewer('#my-viewer', {
+cgv = new CGView.Viewer('#my-viewer', {
   height: 500,
   width: 500,
 });
@@ -254,9 +256,7 @@ If you want play around with the viewer object, open your browser web inspector.
       autoResizeMyViewer();
     </script>
 
-    <!-- <script type="module" src="../scripts/tutorial-cgparse.js"></script> -->
-
-    <!-- <script src="../scripts/prism.js"></script> -->
+    <script src="../scripts/prism.js"></script>
 
     <!-- Bootstrap JavaScript -->
     <script src="../scripts/bootstrap.min.js"></script>
