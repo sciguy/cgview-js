@@ -276,6 +276,8 @@ class LayoutCircular {
       // console.log(centerOffset, fullLength, lineLength)
     }
     canvas.radiantLine('foreground', viewer.bpFloat, centerOffset, lineLength, centerLine.thickness, centerLine.color.rgbaString, 'butt', centerLine.dashes);
+    // Reset dashes
+    ctx.setLineDash([]);
   }
 
   //////////////////////////////////////////////////////////////////////////
