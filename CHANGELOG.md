@@ -12,12 +12,15 @@
 - Added option to invertColors (`excludeLegends`) to exclude legend item swatch colors
 - Transferred repo to @sciguy [2025-06-03]
 - Add highlightRegion to contigs
-- Updating js.cgview.ca
+- Update js.cgview.ca
   - Add CGParse.js tutorial
   - Add installation tutorial
+  - Add SVG instructions
   - Update examples to use CGParse.js
-  - Add nav link to the test page
+  - Add nav link to the test page (and update test page)
+  - Many other small updates
 - `CGV` as a global variable is deprecated, use `CGView` instead
+- Fix SVG image bug (images were dashed when centerLine was on)
 
 
 ## 1.7.1 - 2024-10-22

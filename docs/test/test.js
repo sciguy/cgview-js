@@ -49,6 +49,11 @@ cgv = new CGView.Viewer('#my-viewer', {
   // debug: {sections: ['time', 'position']}
 });
 
+// Initialize File Section: hide or show
+const fileSectionDisplayStyle = (defaultMap === 'file') ? 'block' : 'none';
+document.getElementById('file-section').style.display = fileSectionDisplayStyle;
+clearFileInput();
+
 // Initialize Options
 // Full Size
 const fullSizeCheckbox = document.getElementById('option-full-size');

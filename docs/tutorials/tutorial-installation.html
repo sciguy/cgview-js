@@ -97,7 +97,7 @@
       <div id='markdown-out'></div>
 
       <h1 id="complete-example">Complete Example (using jsDelivr)</h1>
-      <p>This is a complete example using jsDelivr CDN showing the full HTML and the resulting map.</p>
+      <p>This is a complete example (including SVG support) using jsDelivr CDN showing the full HTML and the resulting map.</p>
       <p>
         View the other tutorials for <a href="tutorial-basic.html">adding features</a>,
         <a href="tutorial-sequence.html">GC Content/Skew plots</a>, <a href="tutorial-cgparse.html">parsing GenBank files</a>
@@ -112,13 +112,6 @@
     </main>
 
     <div id='markdown-in' style='display:none;'>
-
----
----
-# CONFIRM ALL METHODS!!!!!!!!!
-- SVG example?
----
-
 
 # Dependencies
 
@@ -167,19 +160,23 @@ This will expose `CGView` as a global variable. See a complete example [below](#
 
 ## Installation
 
-Install via jsDelivr CDN (could also be installed via npm/yarn):
+To export maps as SVG files, the [svgcanvas](https://github.com/zenozeng/svgcanvas) library is required.
+You can install it with npm/yarn or load it directly from the jsDelivr CDN. Since no IIFE (global) build is provided, you must use the ESM build. In the browser, this requires importing it as a module:
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/svgcanvas@2.6.0/dist/svgcanvas.min.js"></script>
-<!-- This will expose `svgcanvas` as a global variable -->
+<script type="module">
+  import { Context } from 'https://cdn.jsdelivr.net/npm/svgcanvas@2.6.0/dist/svgcanvas.esm.js';
+</script>
 ```
 
 ## Add the SVG context to CGView
 
+Once Context has been imported from svgcanvas, you can pass it into CGView when creating a new viewer:
+
 ```js
-// Initialize CGView
+// Initialize CGView with the SVG context
 cgv = new CGView.Viewer('#my-viewer', {
-  SVGContext: svgcanvas.Context,
+  SVGContext: Context,
 });
 ```
 
@@ -189,8 +186,6 @@ cgv = new CGView.Viewer('#my-viewer', {
 // Now you can export the currently drawn map as an SVG file
 cgv.io.downloadSVG('cgview.svg');
 ```
-
-
 
 
     </div> <!-- End of markdown in -->

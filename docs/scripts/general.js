@@ -116,55 +116,6 @@ function createViewerAndLoadJSON(path) {
   request.send();
 }
 
-// var tempConfig = {
-//   "settings": {
-//     "backgroundColor": "white",
-//     "showShading": true,
-//     "arrowHeadLength": 0.3
-//   },
-//   "ruler": {
-//     "font": "sans-serif, plain, 10",
-//     "color": "black"
-//   },
-//   "legend": {
-//     "position": "top-right",
-//     "defaultFont": "sans-serif, plain, 14",
-//     "items": [
-//       {
-//         "name": "CDS",
-//         "swatchColor": "rgba(0,0,153,0.5)",
-//         "decoration": "arrow"
-//       },
-//       {
-//         "name": "tRNA",
-//         "swatchColor": "rgba(153,0,153,0.5)"
-//       },
-//       {
-//         "name": "rRNA",
-//         "swatchColor": "rgba(0,153,53,0.5)"
-//       }
-//     ]
-//   },
-//   "tracks": [
-//     {
-//       "name": "CG Content",
-//       "thicknessRatio": 2,
-//       "position": "inside",
-//       "dataType": "plot",
-//       "dataMethod": "sequence",
-//       "dataKeys": "gc-content"
-//     },
-//     {
-//       "name": "CG Skew",
-//       "thicknessRatio": 2,
-//       "position": "inside",
-//       "dataType": "plot",
-//       "dataMethod": "sequence",
-//       "dataKeys": "gc-skew"
-//     }
-//   ]
-// };
-
 function createViewerAndLoadGenBank(path, config={}) {
   // Create Viewer in default div: #my-viewer
   const cgv = new CGView.Viewer('#my-viewer', {height: 500});
@@ -182,16 +133,12 @@ function createViewerAndLoadGenBank(path, config={}) {
     // Get the GenBank file text
     var genbank = request.response;
 
-    // var config = tempConfig;
-
     // Parse a file
     var builder = new CGParse.CGViewBuilder(genbank, {
       config: config,
       excludeFeatures: ['source', 'gene', 'exon'],
       excludeQualifiers: ['translation'],
     });
-    // var seqFile = new CGParse.SequenceFile(genbank);
-    // var cgvJSON = seqFile.toCGViewJSON({config: config});
 
     // Load the JSON into CGView.js
     cgv.io.loadJSON(builder.toJSON());

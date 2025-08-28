@@ -17,15 +17,22 @@
     <!-- Div to contain the viewer -->
     <div id="my-viewer"></div>
 
-    <script>
+    <!-- Set the script tag type to 'module' in order to (optionally) import from svgcanvas -->
+    <script type="module">
+      // Import the Context object from svgcanvas to enable SVG export
+      import { Context } from 'https://cdn.jsdelivr.net/npm/svgcanvas@2.6.0/dist/svgcanvas.esm.js';
       // Wait until DOM is ready
       window.addEventListener('DOMContentLoaded', () => {
-        // The CGView variable is availalble globally
-        // FIXME: this needs to become CGView
-        const cgv = new CGV.Viewer('#my-viewer', {height: 400, width: 400});
+        // The CGV variable is availalble globally
+        const cgv = new CGV.Viewer('#my-viewer', {
+          height: 400, width: 400,
+          SVGContext: Context  // Pass in the SVG context to enable SVG export (Optional)
+        });
         cgv.addFeatures([{ start: 120, stop: 600, name: 'Feature 1', legend: 'Features', source: 'example' }]);
         cgv.addTracks([{ name: 'Track 1', dataKeys: 'example' }]);
         cgv.draw();
+        // Make the viewer available globally for testing
+        window.cgv = cgv;
       });
     </script>
   </body>
