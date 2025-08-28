@@ -9,7 +9,7 @@ console.log('Available Maps (from map.js):', maps)
 // Initial input file to load: '', 'file', or map from map.js (e.g. 'small')
 // const defaultMap = '';     // Empty
 // const defaultMap = 'file'; // File Choose
-const defaultMap = 'small';
+// const defaultMap = 'small';
 // const defaultMap = 'small_noplots';
 // const defaultMap = 'medium';
 // const defaultMap = 'locations';
@@ -18,10 +18,12 @@ const defaultMap = 'small';
 // const defaultMap = 'labels3';
 // const defaultMap = 'pcET30c';
 // const defaultMap = 'pcDNA3';
+const defaultMap = 'paper';
+
 
 
 // Default Checkbox Options
-const fullSize = true;
+const fullSize = false;
 const debug = false;
 const drawRange = false;
 const showPerformanceTest = false;
@@ -485,9 +487,10 @@ function parseFile(fileText) {
     // Load Sequence File using CGParse.js
     // const parseStartTime = new Date().getTime();
     const builder = new CGParse.CGViewBuilder(fileText, {
-        excludeFeatures: ['source', 'gene', 'exon'],
-        excludeQualifiers: ['translation'],
-        maxLogCount: 2
+      config: exampleConfig,
+      excludeFeatures: ['source', 'gene', 'exon'],
+      excludeQualifiers: ['translation'],
+      maxLogCount: 2
     });
     cgvJSON = builder.toJSON();
     window.parse.cgvJSON = cgvJSON; // For debugging

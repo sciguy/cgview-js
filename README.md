@@ -1,6 +1,3 @@
-> [!Note]
-> This project was originally hosted under [stothard-group/cgview-js](https://github.com/stothard-group/cgview-js) and has been transferred with permission to [sciguy/cgview-js](https://github.com/sciguy/cgview-js).
-
 # [CGView.js](http://js.cgview.ca)
 
 [![Pages Status](https://github.com/sciguy/cgview-js/actions/workflows/pages.yml/badge.svg)](https://github.com/sciguy/cgview-js/actions/workflows/pages.yml)
@@ -35,7 +32,7 @@ for additional ways to setup CGView.js.
 ## Usage
 
 ```js
-import CGV from from 'cgview';
+import * as CGView from 'cgview';
 
 cgv = new CGView.Viewer('#my-viewer', {
   height: 500,

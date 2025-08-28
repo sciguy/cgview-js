@@ -57,6 +57,11 @@ maps = {
     type: 'test',
     url: 'maps/test_single_base_features.json',
   },
+  paper: {
+    name: 'Paper Figure (E. coli PA2)',
+    type: 'test',
+    url: 'maps/e.coli.pa2.paper.figure.json',
+  },
 
   // LABELS
   labels: {

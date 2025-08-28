@@ -205,15 +205,15 @@ Values above the baseline are positive and values below the baseline are negativ
 
 ```js
 
-var plot = new CGV.Plot(cgv, {
+var plot = new CGView.Plot(cgv, {
   positions: [50, 200, 400, 500, 600, 800],
   scores: [0.4, 0.75, 0.25, 0.5, 0.6, 0.1],
   baseline: 0.5,
   source: 'genome-plot',
   // Values above the baseline wil be blue
-  legendPositive: new CGV.LegendItem(cgv.legend, {swatchColor: 'blue', name: 'Plot +'}),
+  legendPositive: new CGView.LegendItem(cgv.legend, {swatchColor: 'blue', name: 'Plot +'}),
   // Values below will be red
-  legendNegative: new CGV.LegendItem(cgv.legend, {swatchColor: 'red', name: 'Plot -'})
+  legendNegative: new CGView.LegendItem(cgv.legend, {swatchColor: 'red', name: 'Plot -'})
 });
 ```
 

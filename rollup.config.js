@@ -59,6 +59,7 @@ export default {
       globals: {d3: 'd3', svgcanvas: 'svgcanvas'},
       banner: banner_cgview,
       footer: cgv_deprecation_warning,
+      sourcemap: true,
     },
     {
       file: 'docs/dist/cgview.min.js',
@@ -68,6 +69,7 @@ export default {
       plugins: [terser()],
       banner: banner_license,
       footer: cgv_deprecation_warning,
+      sourcemap: true,
     },
     {
       file: 'docs/dist/cgview.esm.min.js',
@@ -75,19 +77,15 @@ export default {
       globals: {d3: 'd3', svgcanvas: 'svgcanvas'},
       plugins: [terser()],
       banner: banner_license,
+      sourcemap: true,
     },
     {
       file: 'docs/dist/cgview.esm.js',
       globals: {d3: 'd3', svgcanvas: 'svgcanvas'},
       format: 'es',
       banner: banner_cgview,
+      sourcemap: true,
     },
-    // {
-    //   file: 'dist/cgview.umd.min.js',
-    //   format: 'umd',
-    //   name: 'CGV',
-    //   plugins: [terser()]
-    // }
   ],
   plugins: [ json() ]
 };

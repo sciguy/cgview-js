@@ -118,16 +118,6 @@ Example                              | Species                  | Size (bp) | De
 All the examples were created with
 [CGParse.js](https://github.com/sciguy/cgview-parse) (see the
 [CGParse.js tutorial](../tutorials/tutorial-cgparse.html) for details).
-Each example contains links to the GenBank and config file used to generate the
-map as well as the resulting JSON file.
-
-```js
-// Example code to create a map from JSON
-// TODO...
-// - Create JSON
-// - Downloaded JSON for each example
-// - Say you could parse everytime, but for speed, we just load the JSON
-```
 
 Each example is created using the following function.
 Where `path` is the path to the GenBank file and config is a JSON object
@@ -176,7 +166,7 @@ function createViewerAndLoadGenBank(path, config={}) {
       // Add the example config to the page (before converting markdown)
       const jsonSpan = document.querySelector('#json-config');
       jsonSpan.innerHTML = JSON.stringify(exampleConfig, null, 2);
-      console.log('marked', marked)
+      // console.log('marked', marked)
 
       tutorialMarkdown(marked);
     </script>

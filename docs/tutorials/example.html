@@ -24,7 +24,9 @@
       // Wait until DOM is ready
       window.addEventListener('DOMContentLoaded', () => {
         // The CGV variable is availalble globally
-        const cgv = new CGView.Viewer('#my-viewer', {
+        const cgv = new CGV.Viewer('#my-viewer', {
+        // The CGView variable is availalble globally
+        // const cgv = new CGView.Viewer('#my-viewer', {
           height: 400, width: 400,
           SVGContext: Context  // Pass in the SVG context to enable SVG export (Optional)
         });

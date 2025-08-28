@@ -159,33 +159,36 @@ function addExampleTables(id, name, size, link) {
   // Source Table
   const sourceTable = `
     <table>
-      <tr><th>Species</th><th>Size (bp)</th><th>NCBI Link</th></tr>
+      <tr><th>Species</th><th>Size (bp)</th><th>GenBank</th><th>NCBI Link</th></tr>
       <tr>
         <td><em>${name}</em></td>
         <td>${size}</td>
+        <td><a href='../data/seq/${id}.gbk'>${id}.gbk</a></td>
         <td><a href='${ncbiLink}'>NCBI</a></td>
       </tr>
     </table>`;
 
-  // Files Table
-  const filesTable = `
-    <table>
-      <tr><th>GenBank</th><th>Config</th><th>JSON</th></tr>
-      <tr>
-        <td><a href='../data/seq/${id}.gbk'>${id}.gbk</a></td>
-        <td><a href='../data/config/${id}.yaml'>${id}.yaml</a></td>
-        <td><a href='../data/json/${id}.json'>${id}.json</a></td>
-      </tr>
-    </table>`;
+  // Files Table (NO LONGER USED)
+  // const filesTable = `
+  //   <table>
+  //     <tr><th>GenBank</th><th>Config</th><th>JSON</th></tr>
+  //     <tr>
+  //       <td><a href='../data/seq/${id}.gbk'>${id}.gbk</a></td>
+  //       <td><a href='../data/config/${id}.yaml'>${id}.yaml</a></td>
+  //       <td><a href='../data/json/${id}.json'>${id}.json</a></td>
+  //     </tr>
+  //   </table>`;
 
   // Replace tables
   const tableDiv = document.getElementById('example-tables');
   tableDiv.innerHTML = `
     <h3>Source</h3>
-    ${sourceTable}
-    <h3>Files</h3>
-    ${filesTable}`;
+    ${sourceTable}`;
 }
+
+//     <h3>Files</h3>
+//     ${filesTable}`;
+// }
 
 
 
