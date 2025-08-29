@@ -10,7 +10,7 @@ docs/dist/*.map
 dist/
 scripts/copy*
 scripts/open*
-docs/test/maps/test.json
+docs/test/maps/local/*
 
 # Temp
 src/LabelPlacementTemp.js
