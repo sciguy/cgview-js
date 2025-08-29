@@ -4,6 +4,9 @@
 
 
 ## Unreleased
+- N/A
+
+## 1.8.0 - 2025-08-29
 - Fix seq with locations for features on reverse strand
 - Removed jsdoc-dash: "jsdoc-dash-template": "^2.1.0"
 - Highlighter getTrackDiv, getPositionDiv, getMetaDivs are now static methods
@@ -11,7 +14,16 @@
   - Testing with CaptionTrackList plugin
 - Added option to invertColors (`excludeLegends`) to exclude legend item swatch colors
 - Transferred repo to @sciguy [2025-06-03]
-- add highlightRegion to contigs
+- Add highlightRegion to contigs
+- Update js.cgview.ca
+  - Add CGParse.js tutorial
+  - Add installation tutorial
+  - Add SVG instructions
+  - Update examples to use CGParse.js
+  - Add nav link to the test page (and update test page)
+  - Many other small updates
+- `CGV` as a global variable is deprecated, use `CGView` instead
+- Fix SVG image bug (images were dashed when centerLine was on)
 
 
 ## 1.7.1 - 2024-10-22

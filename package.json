@@ -1,6 +1,6 @@
 {
   "name": "cgview",
-  "version": "1.7.1",
+  "version": "1.8.0",
   "main": "dist/cgview.esm.js",
   "type": "module",
   "description": "CGView: Circular Genome Viewer",
@@ -24,11 +24,10 @@
   "scripts": {
     "dev": "echo \"Error: no dev specified\" && exit 1",
     "test": "jest --watch",
-    "gh-test": "jest --silent",
     "build": "rollup --config --watch",
+    "gh-test": "jest --silent",
     "gh-pages": "rollup --config",
-    "api": "jsdoc --configure ./template/jsdoc_conf.json --template ./template/jaguarjs-jsdoc --destination ./docs/api --readme ./README.md ./src/*",
-    "dash": "jsdoc --private --configure ./template/jsdoc_conf.json --template ./node_modules/jsdoc-dash-template --destination ./template/dash --readme ./README.md ./src/*"
+    "api": "jsdoc --configure ./template/jsdoc_conf.json --template ./template/jaguarjs-jsdoc --destination ./docs/api --readme ./README.md"
   },
   "jest": {
     "preset": "es-jest",
@@ -49,8 +48,10 @@
     "es-jest": "^1.2.0",
     "jest": "^27.0.4",
     "jest-canvas-mock": "^2.3.1",
+    "jsdoc": "^4.0.4",
     "rollup": "4.34.6",
-    "rollup-plugin-terser": "^7.0.2"
+    "rollup-plugin-terser": "^7.0.2",
+    "taffydb": "^2.7.3"
   },
   "author": "Jason Grant",
   "license": "Apache-2.0",

@@ -8,6 +8,10 @@
     <!-- Icon -->
     <link rel="shortcut icon" type="image/png" href="../images/logo-tab.png">
 
+    <!-- CG Apps Logo -->
+    <script src='../scripts/logo.js'></script>
+    <link href="../styles/logo.css" rel="stylesheet">
+
     <!-- Bootstrap CSS -->
     <link href="../styles/bootstrap.min.css" rel="stylesheet">
 
@@ -17,12 +21,17 @@
     <script src='../scripts/marked.min.js'></script>
     <script src='../scripts/general.js'></script>
 
+    <!-- Load CGViewBuild JSON Config as a global variable: exampleConfig -->
+    <script src='../data/config/example.config.js'></script>
+
     <!-- D3 -->
     <script src="../scripts/d3.min.js"></script>
     <!-- CGView -->
     <script src='../dist/cgview.min.js'></script>
     <link rel="stylesheet" href="../dist/cgview.css" />
     <link rel="stylesheet" href="../styles/controls.css" />
+    <!-- CGParse -->
+    <script src='../scripts/CGParse.min.js'></script>
 
     <!-- Plausible Analytics -->
     <script defer data-domain="js.cgview.ca" src="https://stats.stothardresearch.ca/js/plausible.outbound-links.js"></script>
@@ -36,7 +45,21 @@
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavDropdown" aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
           <span class="navbar-toggler-icon"></span>
         </button>
-        <a class="navbar-brand" href="../index.html"><img class='logo-sm' src='../images/logo.png' />CGView.js</a>
+
+        <!-- CG Apps Logo -->
+        <div id="logo-container">
+          <div class="logo-wrap">
+            <a href="/" id="app-logo" aria-haspopup="true" aria-expanded="false">
+              <img src="../images/cgview-logo.png" alt="CG Apps" />
+            </a>
+            <div id="cg-apps" role="menu" aria-label="CG Apps">
+              <a role="menuitem" href="https://js.cgview.ca"><img src='../images/cgview-logo.png' />CGView.js</a>
+              <a role="menuitem" href="https://parse.cgview.ca"><img src='../images/cgparse-logo.png' />CGParse.js</a>
+            </div>
+          </div>
+          <a class="navbar-brand" href="../index.html">CGView.js</a>
+        </div>
+
         <!-- Docs Toggle -->
         <button class="btn sidebar-toggle d-sm-none collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#sidebar-nav" aria-controls="cgv-docs-nav" aria-expanded="false" aria-label="Toggle docs navigation">
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" class="bi bi-expand" fill="currentColor" viewBox="0 0 16 16"> <title>Expand</title> <path fill-rule="evenodd" d="M1 8a.5.5 0 0 1 .5-.5h13a.5.5 0 0 1 0 1h-13A.5.5 0 0 1 1 8zM7.646.146a.5.5 0 0 1 .708 0l2 2a.5.5 0 0 1-.708.708L8.5 1.707V5.5a.5.5 0 0 1-1 0V1.707L6.354 2.854a.5.5 0 1 1-.708-.708l2-2zM8 10a.5.5 0 0 1 .5.5v3.793l1.146-1.147a.5.5 0 0 1 .708.708l-2 2a.5.5 0 0 1-.708 0l-2-2a.5.5 0 0 1 .708-.708L7.5 14.293V10.5A.5.5 0 0 1 8 10z"></path> </svg>
@@ -49,7 +72,8 @@
             <a class="nav-link" href="../docs.html">Docs</a>
             <a class="nav-link" href="../api/index.html">API</a>
             <a class="nav-link" href="../json.html">JSON</a>
-            <a class="nav-link github-logo" href="https://github.com/stothard-group/cgview-js"><img src='../images/GitHub-Mark-Light-64px.png' /></a>
+            <a class="nav-link" href="../test/index.html">Test</a>
+            <a class="nav-link github-logo" href="https://github.com/sciguy/cgview-js"><img src='../images/GitHub-Mark-Light-64px.png' /></a>
           </div>
         </div>
       </div>
@@ -128,7 +152,8 @@ Controls</a>.
     <script src="../scripts/bootstrap.min.js"></script>
 
     <script>
-      createViewerAndLoadJSON('../data/json/CP021212.json');
+      // createViewerAndLoadJSON('../data/json/CP021212.json');
+      createViewerAndLoadGenBank('../data/seq/CP021212.gbk', exampleConfig);
     </script>
     <script src='../scripts/controls.js'></script>
 

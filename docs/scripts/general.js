@@ -36,7 +36,10 @@ function tutorialMarkdown(marked, addFinalCode) {
       code = code.replaceAll('&lt;', '<');
       code = code.replaceAll('&gt;', '>');
       // console.log(code);
-      eval( code );
+      // Delay evaulation, to make sure the page content is loaded quickly
+      setTimeout( () => {
+        eval( code );
+      }, 100);
       var textNode = document.createTextNode( code + "\n" );
       finalCode.appendChild(textNode);
     });
@@ -72,7 +75,6 @@ function autoResizeMyViewer() {
   const setHeight = 500;
   const mainPadding = 20 * 2;
   function myResize() {
-    const myViewer = document.querySelector('#my-viewer');
     const main = document.getElementsByTagName('main')[0];
     const mainWidth = main.clientWidth - mainPadding;
     const height = Math.min(mainWidth, setHeight);
@@ -94,7 +96,7 @@ function autoResizeMyViewer() {
 
 function createViewerAndLoadJSON(path) {
   // Create Viewer in default div: #my-viewer
-  const cgv = new CGV.Viewer('#my-viewer', {height: 500});
+  const cgv = new CGView.Viewer('#my-viewer', {height: 500});
 
   // Auto resize viewer
   autoResizeMyViewer();
@@ -114,6 +116,40 @@ function createViewerAndLoadJSON(path) {
   request.send();
 }
 
+function createViewerAndLoadGenBank(path, config={}) {
+  // Create Viewer in default div: #my-viewer
+  const cgv = new CGView.Viewer('#my-viewer', {height: 500});
+
+  // Auto resize viewer
+  autoResizeMyViewer();
+
+  // Add viewer as global variable 'cgv'
+  window.cgv = cgv;
+
+  // Request data and draw map
+  var request = new XMLHttpRequest();
+  request.open('GET', path, true);
+  request.onload = function() {
+    // Get the GenBank file text
+    var genbank = request.response;
+
+    // Parse a file
+    var builder = new CGParse.CGViewBuilder(genbank, {
+      config: config,
+      excludeFeatures: ['source', 'gene', 'exon'],
+      excludeQualifiers: ['translation'],
+    });
+
+    // Load the JSON into CGView.js
+    cgv.io.loadJSON(builder.toJSON());
+
+    // Draw the map
+    cgv.draw()
+  };
+  request.send();
+}
+
+
 ////////////////////////////////////////////////////////////////////////////////
 // Add tables to example
 ////////////////////////////////////////////////////////////////////////////////
@@ -123,33 +159,36 @@ function addExampleTables(id, name, size, link) {
   // Source Table
   const sourceTable = `
     <table>
-      <tr><th>Species</th><th>Size (bp)</th><th>NCBI Link</th></tr>
+      <tr><th>Species</th><th>Size (bp)</th><th>GenBank</th><th>NCBI Link</th></tr>
       <tr>
         <td><em>${name}</em></td>
         <td>${size}</td>
+        <td><a href='../data/seq/${id}.gbk'>${id}.gbk</a></td>
         <td><a href='${ncbiLink}'>NCBI</a></td>
       </tr>
     </table>`;
 
-  // Files Table
-  const filesTable = `
-    <table>
-      <tr><th>GenBank</th><th>Config</th><th>JSON</th></tr>
-      <tr>
-        <td><a href='../data/seq/${id}.gbk'>${id}.gbk</a></td>
-        <td><a href='../data/config/${id}.yaml'>${id}.yaml</a></td>
-        <td><a href='../data/json/${id}.json'>${id}.json</a></td>
-      </tr>
-    </table>`;
+  // Files Table (NO LONGER USED)
+  // const filesTable = `
+  //   <table>
+  //     <tr><th>GenBank</th><th>Config</th><th>JSON</th></tr>
+  //     <tr>
+  //       <td><a href='../data/seq/${id}.gbk'>${id}.gbk</a></td>
+  //       <td><a href='../data/config/${id}.yaml'>${id}.yaml</a></td>
+  //       <td><a href='../data/json/${id}.json'>${id}.json</a></td>
+  //     </tr>
+  //   </table>`;
 
   // Replace tables
   const tableDiv = document.getElementById('example-tables');
   tableDiv.innerHTML = `
     <h3>Source</h3>
-    ${sourceTable}
-    <h3>Files</h3>
-    ${filesTable}`;
+    ${sourceTable}`;
 }
+
+//     <h3>Files</h3>
+//     ${filesTable}`;
+// }
 
 
 

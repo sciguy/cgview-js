@@ -49,7 +49,6 @@
  *   - The direction to start listing tracks. Options are 'inside', 'outside', 'backbone'.
  *   - [Default: outside].
  */
-
 const CaptionTrackList = (() => {
   const pluginName = 'CaptionTrackList';
   const pluginID = 'pluginCaptionTrackList';

@@ -212,6 +212,9 @@ class LayoutLinear {
     ctx.lineTo(x, endPt.y);
 
     ctx.stroke();
+
+    // Reset dashes
+    ctx.setLineDash([]);
   }
 
   //////////////////////////////////////////////////////////////////////////

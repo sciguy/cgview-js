@@ -98,7 +98,7 @@ console.log(`CGView.js Version: ${version}`)
  *
  * ### Examples
  * ```js
- * cgv = new CGV.Viewer('#my-viewer', {
+ * cgv = new CGView.Viewer('#my-viewer', {
  *   height: 500,
  *   width: 500,
  *   sequence: {

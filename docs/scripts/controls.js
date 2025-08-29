@@ -66,7 +66,7 @@ onClick('btn-toggle-labels', () => {
 });
 
 // Toggle Random Animation
-// onClick('btn-animate', () => {
-//   cgv.isAnimating ? cgv.stopAnimate() : cgv.animate();
-// });
+onClick('btn-animate', () => {
+  cgv.isAnimating ? cgv.stopAnimate() : cgv.animate();
+});
 

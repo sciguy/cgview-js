@@ -1,4 +1,8 @@
 {
+	"source": {
+    "include": ["./src"],
+    "excludePattern": "./src/(index|d3)\\.js$"
+  },
 	"tags": {
 		"allowUnknownTags" : true
 	},

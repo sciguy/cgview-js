@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>CGView.js - Installation Test</title>
+
+    <!-- CGView stylesheet -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cgview/dist/cgview.css" />
+
+    <!-- Dependencies (order matters): D3 first, then CGView -->
+    <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+    <script src="https://cdn.jsdelivr.net/npm/cgview/dist/cgview.min.js"></script>
+  </head>
+  <body>
+
+    <!-- Div to contain the viewer -->
+    <div id="my-viewer"></div>
+
+    <!-- Set the script tag type to 'module' in order to import from svgcanvas -->
+    <script type="module">
+      // Import the Context object from svgcanvas to enable SVG export
+      import { Context } from 'https://cdn.jsdelivr.net/npm/svgcanvas@2.6.0/dist/svgcanvas.esm.js';
+      // Wait until DOM is ready
+      window.addEventListener('DOMContentLoaded', () => {
+        // The CGV variable is availalble globally
+        const cgv = new CGV.Viewer('#my-viewer', {
+        // The CGView variable is availalble globally
+        // const cgv = new CGView.Viewer('#my-viewer', {
+          height: 400, width: 400,
+          SVGContext: Context  // Pass in the SVG context to enable SVG export (Optional)
+        });
+        cgv.addFeatures([{ start: 120, stop: 600, name: 'Feature 1', legend: 'Features', source: 'example' }]);
+        cgv.addTracks([{ name: 'Track 1', dataKeys: 'example' }]);
+        cgv.draw();
+        // Make the viewer available globally for testing
+        window.cgv = cgv;
+      });
+    </script>
+  </body>
+</html>

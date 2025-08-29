@@ -6,14 +6,11 @@ docs/formatting_example.*
 docs/dist/cgview.esm.*
 docs/dist/cgview.js
 docs/dist/*.js
+docs/dist/*.map
 dist/
 scripts/copy*
 scripts/open*
 docs/test/maps/test.json
-docs/test/maps/test_wrapping_features.json
-docs/test/maps/phastest.json
-docs/test/maps/blast_big.json
-docs/test/maps/full_circle*.json
 
 # Temp
 src/LabelPlacementTemp.js

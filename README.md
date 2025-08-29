@@ -1,6 +1,3 @@
-> [!Note]
-> This project was originally hosted under [stothard-group/cgview-js](https://github.com/stothard-group/cgview-js) and has been transferred with permission to [sciguy/cgview-js](https://github.com/sciguy/cgview-js).
-
 # [CGView.js](http://js.cgview.ca)
 
 [![Pages Status](https://github.com/sciguy/cgview-js/actions/workflows/pages.yml/badge.svg)](https://github.com/sciguy/cgview-js/actions/workflows/pages.yml)
@@ -27,17 +24,17 @@ tool for visualizing and interacting with small genomes.
 ## Install
 
 ```bash
-npm install --save cgview
+npm install cgview
 ```
-See [Installation Instructions](http://js.cgview.ca/docs.html#section-setup)
+See [Installation Instructions](http://js.cgview.ca/tutorials/tutorial-installation.html)
 for additional ways to setup CGView.js.
 
 ## Usage
 
 ```js
-import CGV from from 'cgview';
+import * as CGView from 'cgview';
 
-cgv = new CGV.Viewer('#my-viewer', {
+cgv = new CGView.Viewer('#my-viewer', {
   height: 500,
   width: 500,
   sequence: {
@@ -52,7 +49,7 @@ cgv = new CGV.Viewer('#my-viewer', {
 cgv.draw()
 ```
 
-See the [tutorials](http://js.cgview.ca/tutorials/index.html) for how to add features and plots.
+See the [tutorials](http://js.cgview.ca/tutorials/index.html) to learn how to add features and plots, including [how](https://js.cgview.ca/tutorials/tutorial-cgparse.html) to use [CGParse.js](https://parse.cgview.ca) to convert GenBank and EMBL files into maps.
 
 ## License
 

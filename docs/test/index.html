@@ -8,8 +8,15 @@
     <!-- Icon -->
     <link rel="shortcut icon" type="../image/png" href="images/logo-tab.png">
 
+    <!-- CG Apps Logo -->
+    <script src='../scripts/logo.js'></script>
+    <link href="../styles/logo.css" rel="stylesheet">
+
     <!-- Bootstrap CSS -->
     <link href="../styles/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Load CGViewBuild JSON Config as a global variable: exampleConfig -->
+    <script src='../data/config/example.config.js'></script>
 
     <!-- <link rel="stylesheet" href="styles/tables.css" /> -->
     <link rel="stylesheet" href="../styles/general.css" />
@@ -25,7 +32,9 @@
 
     <link rel="stylesheet" href="../dist/cgview.css" />
     <link rel="stylesheet" href="../styles/controls.css" />
-    <!-- CGView Daya -->
+
+    <!-- CGParse -->
+    <script src='../scripts/CGParse.min.js'></script>
 
     <!-- Dev Page -->
     <script src='performance.js'></script>
@@ -45,8 +54,21 @@
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavDropdown" aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
           <span class="navbar-toggler-icon"></span>
         </button>
-        <a class="navbar-brand" href="../../docs/index.html"><img class='logo-sm' src='../images/logo.png' />CGView.js</a>
-        <!-- Docs Toggle -->
+
+        <!-- CG Apps Logo -->
+        <div id="logo-container">
+          <div class="logo-wrap">
+            <a href="/" id="app-logo" aria-haspopup="true" aria-expanded="false">
+              <img src="../images/cgview-logo.png" alt="CG Apps" />
+            </a>
+            <div id="cg-apps" role="menu" aria-label="CG Apps">
+              <a role="menuitem" href="https://js.cgview.ca"><img src='../images/cgview-logo.png' />CGView.js</a>
+              <a role="menuitem" href="https://parse.cgview.ca"><img src='../images/cgparse-logo.png' />CGParse.js</a>
+            </div>
+          </div>
+          <a class="navbar-brand" href="../index.html">CGView.js</a>
+        </div>
+
         <button class="btn sidebar-toggle d-sm-none collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#sidebar-nav" aria-controls="cgv-docs-nav" aria-expanded="false" aria-label="Toggle docs navigation">
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" class="bi bi-expand" fill="currentColor" viewBox="0 0 16 16"> <title>Expand</title> <path fill-rule="evenodd" d="M1 8a.5.5 0 0 1 .5-.5h13a.5.5 0 0 1 0 1h-13A.5.5 0 0 1 1 8zM7.646.146a.5.5 0 0 1 .708 0l2 2a.5.5 0 0 1-.708.708L8.5 1.707V5.5a.5.5 0 0 1-1 0V1.707L6.354 2.854a.5.5 0 1 1-.708-.708l2-2zM8 10a.5.5 0 0 1 .5.5v3.793l1.146-1.147a.5.5 0 0 1 .708.708l-2 2a.5.5 0 0 1-.708 0l-2-2a.5.5 0 0 1 .708-.708L7.5 14.293V10.5A.5.5 0 0 1 8 10z"></path> </svg>
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" class="bi bi-collapse" fill="currentColor" viewBox="0 0 16 16"> <title>Collapse</title> <path fill-rule="evenodd" d="M1 8a.5.5 0 0 1 .5-.5h13a.5.5 0 0 1 0 1h-13A.5.5 0 0 1 1 8zm7-8a.5.5 0 0 1 .5.5v3.793l1.146-1.147a.5.5 0 0 1 .708.708l-2 2a.5.5 0 0 1-.708 0l-2-2a.5.5 0 1 1 .708-.708L7.5 4.293V.5A.5.5 0 0 1 8 0zm-.5 11.707l-1.146 1.147a.5.5 0 0 1-.708-.708l2-2a.5.5 0 0 1 .708 0l2 2a.5.5 0 0 1-.708.708L8.5 11.707V15.5a.5.5 0 0 1-1 0v-3.793z"></path> </svg>
@@ -58,7 +80,8 @@
             <a class="nav-link" href="../docs.html">Docs</a>
             <a class="nav-link" href="../api/index.html">API</a>
             <a class="nav-link" href="../json.html">JSON</a>
-            <a class="nav-link github-logo" href="https://github.com/stothard-group/cgview-js"><img src='../images/GitHub-Mark-Light-64px.png' /></a>
+            <a class="nav-link active" aria-current="page"  href="index.html">Test</a>
+            <a class="nav-link github-logo" href="https://github.com/sciguy/cgview-js"><img src='../images/GitHub-Mark-Light-64px.png' /></a>
           </div>
           <div class='dev-title'>TEST PAGE</div>
         </div>
@@ -89,13 +112,49 @@
 						<button id='download-svg' type="button" class="btn btn-sm btn-outline-success">Download SVG</button>
 					</div>
 				</div>
-      <div class='test-options'>
+      <div class='test-sidebar'>
         <div class='map-select-section'>
           <div class='test-heading'>Choose Map</div>
           <select id='map-select' class='form-select form-select-sm'></select>
         </div>
+        <div id="file-section">
+          <input type='file' id='file-input' />
+        </div>
         <hr />
-        <div class='performance-section'>
+        <div class='section-options'>
+          <div class='test-heading'>Options</div>
+          <div class='options-container'>
+            <div>
+              <div><input id='option-full-size' type='checkbox' /> Full Size</div>
+              <div><input id='option-debug' type='checkbox' /> Debug Print</div>
+              <div><input id='test-draw-range' type='checkbox' /> Test Draw Range</div>
+            </div>
+            <div>
+              <div><input id='option-show-labels' type='checkbox' /> Labels Testing</div>
+              <div><input id='option-show-performance' type='checkbox' /> Performance Testing</div>
+              <div><input id='option-show-svg' type='checkbox' /> SVG Testing</div>
+            </div>
+          </div>
+
+          <div id='open-proksee-div'><a href="#" id='open-in-proksee-btn'>Open in Proksee</a></div> 
+
+        <hr />
+        </div>
+        <div class='section-labels'>
+          <div class='test-heading'>Label Testing</div>
+          <div class='label-row'>
+            <button id='labels-default' type="button" class="btn btn-sm btn-outline-secondary">Default</button>
+            <button id='labels-angled' type="button" class="btn btn-sm btn-outline-secondary">Angled</button>
+            <span>Font Size: <input id='labels-font-size' type='number' /></span>
+          </div>
+          <div class='label-row'>
+            <button id='labels-move-back' type="button" class="btn btn-sm btn-outline-secondary">Back</button>
+            <button id='labels-move-forward' type="button" class="btn btn-sm btn-outline-secondary">Forward</button>
+            <span><input id='labels-move-distance' type='number' /> bp</span>
+          </div>
+          <hr />
+        </div>
+        <div class='section-performance'>
           <div class='test-heading'>Performanace Test</div>
           <div class='my-row'>
             <div>
@@ -111,25 +170,34 @@
             <button id='performance-clear' type="button" class="btn btn-sm btn-outline-secondary">Clear</button>
           </div>
           <div id='results' data-placeholder='Results...'></div>
+          <hr />
         </div>
-        <hr />
-        <div class='more-options'>
-          <div class='test-heading'>Options</div>
-          <div><input id='test-draw-range' type='checkbox' /> Test Draw Range</div>
-          <div><input id='option-full-size' type='checkbox' /> Full Size</div>
-          <div><input id='option-debug' type='checkbox' /> Debug Print</div>
-          <div><input id='option-svg' type='checkbox' /> SVG Testing</div>
 
-          <hr />
-          <div class='test-heading'>Labels</div>
-          <button id='labels-move-back' type="button" class="btn btn-sm btn-outline-secondary">Back</button>
-          <button id='labels-move-forward' type="button" class="btn btn-sm btn-outline-secondary">Forward</button>
-          <span><input id='labels-move-distance' type='number' /> bp</span>
-          <div>Font Size: <input id='labels-font-size' type='number' /></div>
-          <button id='labels-default' type="button" class="btn btn-sm btn-outline-secondary">Default</button>
-          <button id='labels-angled' type="button" class="btn btn-sm btn-outline-secondary">Angled</button>
-          <hr />
+        <div class='sidebar-help-logs'>
+          <!-- Navigation links -->
+          <div class="sidebar-nav-btns">
+            <a href="#" id="show-help" class='btn-selected'>Help</a>
+            <span class='btn-separator muted'>•</span>
+            <a href="#" id="show-log">Log</a>
+          </div>
+          <!-- Log section -->
+          <div class="sidebar-log"  style="display: none;">
+            <!-- <div class='section-heading'>Log</div> -->
+            <div id="log-text">A log is only shown when using '<em>Open a file...'</em></div>
+          </div>
+          <!-- Help section -->
+          <div class="sidebar-help">
+            <!-- <div class='section-heading muted'>help</div> -->
+            <ul>
+              <li>The Test Page is a convienent place to experiment with CGView maps and features.</li>
+              <li>In addition to the built-in maps, you can upload your own CGView JSON file or a sequence file (e.g. GenBank, EMBL, FASTA). Sequence files are converted to <a href='../json.html'>CGView JSON</a> with <a href='https://parse.cgview.ca'>CGParse.js</a>. Uploaded files are parsed using the same <a href="../data/config/example.config.js">config</a> as all the <a href='../examples/index.html'>examples</a>.</li>
+              <li>The viewer object for this map can be accessed in your browser JavaScript console as <em>cgv</em>.</li>
+              <li>Performance tests render the current map at different zoom levels and record both fast and full draw times. This can help evaluate the performance of new features. For meaningful comparisons, tests should be run under the same conditions (e.g. computer, browser, map size).</li>
+              <li>Clicking <strong>Open in Proksee</strong> sends the <a href='../json.html'>CGView JSON</a> to <a href='https://proksee.ca'>Proksee</a> to start a new project.</li>
+            </ul>
+          </div>
         </div>
+
       </div>
     </main>
 

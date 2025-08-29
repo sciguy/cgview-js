@@ -11,3 +11,10 @@ $ ./scripts/create_examples.sh
 
 Note:
   - Local copies of D3 and Bootstrap are used for easier offline development
+
+
+HTML tags in docs/tutorials:
+  - When trying to have html tags in docs (e.g. <script>), they get parsed before generated into markdown.
+  - First, use the ```html markdown
+  - Then copy the actual HTML from the console
+  - Paste into the docs

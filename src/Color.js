@@ -501,13 +501,13 @@ Color.hexString2rgba = function(hex, opacity = 1) {
 
 /**
  * Converts an RGB color object to a Hex string (without the '#').
+ * Based on https://stackoverflow.com/questions/5623838/rgb-to-hex-and-hex-to-rgb
  * @function rgb2hex
  * @memberof Color
  * @param {Object} rgb - object with r, g, b properties
  * @return {String} The color as a Hex string (without the '#')
  * @static
  * @private
- * Based on https://stackoverflow.com/questions/5623838/rgb-to-hex-and-hex-to-rgb
  */
 Color.rgb2hex = function(rgb) {
   function componentToHex(c) {
