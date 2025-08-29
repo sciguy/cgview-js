@@ -6,6 +6,7 @@ docs/formatting_example.*
 docs/dist/cgview.esm.*
 docs/dist/cgview.js
 docs/dist/*.js
+docs/dist/*.map
 # dist/
 scripts/copy*
 scripts/open*

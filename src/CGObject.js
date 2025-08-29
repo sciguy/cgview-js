@@ -184,7 +184,7 @@ class CGObject {
   }
 
   /**
-   * Does this obejct have a particular plugin?
+   * Does this object have a particular plugin?
    * @param {String} pluginID - The ID of the plugin
    * @return {Boolean} - Whether the object has the plugin
    */
