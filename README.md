@@ -49,7 +49,7 @@ cgv = new CGView.Viewer('#my-viewer', {
 cgv.draw()
 ```
 
-See the [tutorials](http://js.cgview.ca/tutorials/index.html) for how to add features and plots.
+See the [tutorials](http://js.cgview.ca/tutorials/index.html) to learn how to add features and plots, including [how](https://js.cgview.ca/tutorials/tutorial-cgparse.html) to use [CGParse.js](https://parse.cgview.ca) to convert GenBank and EMBL files into maps.
 
 ## License
 

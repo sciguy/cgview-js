@@ -4,6 +4,9 @@
 
 
 ## Unreleased
+- N/A
+
+## 1.8.0 - 2025-08-29
 - Fix seq with locations for features on reverse strand
 - Removed jsdoc-dash: "jsdoc-dash-template": "^2.1.0"
 - Highlighter getTrackDiv, getPositionDiv, getMetaDivs are now static methods

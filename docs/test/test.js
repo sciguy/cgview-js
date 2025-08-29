@@ -9,7 +9,7 @@ console.log('Available Maps (from map.js):', maps)
 // Initial input file to load: '', 'file', or map from map.js (e.g. 'small')
 // const defaultMap = '';     // Empty
 // const defaultMap = 'file'; // File Choose
-// const defaultMap = 'small';
+const defaultMap = 'small';
 // const defaultMap = 'small_noplots';
 // const defaultMap = 'medium';
 // const defaultMap = 'locations';
@@ -18,12 +18,12 @@ console.log('Available Maps (from map.js):', maps)
 // const defaultMap = 'labels3';
 // const defaultMap = 'pcET30c';
 // const defaultMap = 'pcDNA3';
-const defaultMap = 'paper';
+// const defaultMap = 'paper';
 
 
 
 // Default Checkbox Options
-const fullSize = false;
+const fullSize = true;
 const debug = false;
 const drawRange = false;
 const showPerformanceTest = false;
