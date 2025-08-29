@@ -64,5 +64,3 @@ rules:
   key-spacing: warn
   camelcase: error
   new-cap: error
-
-
