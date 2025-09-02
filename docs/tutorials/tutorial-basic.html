@@ -142,10 +142,7 @@ cgv = new CGView.Viewer('#my-viewer', {
 // The addFeatures() method can accept an array of objects or a single object of data
 // that will be used to initialize new Features.
 cgv.addFeatures({
-  // Feature type. Used to determine how the feature is drawn (e.g. arrow or arc).
-  // If a FeatureType with this name does not exist, a new FeatureType will be
-  // created with this name and the default settings
-  // (e.g. the decoration will be an 'arc').
+  // Feature type.
   type: 'CDS',
   // Name of the feature.
   name: 'Feature',
@@ -261,7 +258,7 @@ cgv.addTracks({
 cgv.addTracks({
   // Name for the track.
   name: 'My Plot Track',
-  // Note, that the readingFrame and strand options are ignores for plots.
+  // Note, that the readingFrame and strand options are ignored for plots.
   // Where to draw the track in relation to the backbone.
   // Options: 'inside', 'outside', 'both'.
   position: 'inside',

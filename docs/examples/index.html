@@ -82,11 +82,11 @@
         <li class='active'><a class="side-link nav-index" href="index.html">Index</a></li>
         <p>Examples</p>
         <li><a class="side-link indent" href="example-plasmid.html">Plasmid<span class='subtitle'>E. coli pB171_90</span></a></li>
-        <li><a class="side-link indent" href="example-mito.html">Mitochondiron <span class='subtitle'>R. americana</span></a></li>
-        <li><a class="side-link indent" href="example-small.html">Small Bacteria <span class='subtitle'>M. gentalia</span></a></li>
-        <li><a class="side-link indent" href="example-average.html">Average Bacteria <span class='subtitle'>C. botulinum</span></a></li>
+        <li><a class="side-link indent" href="example-mito.html">Mitochondrion <span class='subtitle'>R. americana</span></a></li>
+        <li><a class="side-link indent" href="example-small.html">Small Bacterium <span class='subtitle'>M. gentalia</span></a></li>
+        <li><a class="side-link indent" href="example-average.html">Average Bacterium <span class='subtitle'>C. botulinum</span></a></li>
         <li><a class="side-link indent" href="example-contigs.html">Contigs <span class='subtitle'>E. coli PA2</span></a></li>
-        <li><a class="side-link indent" href="example-large.html">Large Bacteria <span class='subtitle'>L. guizhouensis</span></a></li>
+        <li><a class="side-link indent" href="example-large.html">Large Bacterium <span class='subtitle'>L. guizhouensis</span></a></li>
       </ul>
     </nav>
 
@@ -106,10 +106,10 @@ Example                              | Species                  | Size (bp) | De
 -------------------------------------|--------------------------| --------: |-------------------------------------------
 [Plasmid](example-plasmid.html)      | _Escherichia coli B171_  |    90,229 | Map of a bacterial plasmid
 [Mitochondrion](example-mito.html)   | _Reclinomonas americana_ |    69,034 | Map of a mitochondrial genome
-[Small Bacteria](example-small.html) | _Mycoplasma genitalium_  |   580,076 | Map of a small bacterial genome
-[Average Bacteria](example-average.html) | _Clostridium botulinum_  | 3,858,511 | Map of a average bacterial genome
+[Small Bacterium](example-small.html) | _Mycoplasma genitalium_  |   580,076 | Map of a small bacterial genome
+[Average Bacterium](example-average.html) | _Clostridium botulinum_  | 3,858,511 | Map of a average bacterial genome
 [Contigs](example-contigs.html)      | _Escherichia coli PA2_   | 5,246,924 | Map of bacterial genome with 109 contigs
-[Large Bacteria](example-large.html) | _Lentzea guizhouensis_   | 9,997,872 | Map of a large bacterial genome
+[Large Bacterium](example-large.html) | _Lentzea guizhouensis_   | 9,997,872 | Map of a large bacterial genome
 
 <!-- [Blast](example&#45;blast.html)          | _???_                    |           | Map showing BLAST comparison -->
 
@@ -144,7 +144,7 @@ function createViewerAndLoadGenBank(path, config={}) {
     // Parse a file
     var builder = new CGParse.CGViewBuilder(genbank, {
       config: config,
-      // Common settings for parsing bacterial genomes
+      // Recommended settings for parsing bacterial genomes
       excludeFeatures: ['source', 'gene', 'exon'],
       excludeQualifiers: ['translation'],
     });

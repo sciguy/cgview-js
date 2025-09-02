@@ -43,13 +43,13 @@ onClick('btn-invert-colors', () => {
 });
 
 // Move to Random Feature
-// onClick('btn-random-feature', () => {
-//   // Choose a random feature
-//   const number = Math.ceil(Math.random() * cgv.features().length);
-//   const feature = cgv.features(number);
-//   // Take 1.5 seconds to move to the feature (the default is 1 second)
-//   feature.moveTo(1500);
-// });
+onClick('btn-random-feature', () => {
+  // Choose a random feature
+  const number = Math.ceil(Math.random() * cgv.features().length);
+  const feature = cgv.features(number);
+  // Take 1.5 seconds to move to the feature (the default is 1 second)
+  feature.moveTo(1500);
+});
 
 // Download PNG
 onClick('btn-download', () => {

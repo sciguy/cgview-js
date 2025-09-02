@@ -28,7 +28,7 @@ import utils from './Utils';
 //         will point to features or a plot.
 
 /**
- * The Track is used for layout information...
+ * The Track represents what data should be displayed and how it should be laid out.
  *
  * ### Action and Events
  *

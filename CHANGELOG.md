@@ -4,7 +4,8 @@
 
 
 ## Unreleased
-- N/A
+- Fix undefined background color set to map backgroundColor
+
 
 ## 1.8.0 - 2025-08-29
 - Fix seq with locations for features on reverse strand
