@@ -102,15 +102,35 @@
         <a href="tutorial-sequence.html">GC Content/Skew plots</a>, <a href="tutorial-cgparse.html">parsing GenBank files</a>
         and adding <a href="tutorial-controls.html">custom controls</a>.
       </p>
-      <h3>HTML (<a href='example.html'>Download</a>)</h3>
+      <h3 id="html-example">HTML (<a href='example.html'>Download</a>)</h3>
       <pre><code id="example-html" class="language-html"> ...your HTML here... </code></pre>
-      <h3>Map using above HTML (as iFrame) [view in separate <a href='example.html'>page</a>]</h3>
+      <h3 id="map-example">Map using above HTML (as iFrame) [view in separate <a href='example.html'>page</a>]</h3>
       <iframe src="example.html"
         style="width: 425px; height: 425px; border: 1px solid #ccc; border-radius: 8px;">
       </iframe>
     </main>
 
     <div id='markdown-in' style='display:none;'>
+
+---
+# Installation
+---
+
+- [Dependencies](#dependencies)
+  - [Optional Dependency](#optional-dependency)
+- [Installation Methods](#installation-methods)
+  - [Option 1: Install via npm or yarn](#option-1-install-via-npm-or-yarn)
+  - [Option 2: Install via jsDelivr CDN](#option-2-install-via-jsdelivr-cdn)
+- [Available Builds](#available-builds)
+- [SVG Support](#svg-support)
+  - [Installation](#installation-1)
+  - [Add the SVG context to CGView](#add-the-svg-context-to-cgview)
+  - [Export SVG](#export-svg)
+- [Complete Example (using jsDelivr)](#complete-example)
+  - [HTML](#html-example)
+  - [Map](#map-example)
+
+---
 
 # Dependencies
 
@@ -122,7 +142,7 @@
 
 -	svgcanvas [[GitHub](https://github.com/zenozeng/svgcanvas), [npm](https://www.npmjs.com/package/svgcanvas)]  - required only if exporting SVG maps (see [SVG Support](#svg-support) below).
 
-# Installation
+# Installation Methods
 
 CGView.js can be added to your project either via npm/yarn or through a CDN (jsDelivr).
 
@@ -148,9 +168,12 @@ Note: When using npm/yarn you do not need to import D3 separately - CGView.js ma
 
 Add the following to your HTML:
 
-<pre class="prettyprint language-html" tabindex="0"><code class=" language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>link</span> <span class="token attr-name">rel</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>stylesheet<span class="token punctuation">"</span></span> <span class="token attr-name">href</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>https://cdn.jsdelivr.net/npm/cgview/dist/cgview.css<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>
+<pre class="prettyprint language-html" tabindex="0"><code class=" language-html"><span class="token comment">&lt;!-- CSS --&gt;</span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>link</span> <span class="token attr-name">rel</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>stylesheet<span class="token punctuation">"</span></span> <span class="token attr-name">href</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>https://cdn.jsdelivr.net/npm/cgview/dist/cgview.css<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>
+<span class="token comment">&lt;!-- Javscript --&gt;</span>
+<span class="token comment">&lt;!-- Source D3 before CGView --&gt;</span>
 <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>script</span> <span class="token attr-name">src</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>https://cdn.jsdelivr.net/npm/d3@7<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span><span class="token script"></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>script</span><span class="token punctuation">&gt;</span></span>
-<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>script</span> <span class="token attr-name">src</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>https://cdn.jsdelivr.net/npm/cgview<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span><span class="token script"></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>script</span><span class="token punctuation">&gt;</span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>script</span> <span class="token attr-name">src</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>https://cdn.jsdelivr.net/npm/cgview/dist/cgview.min.js<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span><span class="token script"></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>script</span><span class="token punctuation">&gt;</span></span>
 </code></pre>
 
 <!-- Copied above code from generated HTML using below: -->
@@ -162,12 +185,31 @@ Add the following to your HTML:
 
 This will expose `CGView` as a global variable. See a complete example [below](#complete-example).
 
+# Available Builds
+
+The following files are available in the `dist/` directory of the npm package,
+and are also accessible via the jsDelivr CDN:
+
+```bash
+# Required stylesheet
+- cgview.css
+
+# JavaScript (choose one format)
+- cgview.esm.js       # ESM
+- cgview.esm.min.js   # ESM, minified
+- cgview.js           # IIFE
+- cgview.min.js       # IIFE, minified
+```
+
+Use the ESM files if you are working with a modern build system or module bundler (such as Webpack, Vite, or Rollup).
+Use the IIFE files if you are including CGView directly in a &lt;script&gt; tag without a bundler.
+
 # SVG Support
 
 ## Installation
 
 To export maps as SVG files, the [svgcanvas](https://github.com/zenozeng/svgcanvas) library is required.
-You can install it with npm/yarn or load it directly from the jsDelivr CDN. Since no IIFE (global) build is provided, you must use the ESM build. In the browser, this requires importing it as a module:
+You can install it with npm/yarn or load it directly from jsDelivr CDN. Since no IIFE (global) build is provided, you must use the ESM build. In the browser, this requires importing it as a module:
 
 ```html
 <script type="module">

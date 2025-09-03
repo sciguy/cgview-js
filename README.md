@@ -33,7 +33,8 @@ for additional ways to setup CGView.js.
 
 ```js
 import * as CGView from 'cgview';
-
+import 'cgview/dist/cgview.css';
+ 
 cgv = new CGView.Viewer('#my-viewer', {
   height: 500,
   width: 500,

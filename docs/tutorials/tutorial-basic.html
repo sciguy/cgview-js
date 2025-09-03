@@ -184,9 +184,7 @@ Here we find the generated LegendItem and change it's color and decoration.
 
 ```js
 // Find the legend item
-// FIXME: CGArray: uses id but CDS is the name
-// var legendItem = cgv.legend.items('CDS');
-var legendItem = cgv.legend.items(1);
+var legendItem = cgv.legend.items('CDS');
 // Change the color. The color can be a color name, RGB, or RGBA.
 legendItem.color = 'green';
 // Change the decoration. Options: 'arc', 'arrow', 'none'

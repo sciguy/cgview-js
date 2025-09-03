@@ -119,74 +119,6 @@
 
 See the [installation guide](tutorials/tutorial-installation.html).
 
-### Dependencies
-
-- CGView.js has only one dependency: [D3](http://d3js.org) (Version 6 or 7).
-
-- When using CGView via script tags, D3 will have to be sourced first.
-
-### Install via [npm](https://npmjs.com) or [yarn](https://yarnpkg.com)
-
-- Install:
-```bash
-# npm
-npm install --save cgview
-# yarn
-yarn add cgview
-```
-
-- The following files will be available in <em>node_modules/cgview/dist</em>:
-```bash
-# Required CSS file
-  - cgview.css
-# Use one of the following (ESM or IIFE):
-  - cgview.esm.js
-  - cgview.esm.min.js
-  - cgview.js
-  - cgview.min.js
-```
-
-- Source CGView.js files (JavaScript and CSS):
-<pre class="prettyprint language-html" tabindex="0"><code class=" language-html"><span class="token comment">&lt;!-- Javscript --&gt;</span>
-<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>script</span> <span class="token attr-name">src</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>cgview.min.js<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span><span class="token script"></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>script</span><span class="token punctuation">&gt;</span></span>
-<span class="token comment">&lt;!-- CSS --&gt;</span>
-<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>link</span> <span class="token attr-name">rel</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>stylesheet<span class="token punctuation">"</span></span> <span class="token attr-name">href</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>cgview.css<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>
-</code></pre>
-
-<!-- ```html -->
-<!-- <!&#45;&#45; Javscript &#45;&#45;> -->
-<!-- <script src='cgview.min.js'></script> -->
-<!-- <!&#45;&#45; CSS &#45;&#45;> -->
-<!-- <link rel="stylesheet" href="cgview.css" /> -->
-<!-- ``` -->
-
-
-- Or import as an ES6 module:
-```js
-import * as CGV from 'cgview.esm.js'
-import 'cgview.css';
-```
-
-### Install via [jsDelivr](https://www.jsdelivr.com)
-
-- Install (See [jsDelivr](https://www.jsdelivr.com) for specfying specific versions):
-<pre class="prettyprint language-html" tabindex="0"><code class=" language-html"><span class="token comment">&lt;!-- Javscript --&gt;</span>
-<span class="token comment">&lt;!-- Source D3 before CGView --&gt;</span>
-<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>script</span> <span class="token attr-name">src</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>https://d3js.org/d3.v7.min.js<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span><span class="token script"></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>script</span><span class="token punctuation">&gt;</span></span>
-<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>script</span> <span class="token attr-name">src</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>https://cdn.jsdelivr.net/npm/cgview/dist/cgview.min.js<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span><span class="token script"></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>script</span><span class="token punctuation">&gt;</span></span>
-<span class="token comment">&lt;!-- CSS --&gt;</span>
-<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>link</span> <span class="token attr-name">rel</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>stylesheet<span class="token punctuation">"</span></span> <span class="token attr-name">href</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>https://cdn.jsdelivr.net/npm/cgview/dist/cgview.css<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>
-</code></pre>
-
-<!-- ```html -->
-<!-- <!&#45;&#45; Javscript &#45;&#45;> -->
-<!-- <!&#45;&#45; Source D3 before CGView &#45;&#45;> -->
-<!-- <script src="https://d3js.org/d3.v7.min.js"></script> -->
-<!-- <script src='https://cdn.jsdelivr.net/npm/cgview/cgview.min.js'></script> -->
-<!-- <!&#45;&#45; CSS &#45;&#45;> -->
-<!-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cgview/cgview.css" /> -->
-<!-- ``` -->
-
 </section>
 <section id="s.overview">
 
@@ -197,11 +129,9 @@ The Backbone represents the sequence and if the sequence is provided to
 CGView.js, then you can zoom in far enough to see the sequence in the
 backbone. Tracks contain either a [plot](api/Plot.html) or a set of
 [features](api/Feature.html). Tracks are drawn as as one or more
-[slots](api/Slot.html) where each Slot is a single ring on the map. Slots outside
-of the backbone show features on the forward strand, while inside slots show
-features on the reverse strand. Tracks containing a Plot are always drawn
-as a single slot, however, feature tracks can be drawn in 3 different
-configurations:
+[slots](api/Slot.html) where each Slot is a single ring on the map.
+Tracks containing a Plot are always drawn as a single slot, however,
+feature tracks can be drawn in 3 different configurations:
 
 Slots | Description
 ------|------------
@@ -290,8 +220,8 @@ cgv.addFeatures(featureData);
 
 The data object is passed directly to the record constructor. So the following
 are similar, however, creating an object directly with the constructor does not
-trigger events or add the action to the CGView History (see
-[Record Action Advantages](#record-action-advantages)).
+trigger events (see [Record Action Advantages](#record-action-advantages)).
+
 ```js
 featureData = {...};
 // Create Feature with Add Action (Recommended)
@@ -412,12 +342,6 @@ cgv.on('features-update', ({features}) => {
 ```js
 // This will update all 3 features but only generate 1 'features-update' event.
 cgv.updateFeatures([feature1, feature2, feature3], {type: 'CDS'});
-```
-- The update methods will also be added to the CGView History (LINK) and therefore
-  can undone or redone. (NOT IMPLEMENTED YET)
-```js
-cgv.undo();
-cgv.redo();
 ```
 
 </section>
