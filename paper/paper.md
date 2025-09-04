@@ -39,7 +39,7 @@ Maps are rendered using the HTML canvas rather than SVG elements, which signific
 
 `CGView.js` uses web workers to create GC Skew, GC Content, and ORF tracks based on the provided genome sequence. Web workers generate these tracks in background threads without blocking the user interface, allowing users to continue moving, zooming, or interacting with the map. These processes communicate with the main thread to provide visual feedback in the form of a growing progress track. When the worker is finished the progress track is replaced with the new plot or set of features.
 
-The performance of `CGView.js` depends on the capabilities of the host system. No internal limits are set on genome size or the number of features that can be displayed. However, large genomes (e.g more than 10 million base pairs) and large numbers of features (e.g. millions) can result in slower map rendering and navigation. For this reason we recommend that `CGView.js` be used for microbial and organellar genomes.
+The performance of `CGView.js` depends on the capabilities of the host system. No internal limits are set on genome size or the number of features that can be displayed. However, large genomes (e.g. more than 10 million base pairs) and large numbers of features (e.g. millions) can result in slower map rendering and navigation. For this reason we recommend that `CGView.js` be used for microbial and organellar genomes.
 
 Example maps illustrating the performance and functionality of `CGView.js` are provided on the `CGView.js` website (<https://js.cgview.ca>), which also offers tutorials and detailed documentation. Each tutorial dynamically generates a working map using the exact code shown in the example, ensuring all examples are functional and reproducible.
 
