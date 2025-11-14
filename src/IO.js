@@ -347,6 +347,13 @@ class IO {
     return {cgview: data};
   }
 
+  // TODO: When version 1.9 is released, add update function here
+  // Version 1.9 started on 2026-??-??
+  // _updateVersion_1_8(data) {
+  //   - Remove the auto conversion (and deprecation) in track position
+  //   - Update track position from 'both' to 'around'
+  // }
+
   // Version 1.7 started on 2024-10-02
   // - no update required
 

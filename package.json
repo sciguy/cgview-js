@@ -1,6 +1,6 @@
 {
   "name": "cgview",
-  "version": "1.8.0",
+  "version": "1.8.1",
   "main": "dist/cgview.esm.js",
   "type": "module",
   "description": "CGView: Circular Genome Viewer",

@@ -508,6 +508,9 @@ class Layout {
 
     const slots = track.slots().filter( s =>  s.visible && s[position] );
 
+    // const visibleSlots = track.slots().filter( s =>  s.visible );
+    // const slots = visibleSlots.filter( s =>  s[position] );
+
     let space = 0;
     if (slots.length > 0) {
       // Add track start and end divider spacing
@@ -519,6 +522,7 @@ class Layout {
       space += slotDividerCount * ((dividers.slot.adjustedSpacing * 2) + dividers.slot.adjustedThickness);
     }
     return space;
+    // return 3;
   }
 
   // Returns the space (in pixels) of everything but the slots
@@ -541,6 +545,7 @@ class Layout {
       space += this.backbone.adjustedThickness;
     }
 
+    // console.log('_nonSlotSpace', position, space);
     return space;
   }
 
@@ -894,6 +899,7 @@ class Layout {
     const startTime = new Date().getTime();
     this.drawMapWithoutSlots(true);
     this.drawAllSlots(true);
+    this.sequence.draw();
     // Debug
     if (this.viewer.debug) {
       this.viewer.debug.data.time.fastDraw = utils.elapsedTime(startTime);
@@ -906,11 +912,13 @@ class Layout {
     this.drawAllSlots(true);
     this._drawFullStartTime = new Date().getTime();
     this.drawSlotWithTimeOut(this);
+    this.sequence.draw();
   }
 
   drawExport() {
     this.drawMapWithoutSlots();
     this.drawAllSlots(false);
+    this.sequence.draw();
   }
 
   draw(fast) {
@@ -955,7 +963,13 @@ class Layout {
     const slots = layout.visibleSlots();
     const slot = slots[layout._slotIndex];
     if (!slot) { return; }
+
     slot.clear();
+    // Redraw the Backbone if this is the first slot and the slot is 'along' the backbone
+    if (layout._slotIndex === 0 && slot.position === 'along') {
+      this.backbone.draw();
+    }
+
     slot.draw(layout.canvas);
     layout._slotIndex++;
     if (layout._slotIndex < slots.length) {
@@ -975,6 +989,7 @@ class Layout {
     const dividers = viewer.dividers;
     const direction = (position === 'outside') ? 1 : -1;
     let bbOffset = this.backbone.adjustedThickness / 2;
+    // let bbOffset = 0;
     // Distance between slots
     const slotGap = (dividers.slot.adjustedSpacing * 2) + dividers.slot.adjustedThickness;
     const visibleTracks = this.tracks().filter( t =>  t.visible );
@@ -987,8 +1002,16 @@ class Layout {
           const slot = slots[j];
           const slotThickness = this._calculateSlotThickness(slot.proportionOfMap);
           slot._thickness = slotThickness;
-          bbOffset += (slotThickness / 2);
+
+          if (i === 0 && slot.position === 'along') {
+            bbOffset = 0;
+          } else {
+            bbOffset += (slotThickness / 2);
+          }
+          // bbOffset += (slotThickness / 2);
+
           slot._bbOffset = direction * bbOffset;
+
           bbOffset += (slotThickness / 2);
           if (j === (slotsLength - 1)) {
             // Last slot for track - Use track divider

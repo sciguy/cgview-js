@@ -887,6 +887,7 @@ class Sequence extends CGObject {
   }
 
   draw() {
+    if (this.viewer.backbone.pixelsPerBp() < 1) { return; }
     if (!this.visible) { return; }
     const ctx = this.canvas.context('map');
     const backbone = this.viewer.backbone;

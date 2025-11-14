@@ -302,9 +302,10 @@ class Backbone extends CGObject {
         }
       }
 
-      if (this.pixelsPerBp() > 1) {
-        this.sequence.draw();
-      }
+      // Now Done in Layout.js (to accommodate 'along' position, ie drawing sequence over features)
+      // if (this.pixelsPerBp() > 1) {
+      //   this.sequence.draw();
+      // }
     }
   }
 

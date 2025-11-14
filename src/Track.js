@@ -49,7 +49,7 @@ import utils from './Utils';
  * [dataType](#dataType)             | String    | Type of data shown by the track: plot, feature [Default: feature]
  * [dataMethod](#dataMethod)         | String    | Methods used to extract/connect to features or a plot: sequence, source, type, tag [Default: source]
  * [dataKeys](#dataKeys)             | String\|Array | Values used by dataMethod to extract features or a plot.
- * [position](#position)             | String    | Position relative to backbone: inside, outside, or both [Default: both]
+ * [position](#position)             | String    | Position relative to backbone: inside, outside, both, or along (both and along are only for feature tracks) [Default: both]
  * [separateFeaturesBy](#separateFeaturesBy) | String    | How features should be separated: none, strand, readingFrame, type, legend [Default: strand]
  * [thicknessRatio](#thicknessRatio) | Number    | Thickness of track compared to other tracks [Default: 1]
  * [loadProgress](#loadProgress)     | Number    | Number between 0 and 100 indicating progress of track loading. Used internally by workers.
@@ -78,12 +78,12 @@ class Track extends CGObject {
     this._slots = new CGArray();
     this.name = utils.defaultFor(data.name, 'Unknown');
     this.separateFeaturesBy = utils.defaultFor(data.separateFeaturesBy, 'strand');
-    this.position = utils.defaultFor(data.position, 'both');
     this.drawOrder = utils.defaultFor(data.drawOrder, 'position');
     this.dataType = utils.defaultFor(data.dataType, 'feature');
     this.dataMethod = utils.defaultFor(data.dataMethod, 'source');
     this.dataKeys = data.dataKeys;
     this.dataOptions = data.dataOptions || {};
+    this.position = utils.defaultFor(data.position, 'around');
     this._thicknessRatio = utils.defaultFor(data.thicknessRatio, 1);
     this._loadProgress = 0;
     this.refresh();
@@ -239,16 +239,39 @@ class Track extends CGObject {
   }
 
   /**
-   * @member {String} - Get or set the position. Possible values are 'inside', 'outside', or 'both'.
+   * @member {String} - Get or set the position. Possible values are 'inside', 'outside', or 'around'.
    */
   get position() {
     return this._position;
   }
 
+  // set position(value) {
+  //   if ((this.type === 'feature' && utils.validate(value, ['inside', 'outside', 'both', 'along'])) ||
+  //       (this.type === 'plot' && utils.validate(value, ['inside', 'outside']))) {
+  //     this._position = value;
+  //     this.updateSlots();
+  //   }
+  // }
   set position(value) {
-    if (utils.validate(value, ['inside', 'outside', 'both'])) {
-      this._position = value;
-      this.updateSlots();
+    if (this.type === 'feature') {
+      // Deprecated value
+      if (value === 'both') {
+        console.warn("[CGView] track.position 'both' is deprecated and will be removed in v1.9. Use 'around' instead.");
+        value = 'around';
+      }
+
+      if (utils.validate(value, ['inside', 'outside', 'around', 'along'])) {
+        this._position = value;
+        this.updateSlots();
+      }
+      return;
+    }
+
+    if (this.type === 'plot') {
+      if (utils.validate(value, ['inside', 'outside'])) {
+        this._position = value;
+        this.updateSlots();
+      }
     }
   }
 

@@ -81,7 +81,8 @@ class Slot extends CGObject {
    * @member {String} - Get the position of the slot in relation to the backbone
    */
   get position() {
-    if (this.track.position === 'both') {
+    // if (this.track.position === 'both') {
+    if (this.track.position === 'around') {
       return (this.isDirect() ? 'outside' : 'inside');
     } else {
       return this.track.position;
@@ -104,15 +105,44 @@ class Slot extends CGObject {
    * @member {Boolean} - Is the slot position inside the backbone
    */
   get inside() {
-    return this.position === 'inside';
+    // return this.position === 'inside';
+
+    if (this.position === 'inside') {
+      return true;
+    } else if (this.position === 'along') {
+      // TODO: confirm this is first slot otherwise return false
+      const visibleTracks = this.viewer.tracks().filter( t =>  t.visible );
+      if (visibleTracks[0] === this.track) {
+        return true;
+      } else {
+        return false;
+      }
+    } else {
+      return false;
+    }
   }
 
   /**
    * @member {Boolean} - Is the slot position outside the backbone
    */
   get outside() {
-    return this.position === 'outside';
+    // return this.position === 'outside';
+
+    if (this.position === 'outside') {
+      return true;
+    } else if (this.position === 'along') {
+      return true;
+    } else {
+      return false;
+    }
   }
+
+  // /**
+  //  * @member {Boolean} - Is the slot position along the backbone
+  //  */
+  // get along() {
+  //   return this.position === 'along';
+  // }
 
   /**
    * @member {Viewer} - Get or set the track size as a proportion of the map thickness 
