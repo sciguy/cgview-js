@@ -69,6 +69,7 @@ class Backbone extends CGObject {
     this.colorAlternate = utils.defaultFor(options.colorAlternate, 'rgb(200,200,200)');
     this.thickness = utils.defaultFor(options.thickness, 5);
     this._bpThicknessAddition = 0;
+    this._maxContigsForFastDraw = 500;
     // Default decoration is arrow for multiple contigs and arc for single contig
     const defaultDecoration = this.sequence.hasMultipleContigs ? 'arrow' : 'arc';
     this.decoration = utils.defaultFor(options.decoration, defaultDecoration);
@@ -266,7 +267,7 @@ class Backbone extends CGObject {
     });
   }
 
-  draw() {
+  draw(fast) {
     // this._visibleRange = this.canvas.visibleRangeForCenterOffset( this.adjustedCenterOffset, 100);
     this._visibleRange = this.canvas.visibleRangeForCenterOffset( this.adjustedCenterOffset, { margin: 100 });
     if (this.visibleRange && this.visible) {
@@ -274,6 +275,11 @@ class Backbone extends CGObject {
 
       if (this.sequence.hasMultipleContigs) {
         const contigs = this.sequence.contigsForMapRange(this.visibleRange);
+        if (fast && contigs.length > this._maxContigsForFastDraw) {
+          // Use fast drawing method when too many contigs
+          this.viewer.canvas.drawElement('map', this.visibleRange.start, this.visibleRange.stop, this.adjustedCenterOffset, this.color.rgbaString, this.adjustedThickness, this.directionalDecorationForContig(this.sequence.mapContig));
+          return;
+        }
         for (let i = 0, len = contigs.length; i < len; i++) {
           const contig = contigs[i];
           // Postions:

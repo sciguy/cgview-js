@@ -858,7 +858,7 @@ class Layout {
     // ctx.textBaseline = 'top';
 
     // Draw Backbone
-    backbone.draw();
+    backbone.draw(fast);
 
     // Recalculate the slot offsets and thickness if the zoom level has changed
     this.updateLayout();
