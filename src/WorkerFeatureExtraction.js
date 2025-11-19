@@ -223,8 +223,9 @@ export default function WorkerFeatureExtraction() {
         }
         for (let j = stopIndex, jLen = stopsByRF[rf].length; j < jLen; j++) {
           stop = stops[j];
-          orfLength = (strand === 1) ? stop.stop - start.start : start.stop - stop.start;
-          // ORF length is measure in codons
+          // Length is without the stop codon (so we exclude it: -2 bp instead of + 1)
+          orfLength = (strand === 1) ? stop.stop - start.start - 2 : start.stop - stop.start - 2;
+          // ORF length is measure in codons (ie. if minORFLength is 100, then 300 bp (without stop codon))
           if (orfLength >= (minORFLength * 3)) {
             position = (strand === 1) ? stop.stop : stop.start;
 
