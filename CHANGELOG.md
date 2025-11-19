@@ -8,6 +8,7 @@
 - Add track position 'along'. Show track as a single slot centered on the backbone.
 - Change track position 'both' to 'around'. 'both' is depcrecated and will be removed in v1.9
 - Add fast draw for backbones with many contigs
+- Add a pixelLengthThreshold of 0.1. When minArcLength is 0, features smaller than pixelLengthThreshold will not be drawn.
 
 
 ## 1.8.0 - 2025-08-29

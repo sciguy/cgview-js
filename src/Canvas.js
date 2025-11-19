@@ -61,6 +61,8 @@ class Canvas {
 
     // This value is used to restrict the draw range for testing (see _testDrawRange)
     this._drawRange = 0.4;
+    // Minimum arc length for drawing (in pixels) when minArcLength is 0
+    this._pixelLengthThreshold = 0.1; // pixels
   }
 
   /**
@@ -311,6 +313,14 @@ class Canvas {
         const middleBP = start + ( featureLengthBp / 2 );
         start = middleBP - (minArcLengthBp / 2);
         stop = middleBP + (minArcLengthBp / 2);
+      }
+
+      // Skip drawing features that are too small to see (less than 0.1 pixels)
+      // Only skip if minArcLengthPixels is 0 (i.e. no minimum length adjustment)
+      const ppbp = this.pixelsPerBp(centerOffset);
+      const featureLengthPx = featureLengthBp * ppbp;
+      if (minArcLengthPixels === 0 && featureLengthPx < this._pixelLengthThreshold) {
+        return;
       }
 
       if (showShading) {
