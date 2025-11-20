@@ -290,6 +290,11 @@ class Canvas {
     // ctx.lineJoin = 'round';
     showShading = (showShading === undefined) ? settings.showShading : showShading;
 
+    // Border Testing
+    showShading = false;
+    const showBorder = true;
+
+
     // When drawing elements (arcs or arrows), the element should be offset by
     // half a bp on each side. This will allow single base features to be
     // drawn. It also reduces ambiguity for where features start/stop.
@@ -351,6 +356,24 @@ class Canvas {
         ctx.strokeStyle = color;
         ctx.lineWidth = width;
         this.path(layer, centerOffset, start, stop);
+        ctx.stroke();
+      }
+
+      if (showBorder) {
+        const halfMainWidth =  width * 0.5;
+        const borderWidth = 2;
+        ctx.beginPath();
+        ctx.strokeStyle = 'purple';
+        ctx.lineWidth = borderWidth;
+        this.path(layer, centerOffset + halfMainWidth - borderWidth, start, stop);
+
+        // ctx.lineTo(arrowTipPt.x, arrowTipPt.y);
+        // ctx.lineTo(shadowPt.x, shadowPt.y);
+        this.path(layer, centerOffset - halfMainWidth, stop, stop, true, 'noMoveTo');
+        this.path(layer, centerOffset - halfMainWidth + borderWidth, stop, start, false, 'noMoveTo');
+        // this.path(layer, centerOffset - halfMainWidth + borderWidth, start, stop, false, 'noMoveTo');
+        ctx.closePath();
+
         ctx.stroke();
       }
     }
