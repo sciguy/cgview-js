@@ -9,7 +9,7 @@ console.log('Available Maps (from map.js):', maps)
 // Initial input file to load: '', 'file', or map from map.js (e.g. 'small')
 // const defaultMap = '';     // Empty
 // const defaultMap = 'file'; // File Choose
-const defaultMap = 'small';
+// const defaultMap = 'small';
 // const defaultMap = 'small_noplots';
 // const defaultMap = 'medium';
 // const defaultMap = 'locations';
@@ -19,6 +19,7 @@ const defaultMap = 'small';
 // const defaultMap = 'pcET30c';
 // const defaultMap = 'pcDNA3';
 // const defaultMap = 'paper';
+const defaultMap = 'test_single_bases';
 
 
 

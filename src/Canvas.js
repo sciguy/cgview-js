@@ -293,6 +293,10 @@ class Canvas {
     // Border Testing
     showShading = false;
     const showBorder = true;
+    const borderWidth = 1;
+    // TODO:
+    // - skip border for fast draw
+    // - scale the thickness based on pixelsPerBp
 
 
     // When drawing elements (arcs or arrows), the element should be offset by
@@ -361,17 +365,19 @@ class Canvas {
 
       if (showBorder) {
         const halfMainWidth =  width * 0.5;
-        const borderWidth = 2;
+        // const borderWidth = 1;
+        const adjustedBorderWidth = (borderWidth / 2);
+        // const adjustedBorderWidth = borderWidth;
         ctx.beginPath();
-        ctx.strokeStyle = 'purple';
+        // ctx.strokeStyle = 'rgba(0,0,0,0.5)';
+        ctx.strokeStyle = 'rgba(0,0,0,1)';
         ctx.lineWidth = borderWidth;
-        this.path(layer, centerOffset + halfMainWidth - borderWidth, start, stop);
+        this.path(layer, centerOffset + halfMainWidth - adjustedBorderWidth, start, stop);
 
         // ctx.lineTo(arrowTipPt.x, arrowTipPt.y);
         // ctx.lineTo(shadowPt.x, shadowPt.y);
-        this.path(layer, centerOffset - halfMainWidth, stop, stop, true, 'noMoveTo');
-        this.path(layer, centerOffset - halfMainWidth + borderWidth, stop, start, false, 'noMoveTo');
-        // this.path(layer, centerOffset - halfMainWidth + borderWidth, start, stop, false, 'noMoveTo');
+        this.path(layer, centerOffset - halfMainWidth + adjustedBorderWidth, stop, stop, true, 'noMoveTo');
+        this.path(layer, centerOffset - halfMainWidth + adjustedBorderWidth, stop, start, true, 'noMoveTo');
         ctx.closePath();
 
         ctx.stroke();
@@ -453,6 +459,26 @@ class Canvas {
         this.path(layer, centerOffset - halfWidth, arcStopBp, arcStartBp, direction === 1, 'noMoveTo');
         ctx.closePath();
         ctx.fill();
+      }
+
+      if (showBorder && (decoration === 'clockwise-arrow' || decoration === 'counterclockwise-arrow')) {
+        const halfMainWidth =  width * 0.5;
+        // const borderWidth = 1;
+        const adjustedBorderWidth = (borderWidth / 2);
+        // const adjustedBorderWidth = borderWidth;
+        ctx.beginPath();
+        // ctx.strokeStyle = 'rgba(0,0,0,0.5)';
+        ctx.strokeStyle = 'rgba(0,0,0,1)';
+        ctx.lineWidth = borderWidth;
+        this.path(layer, centerOffset + halfMainWidth - adjustedBorderWidth, arcStartBp, arcStopBp, direction === -1);
+
+        ctx.lineTo(arrowTipPt.x, arrowTipPt.y);
+        ctx.lineTo(innerArcStartPt.x, innerArcStartPt.y);
+
+        this.path(layer, centerOffset - halfMainWidth + adjustedBorderWidth, arcStopBp, arcStartBp, direction === 1, 'noMoveTo');
+        ctx.closePath();
+
+        ctx.stroke();
       }
     }
   }
