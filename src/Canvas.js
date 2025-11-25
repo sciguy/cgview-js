@@ -294,9 +294,12 @@ class Canvas {
     showShading = false;
     const showBorder = true;
     const borderWidth = 1;
+    // const borderWidth = 2;
     // TODO:
     // - skip border for fast draw
     // - scale the thickness based on pixelsPerBp
+    // - I think we will need thickness of border as well. This will be useful for highlighting
+    // - We dividers and other elements to not have borders
 
 
     // When drawing elements (arcs or arrows), the element should be offset by
@@ -413,7 +416,13 @@ class Canvas {
       const halfWidth = width / 2;
       const arcStopBp = arrowTipBp - (direction * arrowHeadLengthBp);
       const arrowTipPt = this.pointForBp(arrowTipBp, centerOffset);
-      const innerArcStartPt = this.pointForBp(arcStopBp, centerOffset - halfWidth);
+      // const innerArcStartPt = this.pointForBp(arcStopBp, centerOffset - halfWidth);
+      let innerArcStartPt;
+      if (showBorder) {
+        innerArcStartPt = this.pointForBp(arcStopBp, centerOffset - halfWidth + (borderWidth / 2));
+      } else {
+        innerArcStartPt = this.pointForBp(arcStopBp, centerOffset - halfWidth);
+      }
 
       if (showShading) {
         const halfMainWidth =  width * (0.5 - shadowFraction);
