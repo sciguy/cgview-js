@@ -57,7 +57,7 @@ class Highlighter extends CGObject {
     this._feature = new HighlighterElement('feature', options.feature);
     this._plot = new HighlighterElement('plot', options.plot);
     this._contig = new HighlighterElement('contig', options.contig);
-    this._backbone = new HighlighterElement('backbone', options.contig);
+    this._backbone = new HighlighterElement('backbone', options.backbone);
     this.initializeEvents();
 
     // Set up position constants (Distance from mouse pointer to top-left of popup)
