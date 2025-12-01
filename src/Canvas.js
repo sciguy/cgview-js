@@ -293,7 +293,12 @@ class Canvas {
     // Border Testing
     showShading = false;
     const showBorder = true;
-    const borderWidth = 1;
+    // TODO: Allow width adjustments from 0.5 to 4 pixels
+    let borderWidth = 1.5;
+    // Above this zoom factor, border width will not increase
+    const zoomFactorMaxForBorder = 2;
+    borderWidth = (Math.min(this.viewer.zoomFactor, zoomFactorMaxForBorder) * (borderWidth/ zoomFactorMaxForBorder));
+    // return (Math.min(this.viewer.zoomFactor, 4) * this.thickness) + this.bpThicknessAddition;
     // const borderWidth = 2;
     // TODO:
     // - skip border for fast draw
