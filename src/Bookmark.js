@@ -249,7 +249,7 @@ class Bookmark extends CGObject {
       shortcut: this.shortcut
       // favorite: this.favorite
     };
-    if (!this.favorite || options.includeDefaults) {
+    if (this.favorite || options.includeDefaults) {
       json.favorite = this.favorite;
     }
     return json;
