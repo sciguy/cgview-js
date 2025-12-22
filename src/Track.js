@@ -496,12 +496,14 @@ class Track extends CGObject {
       }
     } else if (this.separateFeaturesBy === 'strand') {
       const features = this.featuresByStrand();
+      // We always want direct strand first (from the outside in)
+      const strands = this.position === 'outside' ? ['reverse', 'direct'] : ['direct', 'reverse'];
       // Direct Slot
-      let slot = new Slot(this, {strand: 'direct'});
-      slot.replaceFeatures(features.direct);
+      let slot = new Slot(this, {strand: strands[0]});
+      slot.replaceFeatures(this.position === 'outside' ? features.reverse : features.direct);
       // Reverse Slot
-      slot = new Slot(this, {strand: 'reverse'});
-      slot.replaceFeatures(features.reverse);
+      slot = new Slot(this, {strand: strands[1]});
+      slot.replaceFeatures(this.position === 'outside' ? features.direct : features.reverse);
     } else {
       // Combined Slot
       const slot = new Slot(this, {strand: 'direct'});
