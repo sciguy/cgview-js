@@ -430,6 +430,8 @@ class Contig extends CGObject {
    * @param {Number} stop - Stop position (bp) of the highlight
    * @param {Color} color - Color of the highlight
    * @private
+   * FIXME: On safari we have arc artifacts when highlighting long regions
+   * - Look at backbone/features for how to draw arcs without artifacts
    */
   highlightRegion(start, stop, color) {
     const backbone = this.viewer.backbone;
