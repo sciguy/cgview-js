@@ -29,8 +29,6 @@ Genome maps are routinely generated as a way of understanding or conveying the f
 
 Microbial and organellar genomics frequently require circular maps and fast navigation between scales. `CGView.js` addresses this need by providing circular and linear map layouts with nucleotide-level detail, accessible through an embeddable component suited to web applications. \autoref{fig:examples} shows examples of `CGView.js` circular and linear layouts, plus a zoomed view that displays base-pair detail.
 
-![`CGView.js` maps of the *Escherichia coli* PA2 genome (GenBank accession: GCF_000335355.2) displaying sequence features and base composition plots. (A) Circular view of the genome. (B) Circular view zoomed to the base pair level, with the legend color picker shown in the top-right corner. (C) Linear view of the same genome.\label{fig:examples}](figure.png)
-
 # State of the field
 
 Several JavaScript-based genome browsers, including JBrowse [@jbrowse_2023], igv.js [@igvjs_2022], and pileup.js [@pileup_2016], are widely used for general genomics visualization. However, few support the circular maps that are often preferred for microbial and organellar genomes, and none provide the rapid and smooth zooming to the DNA sequence level available in `CGView.js`. `CGView.js` complements these tools by focusing on circular visualization and tight integration into web pipelines rather than operating as a standalone browser.
@@ -40,6 +38,8 @@ Several JavaScript-based genome browsers, including JBrowse [@jbrowse_2023], igv
 `CGView.js` is an embeddable interactive map component, intended to be tightly integrated into and managed by surrounding web applications. The API exposes common actions on map components such as features, tracks, contigs, legends, and labels. A standard set of actions is provided (read, add, remove, update, reorder). All actions (except "read") trigger events that can be used as hooks for callbacks. For example, the `features-add` event passes the added features to a callback, enabling host tools to react dynamically.
 
 Maps are rendered using the HTML canvas rather than SVG, which significantly improves performance when displaying thousands of features. During animations such as zooming or panning, the number of visible features is temporarily reduced to maintain responsiveness. Once the animation completes, the map is redrawn at full detail.
+
+![`CGView.js` maps of the *Escherichia coli* PA2 genome (GenBank accession: GCF_000335355.2) displaying sequence features and base composition plots. (A) Circular view of the genome. (B) Circular view zoomed to the base pair level, with the legend color picker shown in the top-right corner. (C) Linear view of the same genome.\label{fig:examples}](figure.png)
 
 `CGView.js` uses web workers to create GC skew, GC content, and ORF tracks based on the provided genome sequence. Web workers generate these tracks in background threads without blocking the user interface, allowing users to continue moving, zooming, or interacting with the map. These processes communicate with the main thread to provide visual feedback in the form of a growing progress track. When the worker is finished, the progress track is replaced with the new plot or set of features.
 
@@ -66,6 +66,5 @@ Generative AI (ChatGPT) was used occasionally for issue triage, small code sugge
 # Acknowledgements
 
 This work was funded by Genome Alberta and Genome Canada.
-
 
 # References
