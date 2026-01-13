@@ -27,32 +27,41 @@ Genome maps are routinely generated as a way of understanding or conveying the f
 
 # Statement of need
 
-Several JavaScript-based genome browsers offer impressive capabilities, including `JBrowse` [@jbrowse_2023], `igv.js` [@igvjs_2022], and `pileup.js` [@pileup_2016]. However, few support the circular maps that are often preferred for microbial and organellar genomes, and none provide the rapid and smooth zooming to the DNA sequence level available in `CGView.js`, which allows for quick and thorough exploration of genomic features. \autoref{fig:examples} shows examples of `CGView.js`'s circular and linear map layouts, as well as its ability to display nucleotide-level detail.
+Microbial and organellar genomics frequently require circular maps and fast navigation between scales. `CGView.js` addresses this need by providing circular and linear map layouts with nucleotide-level detail, accessible through an embeddable component suited to web applications. \autoref{fig:examples} shows examples of `CGView.js` circular and linear layouts, plus a zoomed view that displays base-pair detail.
 
-`CGView.js` is designed as an embeddable interactive map component, intended to be tightly integrated into and managed by surrounding web applications. Since its release in 2021, `CGView.js` has been integrated into multiple online bioinformatics platforms and web servers, including `Proksee` [@proksee_2023], `PHASTEST` [@phastest_2023], `PlasMapper 3.0` [@plasmapper_2023], `MOBHunter` [@mobhunter_2025], `PLSDB` [@plsdb_2024], and `BASys2` [@basys_2025].
+![`CGView.js` maps of the *Escherichia coli* PA2 genome (GenBank accession: GCF_000335355.2) displaying sequence features and base composition plots. (A) Circular view of the genome. (B) Circular view zoomed to the base pair level, with the legend color picker shown in the top-right corner. (C) Linear view of the same genome.\label{fig:examples}](figure.png)
 
-To facilitate this integration, `CGView.js` includes a well-documented API for manipulating and accessing various map components, such as features, tracks, contigs, legends, and labels. The API defines a standard set of actions (read, add, remove, update, and reorder) for manipulating map components. All actions (except "read") trigger events, providing hooks for callback functions. For example, a `features-add` event can pass the added features to a callback, allowing third-party tools to respond dynamically.
+# State of the field
 
-Maps are rendered using the HTML canvas rather than SVG elements, which significantly improves performance when displaying thousands of features. During animations such as zooming or panning, `CGView.js` temporarily reduces the number of visible features to maintain responsiveness. Once the animation completes, the map is fully redrawn at high detail.
+Several JavaScript-based genome browsers, including JBrowse [@jbrowse_2023], igv.js [@igvjs_2022], and pileup.js [@pileup_2016], are widely used for general genomics visualization. However, few support the circular maps that are often preferred for microbial and organellar genomes, and none provide the rapid and smooth zooming to the DNA sequence level available in `CGView.js`. `CGView.js` complements these tools by focusing on circular visualization and tight integration into web pipelines rather than operating as a standalone browser.
 
-![`CGView.js` maps of the the *Escherichia coli* PA2 genome (GenBank accession: GCF_000335355.2) displaying various sequence features and base composition plots. (A) Circular view of the genome. (B) Circular view zoomed-in to the base pair level, with the legend color picker shown in the top-right corner. (C) Linear view of the same genome.\label{fig:examples}](figure.png)
+# Software design
 
-`CGView.js` uses web workers to create GC Skew, GC Content, and ORF tracks based on the provided genome sequence. Web workers generate these tracks in background threads without blocking the user interface, allowing users to continue moving, zooming, or interacting with the map. These processes communicate with the main thread to provide visual feedback in the form of a growing progress track. When the worker is finished the progress track is replaced with the new plot or set of features.
+`CGView.js` is an embeddable interactive map component, intended to be tightly integrated into and managed by surrounding web applications. The API exposes common actions on map components such as features, tracks, contigs, legends, and labels. A standard set of actions is provided (read, add, remove, update, reorder). All actions (except "read") trigger events that can be used as hooks for callbacks. For example, the `features-add` event passes the added features to a callback, enabling host tools to react dynamically.
 
-The performance of `CGView.js` depends on the capabilities of the host system. No internal limits are set on genome size or the number of features that can be displayed. However, large genomes (e.g. more than 10 million base pairs) and large numbers of features (e.g. millions) can result in slower map rendering and navigation. For this reason we recommend that `CGView.js` be used for microbial and organellar genomes.
+Maps are rendered using the HTML canvas rather than SVG, which significantly improves performance when displaying thousands of features. During animations such as zooming or panning, the number of visible features is temporarily reduced to maintain responsiveness. Once the animation completes, the map is redrawn at full detail.
 
-Example maps illustrating the performance and functionality of `CGView.js` are provided on the `CGView.js` website (<https://js.cgview.ca>), which also offers tutorials and detailed documentation. Each tutorial dynamically generates a working map using the exact code shown in the example, ensuring all examples are functional and reproducible.
+`CGView.js` uses web workers to create GC skew, GC content, and ORF tracks based on the provided genome sequence. Web workers generate these tracks in background threads without blocking the user interface, allowing users to continue moving, zooming, or interacting with the map. These processes communicate with the main thread to provide visual feedback in the form of a growing progress track. When the worker is finished, the progress track is replaced with the new plot or set of features.
+
+The performance of `CGView.js` depends on the capabilities of the host system. No internal limits are set on genome size or the number of features that can be displayed. However, large genomes (e.g. more than 10 million base pairs) and large numbers of features (e.g. millions) can result in slower map rendering and navigation. For this reason, we recommend using `CGView.js` primarily for microbial and organellar genomes.
 
 `CGView.js` maps can be quickly generated for sequences in GenBank, EMBL, and FASTA formats using the companion `CGParse.js` package (<https://github.com/sciguy/cgview-parse>). Features described in GenBank and EMBL files are automatically converted into `CGView.js` features for display on the map. `CGParse.js` can also convert GFF3, GTF, BED, CSV, and TSV files into `CGView.js` map features, allowing results from a variety of other sources (e.g. third-party analysis tools) to be easily visualized.
 
-Internally `CGView.js` uses the CGView JSON format, which is a lightweight JSON-based format for storing genome information and display settings. This format is designed to be human-readable and easily editable, making it suitable for sharing and archiving maps. `CGView.js` can import and export maps in this format, allowing users to save their work and share it with others.
+Configuration and interchange rely on a lightweight CGView JSON format that stores genome information and display settings. Maps can be imported from and exported to this format for sharing and archiving. Publication-ready output is supported through PNG export up to 16,000 × 16,000 pixels and SVG export for downstream vector editing.
 
-In addition to serving as an interactive map viewer, `CGView.js` can be used to generate high-resolution static images of genome maps suitable for publication. Maps can be exported as PNG images up to 16,000 × 16,000 pixels in size, or as SVG files. The latter format allows for downstream editing using vector graphics applications.
+# Research impact statement
 
-Users wishing to view maps without having to manually download software can access the capabilities of `CGView.js` through the `Proksee` web server [@proksee_2023]. `Proksee` supports the upload of GenBank, EMBL, FASTA, raw, FASTQ, and CGView JSON files. It automatically creates a `CGView.js` map from the uploaded data and provides access to a variety of integrated tools for further analyzing sequences and displaying them on the map.
+Since its release in 2021, `CGView.js` has been integrated into multiple online bioinformatics platforms and web servers, including `Proksee` [@proksee_2023], `PHASTEST` [@phastest_2023], `PlasMapper 3.0` [@plasmapper_2023], `MOBHunter` [@mobhunter_2025], `PLSDB` [@plsdb_2024], `BASys2` [@basys_2025], and `HLRMDB` [@hlrmdb_2025]. In Proksee, hundreds of `CGView.js` maps are downloaded daily, indicating active external use.
 
-In summary, `CGView.js` enables the generation of high-quality interactive and static genome maps for microbial and organellar genomes. Its embeddable JavaScript design and comprehensive API make it suitable for integration into web-based platforms that visualize genomic annotations or pipeline outputs.
+The project website (<https://js.cgview.ca>) provides detailed documentation, examples, and tutorials that generate interactive maps directly from the shown code, supporting reproducibility and community uptake. Users who prefer a graphical interface can use `Proksee` [@proksee_2023], which renders maps with `CGView.js` and exposes many viewer settings through a GUI.
 
+# Conclusion
+
+`CGView.js` enables the generation of high-quality interactive and static genome maps for microbial and organellar genomes. Its embeddable JavaScript design and comprehensive API make it suitable for integration into web-based platforms that visualize genomic annotations or pipeline outputs.
+
+# AI usage disclosure
+
+Generative AI (ChatGPT) was used occasionally for issue triage, small code suggestions, and copy editing of documentation and this manuscript. All AI-assisted code and text were reviewed and verified by the authors. No figures or data were generated by AI.
 
 # Acknowledgements
 
