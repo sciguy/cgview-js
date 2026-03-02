@@ -69,7 +69,7 @@ This work was funded by Genome Alberta and Genome Canada.
 
 # Author contributions
 
-Jason Grant: Conceptualization (equal); Methodology; Software; Visualization; Writing (original draft)
-Paul Stothard: Conceptualization (equal); Supervision; Writing (review and editing); Funding acquisition; Resources
+Jason Grant: Conceptualization (equal); Methodology; Software; Visualization; Writing (original draft).
+Paul Stothard: Conceptualization (equal); Supervision; Writing (review and editing); Funding acquisition; Resources.
 
 # References
