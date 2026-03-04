@@ -54,7 +54,7 @@ See the [tutorials](http://js.cgview.ca/tutorials/index.html) to learn how to ad
 
 ## License
 
-CGView.js is distrubuted under the [Apache Version 2.0 License](https://github.com/sciguy/cgview-js/blob/main/LICENSE).
+CGView.js is distributed under the [Apache Version 2.0 License](https://github.com/sciguy/cgview-js/blob/main/LICENSE).
 
 
 
