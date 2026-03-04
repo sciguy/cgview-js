@@ -27,8 +27,6 @@ Genome maps are routinely generated as a way of understanding or conveying the f
 
 # Statement of need
 
-Microbial and organellar genomics frequently require circular maps and fast navigation between scales. `CGView.js` addresses this need by providing circular and linear map layouts with nucleotide-level detail, accessible through an embeddable component suited to web applications. \autoref{fig:examples} shows examples of `CGView.js` circular and linear layouts, plus a zoomed view that displays base-pair detail.
-
 Microbial and organellar genomics frequently require circular maps and fast navigation between scales. Existing circular visualization tools such as Circos [@circos_2009] and the original Java-based CGView generate high-quality genome figures, but they produce static PNG/SVG outputs that must be regenerated to reflect changes, limiting interactive exploration. `CGView.js` addresses this need by providing circular and linear map layouts with nucleotide-level detail as an embeddable JavaScript component, combining smooth zooming and panning with dynamic, programmatic updates through an extensive API. \autoref{fig:examples} shows examples of `CGView.js` circular and linear layouts, plus a zoomed view that displays base-pair detail.
 
 # State of the field
