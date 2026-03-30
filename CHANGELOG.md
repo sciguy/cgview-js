@@ -10,6 +10,7 @@
 - Add fast draw for backbones with many contigs
 - Add a pixelLengthThreshold of 0.1. When minArcLength is 0, features smaller than pixelLengthThreshold will not be drawn.
 - minORFLength for extracting ORFs no longer includes stop codon (i.e. minORFLength of 100 will extract ORFs of at least 100 amino acids)
+- Fix separateFeaturesBy strand so when position is 'outside', outermost slot is the direct strand.
 
 
 ## 1.8.0 - 2025-08-29

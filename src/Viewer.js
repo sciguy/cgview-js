@@ -9,7 +9,7 @@
 
 /**
  * CGView.js – Interactive Circular Genome Viewer
- * Copyright © 2016–2025 Jason R. Grant
+ * Copyright © 2016–2026 Jason R. Grant
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1069,12 +1069,12 @@ class Viewer {
     if (updates) {
       const values = Object.values(updates);
       for (let value of values) {
-        if (Object.keys(value).includes('start') || Object.keys(value).includes('stop') || Object.keys(value).includes('visible')) {
+        if (Object.keys(value).includes('start') || Object.keys(value).includes('stop') || Object.keys(value).includes('visible') || Object.keys(value).includes('name')) {
           updateLabels = true;
         }
       }
     } else {
-      updateLabels = attributes && (Object.keys(attributes).includes('start') || Object.keys(attributes).includes('stop') || Object.keys(attributes).includes('visible'));
+      updateLabels = attributes && (Object.keys(attributes).includes('start') || Object.keys(attributes).includes('stop') || Object.keys(attributes).includes('visible') || Object.keys(attributes).includes('name'));
     }
     if (updateLabels) {
       this.annotation.refresh();

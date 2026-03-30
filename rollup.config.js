@@ -3,7 +3,7 @@ import {terser} from 'rollup-plugin-terser';
 
 const banner_license = `/*!
  * CGView.js – Interactive Circular Genome Viewer
- * Copyright © 2016–2025 Jason R. Grant
+ * Copyright © 2016–2026 Jason R. Grant
  * https://github.com/sciguy/cgview-js
  *
  * Licensed under the Apache License, Version 2.0 (the "License");

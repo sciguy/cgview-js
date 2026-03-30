@@ -6,7 +6,7 @@
  * NCList.js – based on original code licensed under the Artistic License 2.0
  * See https://www.perlfoundation.org/artistic-license-20.html for license details.
  *
- * Major modifications by Jason R. Grant, © 2016–2025.
+ * Major modifications by Jason R. Grant, © 2016–2026.
  *
  * This code is adapted from code in the JBrowse project:
  * https://searchcode.com/codesearch/view/17093141

@@ -7,7 +7,7 @@
  *
  * Originally MIT licensed by David Durman, © 2011–2012.
  *
- * Modifications made by Jason R. Grant, © 2016–2025.
+ * Modifications made by Jason R. Grant, © 2016–2026
  *
  * The original MIT license applies. See below for full license text.
  *

@@ -4,7 +4,7 @@
 
 /**
  * CGView.js – Interactive Circular Genome Viewer
- * Copyright © 2016–2025 Jason R. Grant
+ * Copyright © 2016–2026 Jason R. Grant
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -430,6 +430,8 @@ class Contig extends CGObject {
    * @param {Number} stop - Stop position (bp) of the highlight
    * @param {Color} color - Color of the highlight
    * @private
+   * FIXME: On safari we have arc artifacts when highlighting long regions
+   * - Look at backbone/features for how to draw arcs without artifacts
    */
   highlightRegion(start, stop, color) {
     const backbone = this.viewer.backbone;
