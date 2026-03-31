@@ -322,25 +322,17 @@ class Canvas {
     const shadowColorDiff = 0.15;
 
     // Border settings
-    // Testing
-    // showShading = false;
-    // showShading = true;
-    // showBorder = false;
     // TODO: Allow width adjustments (in settings) from 0.5 to 4 pixels
-    let borderWidth = 1.5;
+    // let borderWidth = 1.5; // Default
+    let borderWidth = 4;
     let selectedBorderDash = [3, 1];
-    // let borderWidth = 1;
     // Above this zoom factor, border width will not increase
     const zoomFactorMaxForBorder = 2;
     borderWidth = (Math.min(this.viewer.zoomFactor, zoomFactorMaxForBorder) * (borderWidth/ zoomFactorMaxForBorder));
-    // return (Math.min(this.viewer.zoomFactor, 4) * this.thickness) + this.bpThicknessAddition;
 
     // TODO:
     // - skip border for fast draw
     // - scale the thickness based on pixelsPerBp
-    // - I think we will need thickness of border as well. This will be useful for highlighting
-    // - We dividers and other elements to not have borders
-
 
     // When drawing elements (arcs or arrows), the element should be offset by
     // half a bp on each side. This will allow single base features to be
@@ -418,7 +410,7 @@ class Canvas {
         // const adjustedBorderWidth = borderWidth;
         ctx.beginPath();
         // ctx.strokeStyle = 'rgba(0,0,0,0.5)';
-        ctx.strokeStyle = 'rgba(0,0,0,1)';
+        ctx.strokeStyle = settings.borderColor.rgbaString;
         ctx.lineWidth = borderWidth;
         this.path(layer, centerOffset + halfMainWidth - adjustedBorderWidth, start, stop);
 
@@ -533,7 +525,7 @@ class Canvas {
         // const adjustedBorderWidth = borderWidth;
         ctx.beginPath();
         // ctx.strokeStyle = 'rgba(0,0,0,0.5)';
-        ctx.strokeStyle = 'rgba(0,0,0,1)';
+        ctx.strokeStyle = settings.borderColor.rgbaString;
         ctx.lineWidth = borderWidth;
         this.path(layer, centerOffset + halfMainWidth - adjustedBorderWidth, arcStartBp, arcStopBp, direction === -1);
 
