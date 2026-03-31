@@ -175,7 +175,8 @@ class Dividers {
       // const visibleRange = canvas.visibleRangeForCenterOffset(centerOffset, 100);
       const visibleRange = canvas.visibleRangeForCenterOffset(centerOffset, { margin: 100 });
       if (visibleRange) {
-        canvas.drawElement('map', visibleRange.start, visibleRange.stop, centerOffset, this[bbOffset.type].color.rgbaString, this[bbOffset.type].adjustedThickness);
+        // canvas.drawElement('map', visibleRange.start, visibleRange.stop, centerOffset, this[bbOffset.type].color.rgbaString, this[bbOffset.type].adjustedThickness);
+        canvas.drawElementTest({start: visibleRange.start, stop: visibleRange.stop, centerOffset, color: this[bbOffset.type].color.rgbaString, width: this[bbOffset.type].adjustedThickness, showShading: false, showBorder: false});
       }
     }
   }

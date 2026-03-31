@@ -280,7 +280,47 @@ class Canvas {
   // If the zoomFactor gets too large, the arc drawing becomes unstable.
   // (ie the arc wiggle in the map as zooming)
   // So when the zoomFactor is large, switch to drawing lines ([path](#path) handles this).
-  drawElement(layer, start, stop, centerOffset, color = '#000000', width = 1, decoration = 'arc', showShading, minArcLength) {
+
+  /**
+   * Bridge method for drawElement that accepts a single options object.
+   * Intended to incrementally replace drawElement's positional arguments.
+   *
+   * @param {Object} options - Drawing options
+   * @param {String} [options.layer='map'] - Name of layer to draw element on
+   * @param {Number} options.start - Start position (bp) of element
+   * @param {Number} options.stop - Stop position (bp) of element
+   * @param {Number} options.centerOffset - Distance from center of map to draw element
+   * @param {String} [options.color='#000000'] - A string describing the color. {@link Color} for details.
+   * @param {Number} [options.width=1] - Width of element
+   * @param {String} [options.decoration='arc'] - How the element should be drawn.
+   *   Values: 'arc', 'clockwise-arrow', 'counterclockwise-arrow', 'none'
+   * @param {Boolean} [options.showShading] - Should the element be drawn with shading
+   *   [Default: value from settings {@link Settings#showShading}]
+   * @param {Number} [options.minArcLength] - Minimum arc length in pixels
+   *   [Default: value from legend {@link Legend#defaultMinArcLength}]
+   * @private
+   */
+  drawElementTest(options = {}) {
+    const settings = this.viewer.settings;
+    const {
+      layer = 'map',
+      start,
+      stop,
+      centerOffset,
+      color = '#000000',
+      width = 1,
+      decoration = 'arc',
+      showShading = settings.showShading,
+      showBorder = settings.showBorder,
+      fast = false,
+      selected = false,
+      minArcLength = this.viewer.legend.defaultMinArcLength,
+    } = options;
+
+    this.drawElement(layer, start, stop, centerOffset, color, width, decoration, showShading, minArcLength, showBorder);
+  }
+
+  drawElement(layer, start, stop, centerOffset, color = '#000000', width = 1, decoration = 'arc', showShading, minArcLength, showBorderTemp) {
     if (decoration === 'none') { return; }
     const ctx = this.context(layer);
     const settings = this.viewer.settings;
@@ -291,10 +331,13 @@ class Canvas {
     showShading = (showShading === undefined) ? settings.showShading : showShading;
 
     // Border Testing
-    showShading = false;
-    const showBorder = true;
+    // showShading = false;
+    showShading = true;
+    const showBorder = showBorderTemp === false ? false : true;
+    // const showBorder = false;
     // TODO: Allow width adjustments from 0.5 to 4 pixels
     let borderWidth = 1.5;
+    // let borderWidth = 1;
     // Above this zoom factor, border width will not increase
     const zoomFactorMaxForBorder = 2;
     borderWidth = (Math.min(this.viewer.zoomFactor, zoomFactorMaxForBorder) * (borderWidth/ zoomFactorMaxForBorder));
@@ -372,6 +415,11 @@ class Canvas {
       }
 
       if (showBorder) {
+
+        // Testing dotted line for selected
+        // ctx.setLineDash([2, 3])
+        // let borderWidth = 2.5;
+
         const halfMainWidth =  width * 0.5;
         // const borderWidth = 1;
         const adjustedBorderWidth = (borderWidth / 2);
@@ -389,6 +437,9 @@ class Canvas {
         ctx.closePath();
 
         ctx.stroke();
+
+        // Selected testings
+        // ctx.setLineDash([])
       }
     }
 

@@ -717,19 +717,53 @@ class Feature extends CGObject {
       // const unzoomedSplitLinearFeature = containsStart && containsStop && this.range.isWrapped() && (this.viewer.format === 'linear');
       const unzoomedSplitLinearFeature = containsStart && containsStop && range.isWrapped() && (this.viewer.format === 'linear');
 
+  //     L. guizhouensis No Plots [9,997,872 bp] [9,521 features]
+  // Zoom  Fast  Full   Visible Range (bp)
+  //   1x     6    20            9,997,872
+  //   5x     4     6            1,790,229
+  //  10x     2     3              859,041
+      // if (zoomedSplitFeature || unzoomedSplitLinearFeature) {
+      //   const visibleStart = Math.max((visibleRange.start - 100), 1); // Do not draw off the edge of linear maps
+      //   const visibleStop = Math.min((visibleRange.stop + 100), this.sequence.length); // Do not draw off the edge of linear maps
+      //   canvas.drawElement(layer, visibleStart, stop,
+      //     this.adjustedCenterOffset(slotCenterOffset, slotThickness),
+      //     color.rgbaString, this.adjustedWidth(slotThickness), directionalDecoration, showShading, minArcLength);
+      //   canvas.drawElement(layer, start, visibleStop,
+      //     this.adjustedCenterOffset(slotCenterOffset, slotThickness),
+      //     color.rgbaString, this.adjustedWidth(slotThickness), directionalDecoration, showShading, minArcLength);
+      // } else {
+      //   canvas.drawElement(layer, start, stop,
+      //     this.adjustedCenterOffset(slotCenterOffset, slotThickness),
+      //     color.rgbaString, this.adjustedWidth(slotThickness), directionalDecoration, showShading, minArcLength);
+      // }
+
+// L. guizhouensis No Plots [9,997,872 bp] [9,521 features]
+//   Zoom  Fast  Full   Visible Range (bp)
+//     1x     4    19            9,997,872
+//     5x     3     5            1,790,229
+//    10x     2     3              859,041
       if (zoomedSplitFeature || unzoomedSplitLinearFeature) {
         const visibleStart = Math.max((visibleRange.start - 100), 1); // Do not draw off the edge of linear maps
         const visibleStop = Math.min((visibleRange.stop + 100), this.sequence.length); // Do not draw off the edge of linear maps
-        canvas.drawElement(layer, visibleStart, stop,
-          this.adjustedCenterOffset(slotCenterOffset, slotThickness),
-          color.rgbaString, this.adjustedWidth(slotThickness), directionalDecoration, showShading, minArcLength);
-        canvas.drawElement(layer, start, visibleStop,
-          this.adjustedCenterOffset(slotCenterOffset, slotThickness),
-          color.rgbaString, this.adjustedWidth(slotThickness), directionalDecoration, showShading, minArcLength);
+        canvas.drawElementTest({
+          layer, start: visibleStart, stop,
+          centerOffset: this.adjustedCenterOffset(slotCenterOffset, slotThickness),
+          color: color.rgbaString, width: this.adjustedWidth(slotThickness),
+          decoration: directionalDecoration, showShading, minArcLength,
+        });
+        canvas.drawElementTest({
+          layer, start, stop: visibleStop,
+          centerOffset: this.adjustedCenterOffset(slotCenterOffset, slotThickness),
+          color: color.rgbaString, width: this.adjustedWidth(slotThickness),
+          decoration: directionalDecoration, showShading, minArcLength,
+        });
       } else {
-        canvas.drawElement(layer, start, stop,
-          this.adjustedCenterOffset(slotCenterOffset, slotThickness),
-          color.rgbaString, this.adjustedWidth(slotThickness), directionalDecoration, showShading, minArcLength);
+        canvas.drawElementTest({
+          layer, start, stop,
+          centerOffset: this.adjustedCenterOffset(slotCenterOffset, slotThickness),
+          color: color.rgbaString, width: this.adjustedWidth(slotThickness),
+          decoration: directionalDecoration, showShading, minArcLength,
+        });
       }
     }
   }
