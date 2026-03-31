@@ -1047,7 +1047,7 @@ class Viewer {
   updateFeatures(featuresOrUpdates, attributes) {
     const { records: features, updates } = this.updateRecords(featuresOrUpdates, attributes, {
       recordClass: 'Feature',
-      validKeys: ['name', 'type', 'contig', 'legendItem', 'source', 'tags', 'favorite', 'visible', 'strand', 'start', 'stop','score', 'mapStart', 'mapStop']
+      validKeys: ['name', 'type', 'contig', 'legendItem', 'source', 'tags', 'favorite', 'selected', 'visible', 'strand', 'start', 'stop','score', 'mapStart', 'mapStop']
     });
     // Refresh tracks if any attribute is source, type, tags
     let refreshTracks;

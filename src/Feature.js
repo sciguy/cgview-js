@@ -57,6 +57,7 @@ import utils from './Utils';
  * [strand](#strand)                | String   | Strand the features is on [Default: 1]
  * [score](#score)                  | Number   | Score associated with the feature
  * [favorite](#favorite)            | Boolean  | Feature is a favorite [Default: false]
+ * [selected](#selected)            | Boolean  | Feature is selected [Default: false]
  * [visible](CGObject.html#visible) | Boolean  | Feature is visible [Default: true]
  * [meta](CGObject.html#meta)       | Object   | [Meta data](../tutorials/details-meta-data.html) for Feature
  * [qualifiers](#qualifiers)        | Object   | Qualifiers associated with the feature (from GenBank/EMBL) [Default: {}]
@@ -93,6 +94,7 @@ class Feature extends CGObject {
     this.source = utils.defaultFor(data.source, '');
     this.tags = data.tags;
     this.favorite = utils.defaultFor(data.favorite, false);
+    this.selected = utils.defaultFor(data.selected, false);
     // This will hold the name temporarily until the Label is created
     // Useful if there are errors in contig creation
     this._tempName = data.name;
@@ -456,6 +458,17 @@ class Feature extends CGObject {
   }
 
   /**
+   * @member {Boolean} - Get or set the feature as selected.
+   */
+  get selected() {
+    return Boolean(this._selected);
+  }
+
+  set selected(value) {
+    this._selected = value;
+  }
+
+  /**
    * @member {String} - Get or set the color. TODO: reference COLOR class
    */
   get color() {
@@ -674,7 +687,8 @@ class Feature extends CGObject {
         const stop = connector[1] + this.contig.lengthOffset;
         canvas.drawElement({layer, start, stop,
           centerOffset: this.adjustedCenterOffset(slotCenterOffset, slotThickness),
-          color: color.rgbaString, width: connectorWidth, decoration: 'arc', showShading, minArcLength});
+          color: color.rgbaString, width: connectorWidth, decoration: 'arc', showShading, minArcLength,
+          selected: this.selected});
       }
     } else {
       this.drawRange(this.mapRange, layer, slotCenterOffset, slotThickness, visibleRange, options);
@@ -750,12 +764,14 @@ class Feature extends CGObject {
           centerOffset: this.adjustedCenterOffset(slotCenterOffset, slotThickness),
           color: color.rgbaString, width: this.adjustedWidth(slotThickness),
           decoration: directionalDecoration, showShading, minArcLength,
+          selected: this.selected,
         });
         canvas.drawElement({
           layer, start, stop: visibleStop,
           centerOffset: this.adjustedCenterOffset(slotCenterOffset, slotThickness),
           color: color.rgbaString, width: this.adjustedWidth(slotThickness),
           decoration: directionalDecoration, showShading, minArcLength,
+          selected: this.selected,
         });
       } else {
         canvas.drawElement({
@@ -763,6 +779,7 @@ class Feature extends CGObject {
           centerOffset: this.adjustedCenterOffset(slotCenterOffset, slotThickness),
           color: color.rgbaString, width: this.adjustedWidth(slotThickness),
           decoration: directionalDecoration, showShading, minArcLength,
+          selected: this.selected,
         });
       }
     }
@@ -1008,6 +1025,10 @@ class Feature extends CGObject {
     // Favorite is normally false
     if (this.favorite || options.includeDefaults) {
       json.favorite = this.favorite;
+    }
+    // Selected is normally false
+    if (this.selected || options.includeDefaults) {
+      json.selected = this.selected;
     }
     // Meta Data (TODO: add an option to exclude this)
     if (Object.keys(this.meta).length > 0) {

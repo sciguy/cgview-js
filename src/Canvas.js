@@ -328,6 +328,7 @@ class Canvas {
     // showBorder = false;
     // TODO: Allow width adjustments (in settings) from 0.5 to 4 pixels
     let borderWidth = 1.5;
+    let selectedBorderDash = [3, 1];
     // let borderWidth = 1;
     // Above this zoom factor, border width will not increase
     const zoomFactorMaxForBorder = 2;
@@ -408,7 +409,7 @@ class Canvas {
 
         if (selected) {
           borderWidth = 2.5
-          ctx.setLineDash([2, 3])
+          ctx.setLineDash(selectedBorderDash)
         }
 
         const halfMainWidth =  width * 0.5;
@@ -467,7 +468,7 @@ class Canvas {
       const arrowTipPt = this.pointForBp(arrowTipBp, centerOffset);
       // const innerArcStartPt = this.pointForBp(arcStopBp, centerOffset - halfWidth);
       let innerArcStartPt;
-      if (showBorder) {
+      if (showBorder || selected) {
         innerArcStartPt = this.pointForBp(arcStopBp, centerOffset - halfWidth + (borderWidth / 2));
       } else {
         innerArcStartPt = this.pointForBp(arcStopBp, centerOffset - halfWidth);
@@ -519,14 +520,14 @@ class Canvas {
         ctx.fill();
       }
 
-      if (showBorder && (decoration === 'clockwise-arrow' || decoration === 'counterclockwise-arrow')) {
+      if ((showBorder || selected) && (decoration === 'clockwise-arrow' || decoration === 'counterclockwise-arrow')) {
         const halfMainWidth =  width * 0.5;
         // const borderWidth = 1;
         const adjustedBorderWidth = (borderWidth / 2);
 
         if (selected) {
           borderWidth = 2.5
-          ctx.setLineDash([2, 3])
+          ctx.setLineDash(selectedBorderDash)
         }
 
         // const adjustedBorderWidth = borderWidth;
