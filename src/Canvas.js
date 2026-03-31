@@ -322,9 +322,7 @@ class Canvas {
     const shadowColorDiff = 0.15;
 
     // Border settings
-    // TODO: Allow width adjustments (in settings) from 0.5 to 4 pixels
-    // let borderWidth = 1.5; // Default
-    let borderWidth = 4;
+    let borderWidth = settings.borderThickness;
     let selectedBorderDash = [3, 1];
     // Above this zoom factor, border width will not increase
     const zoomFactorMaxForBorder = 2;

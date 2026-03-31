@@ -42,6 +42,7 @@ import utils from './Utils';
  * [showShading](#showShading)         | Boolean   | Should a shading effect be drawn on the features [Default: true]
  * [showBorder](#showBorder)           | Boolean   | Should a border be drawn on the features [Default: true]
  * [borderColor](#borderColor)         | String    | A string describing the border color of features [Default: 'rgba(0,0,0,1)']. See {@link Color} for details.
+ * [borderThickness](#borderThickness) | Number    | The width of the border drawn on features in pixels [Default: 1.5]
  * [arrowHeadLength](#arrowHeadLength) | Number    | Length of feature arrowheads as a proportion of the feature thickness. From 0 (no arrowhead) to 1 (arrowhead as long on the feature is thick) [Default: 0.3]
  * [initialMapThicknessProportion](#initialMapThicknessProportion) | Number  | Proportion of canvas size to use for drawing map tracks at a zoomFactor of 1 [Default: 0.1]
  * [maxMapThicknessProportion](#maxMapThicknessProportion) | Number  | Proportion of canvas size to use for drawing map tracks at max zoom level [Default: 0.5]
@@ -68,6 +69,7 @@ class Settings {
     this._showShading = utils.defaultFor(options.showShading, true);
     this._showBorder = utils.defaultFor(options.showBorder, false);
     this._borderColor = new Color( utils.defaultFor(options.borderColor, 'rgba(0,0,0,1)') );
+    this._borderThickness = utils.defaultFor(options.borderThickness, 1.5);
     this.initialMapThicknessProportion = utils.defaultFor(options.initialMapThicknessProportion, 0.1);
     this.maxMapThicknessProportion = utils.defaultFor(options.maxMapThicknessProportion, 0.5);
     this.viewer.trigger('settings-update', {attributes: this.toJSON({includeDefaults: true})});
@@ -177,6 +179,18 @@ class Settings {
   }
 
   /**
+   * @member {Number} - Get or set the border width in pixels (Default: 1.5).
+   */
+  get borderThickness() {
+    return this._borderThickness;
+  }
+
+  set borderThickness(value) {
+    this._borderThickness = Number(value);
+    this.viewer.drawFull();
+  }
+
+  /**
    * @member {Boolean} - Get or set the initial width/thickness of the map as a
    * proportion of the canvas dimension (Circular: minDimension; Linear:
    * height). The width will grow/shrink with the zoomFactor (Default: 0.1).
@@ -211,7 +225,7 @@ class Settings {
   update(attributes) {
     this.viewer.updateRecords(this, attributes, {
       recordClass: 'Settings',
-      validKeys: ['format', 'backgroundColor', 'showShading', 'showBorder', 'borderColor', 'arrowHeadLength', 'geneticCode', 'initialMapThicknessProportion', 'maxMapThicknessProportion']
+      validKeys: ['format', 'backgroundColor', 'showShading', 'showBorder', 'borderColor', 'borderThickness', 'arrowHeadLength', 'geneticCode', 'initialMapThicknessProportion', 'maxMapThicknessProportion']
     });
     this.viewer.trigger('settings-update', { attributes });
   }
@@ -227,6 +241,7 @@ class Settings {
       showShading: this.showShading,
       showBorder: this.showBorder,
       borderColor: this.borderColor.rgbaString,
+      borderThickness: this.borderThickness,
       arrowHeadLength: this.arrowHeadLength,
       initialMapThicknessProportion: this.initialMapThicknessProportion,
       maxMapThicknessProportion: this.maxMapThicknessProportion
