@@ -672,9 +672,9 @@ class Feature extends CGObject {
       for (const connector of connectors) {
         const start = connector[0] + this.contig.lengthOffset;
         const stop = connector[1] + this.contig.lengthOffset;
-        canvas.drawElement(layer, start, stop,
-          this.adjustedCenterOffset(slotCenterOffset, slotThickness),
-          color.rgbaString, connectorWidth, 'arc', showShading, minArcLength);
+        canvas.drawElement({layer, start, stop,
+          centerOffset: this.adjustedCenterOffset(slotCenterOffset, slotThickness),
+          color: color.rgbaString, width: connectorWidth, decoration: 'arc', showShading, minArcLength});
       }
     } else {
       this.drawRange(this.mapRange, layer, slotCenterOffset, slotThickness, visibleRange, options);
@@ -745,20 +745,20 @@ class Feature extends CGObject {
       if (zoomedSplitFeature || unzoomedSplitLinearFeature) {
         const visibleStart = Math.max((visibleRange.start - 100), 1); // Do not draw off the edge of linear maps
         const visibleStop = Math.min((visibleRange.stop + 100), this.sequence.length); // Do not draw off the edge of linear maps
-        canvas.drawElementTest({
+        canvas.drawElement({
           layer, start: visibleStart, stop,
           centerOffset: this.adjustedCenterOffset(slotCenterOffset, slotThickness),
           color: color.rgbaString, width: this.adjustedWidth(slotThickness),
           decoration: directionalDecoration, showShading, minArcLength,
         });
-        canvas.drawElementTest({
+        canvas.drawElement({
           layer, start, stop: visibleStop,
           centerOffset: this.adjustedCenterOffset(slotCenterOffset, slotThickness),
           color: color.rgbaString, width: this.adjustedWidth(slotThickness),
           decoration: directionalDecoration, showShading, minArcLength,
         });
       } else {
-        canvas.drawElementTest({
+        canvas.drawElement({
           layer, start, stop,
           centerOffset: this.adjustedCenterOffset(slotCenterOffset, slotThickness),
           color: color.rgbaString, width: this.adjustedWidth(slotThickness),

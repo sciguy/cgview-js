@@ -241,14 +241,24 @@ class Canvas {
 
   /**
    * Draws an arc or arrow on the map.
-   * @param {String} layer - Name of layer to draw element on
-   * @param {Number} start - Start position (bp) of element
-   * @param {Number} stop - Stop position (bp) of element
-   * @param {Number} centerOffset - Distance form center of map to draw element
-   * @param {Color} color - A string describing the color. {@link Color} for details.
-   * @param {Number} width - Width of element
-   * @param {String} decoration - How the element should be drawn. Values: 'arc', 'clockwise-arrow', 'counterclockwise-arrow', 'none'
-   * @param {Boolean} showShading - Should the elment be drawn with shading [Default: value from settings [showShading](Settings.html#showShading)]
+   *
+   * @param {Object} options - Drawing options
+   * @param {String} [options.layer='map'] - Name of layer to draw element on
+   * @param {Number} options.start - Start position (bp) of element
+   * @param {Number} options.stop - Stop position (bp) of element
+   * @param {Number} options.centerOffset - Distance from center of map to draw element
+   * @param {String} [options.color='#000000'] - A string describing the color. {@link Color} for details.
+   * @param {Number} [options.width=1] - Width of element
+   * @param {String} [options.decoration='arc'] - How the element should be drawn.
+   *   Values: 'arc', 'clockwise-arrow', 'counterclockwise-arrow', 'none'
+   * @param {Boolean} [options.showShading] - Should the element be drawn with shading
+   *   [Default: value from settings {@link Settings#showShading}]
+   * @param {Boolean} [options.showBorder] - Should the element be drawn with a border
+   *   [Default: value from settings {@link Settings#showBorder}]
+   * @param {Boolean} [options.fast=false] - Fast drawing mode
+   * @param {Boolean} [options.selected=false] - Is the element selected
+   * @param {Number} [options.minArcLength] - Minimum arc length in pixels
+   *   [Default: value from legend {@link Legend#defaultMinArcLength}]
    * @private
    */
   // Decoration: arc, clockwise-arrow, counterclockwise-arrow, none
@@ -281,28 +291,9 @@ class Canvas {
   // (ie the arc wiggle in the map as zooming)
   // So when the zoomFactor is large, switch to drawing lines ([path](#path) handles this).
 
-  /**
-   * Bridge method for drawElement that accepts a single options object.
-   * Intended to incrementally replace drawElement's positional arguments.
-   *
-   * @param {Object} options - Drawing options
-   * @param {String} [options.layer='map'] - Name of layer to draw element on
-   * @param {Number} options.start - Start position (bp) of element
-   * @param {Number} options.stop - Stop position (bp) of element
-   * @param {Number} options.centerOffset - Distance from center of map to draw element
-   * @param {String} [options.color='#000000'] - A string describing the color. {@link Color} for details.
-   * @param {Number} [options.width=1] - Width of element
-   * @param {String} [options.decoration='arc'] - How the element should be drawn.
-   *   Values: 'arc', 'clockwise-arrow', 'counterclockwise-arrow', 'none'
-   * @param {Boolean} [options.showShading] - Should the element be drawn with shading
-   *   [Default: value from settings {@link Settings#showShading}]
-   * @param {Number} [options.minArcLength] - Minimum arc length in pixels
-   *   [Default: value from legend {@link Legend#defaultMinArcLength}]
-   * @private
-   */
-  drawElementTest(options = {}) {
+  drawElement(options = {}) {
     const settings = this.viewer.settings;
-    const {
+    let {
       layer = 'map',
       start,
       stop,
@@ -317,32 +308,32 @@ class Canvas {
       minArcLength = this.viewer.legend.defaultMinArcLength,
     } = options;
 
-    this.drawElement(layer, start, stop, centerOffset, color, width, decoration, showShading, minArcLength, showBorder);
-  }
-
-  drawElement(layer, start, stop, centerOffset, color = '#000000', width = 1, decoration = 'arc', showShading, minArcLength, showBorderTemp) {
+    // Nothing to draw
     if (decoration === 'none') { return; }
+
+    // Canvas context
     const ctx = this.context(layer);
-    const settings = this.viewer.settings;
-    const shadowFraction = 0.10;
-    const shadowColorDiff = 0.15;
     ctx.lineCap = 'butt';
     // ctx.lineJoin = 'round';
-    showShading = (showShading === undefined) ? settings.showShading : showShading;
 
-    // Border Testing
+
+    // Shading settings
+    const shadowFraction = 0.10;
+    const shadowColorDiff = 0.15;
+
+    // Border settings
+    // Testing
     // showShading = false;
-    showShading = true;
-    const showBorder = showBorderTemp === false ? false : true;
-    // const showBorder = false;
-    // TODO: Allow width adjustments from 0.5 to 4 pixels
+    // showShading = true;
+    // showBorder = false;
+    // TODO: Allow width adjustments (in settings) from 0.5 to 4 pixels
     let borderWidth = 1.5;
     // let borderWidth = 1;
     // Above this zoom factor, border width will not increase
     const zoomFactorMaxForBorder = 2;
     borderWidth = (Math.min(this.viewer.zoomFactor, zoomFactorMaxForBorder) * (borderWidth/ zoomFactorMaxForBorder));
     // return (Math.min(this.viewer.zoomFactor, 4) * this.thickness) + this.bpThicknessAddition;
-    // const borderWidth = 2;
+
     // TODO:
     // - skip border for fast draw
     // - scale the thickness based on pixelsPerBp
@@ -359,7 +350,6 @@ class Canvas {
     stop += 0.5;
 
     if (decoration === 'arc') {
-
       // Adjust feature start and stop based on minimum arc length.
       // Minimum arc length refers to the minimum size (in pixels) an arc will be drawn.
       // At some scales, small features will have an arc length of a fraction
@@ -383,7 +373,7 @@ class Canvas {
         return;
       }
 
-      if (showShading) {
+      if (showShading && !fast) {
         const shadowWidth = width * shadowFraction;
         // Main Arc
         const mainWidth = width - (2 * shadowWidth);
@@ -414,11 +404,12 @@ class Canvas {
         ctx.stroke();
       }
 
-      if (showBorder) {
+      if (showBorder || selected) {
 
-        // Testing dotted line for selected
-        // ctx.setLineDash([2, 3])
-        // let borderWidth = 2.5;
+        if (selected) {
+          borderWidth = 2.5
+          ctx.setLineDash([2, 3])
+        }
 
         const halfMainWidth =  width * 0.5;
         // const borderWidth = 1;
@@ -438,8 +429,10 @@ class Canvas {
 
         ctx.stroke();
 
-        // Selected testings
-        // ctx.setLineDash([])
+        // Reset dash if Selected
+        if (selected) {
+          ctx.setLineDash([]);
+        }
       }
     }
 
@@ -480,7 +473,7 @@ class Canvas {
         innerArcStartPt = this.pointForBp(arcStopBp, centerOffset - halfWidth);
       }
 
-      if (showShading) {
+      if (showShading && !fast) {
         const halfMainWidth =  width * (0.5 - shadowFraction);
         const shadowPt = this.pointForBp(arcStopBp, centerOffset - halfMainWidth);
 
@@ -530,6 +523,12 @@ class Canvas {
         const halfMainWidth =  width * 0.5;
         // const borderWidth = 1;
         const adjustedBorderWidth = (borderWidth / 2);
+
+        if (selected) {
+          borderWidth = 2.5
+          ctx.setLineDash([2, 3])
+        }
+
         // const adjustedBorderWidth = borderWidth;
         ctx.beginPath();
         // ctx.strokeStyle = 'rgba(0,0,0,0.5)';
@@ -544,6 +543,10 @@ class Canvas {
         ctx.closePath();
 
         ctx.stroke();
+
+        if (selected) {
+          ctx.setLineDash([]);
+        }
       }
     }
   }

@@ -252,7 +252,7 @@ class Highlighter extends CGObject {
       const color = (score >= plot.baseline) ? plot.colorPositive.copy() : plot.colorNegative.copy();
       color.highlight();
 
-      viewer.canvas.drawElement('ui', start, stop, centerOffset, color.rgbaString, thickness);
+      viewer.canvas.drawElement({layer: 'ui', start, stop, centerOffset, color: color.rgbaString, width: thickness});
     }
   }
 
