@@ -23,6 +23,7 @@ import CGObject from './CGObject';
 import CGArray from './CGArray';
 import LabelPlacementDefault from './LabelPlacementDefault';
 import LabelPlacementAngled from './LabelPlacementAngled';
+import LabelPlacementNew from './LabelPlacementNew';
 import Font from './Font';
 import Color from './Color';
 import NCList from './NCList';
@@ -47,7 +48,7 @@ import utils from './Utils';
  * [font](#font)                    | String    | A string describing the font [Default: 'monospace, plain, 12']. See {@link Font} for details.
  * [color](#color)                  | String   | A string describing the color [Default: undefined]. If the color is undefined, the legend color for the feature will be used. See {@link Color} for details.
  * [onlyDrawFavorites](#onlyDrawFavorites) | Boolean   | Only draw labels for features that are favorited [Default: false]
- * [labelPlacement](#labelPlacement) | String   | The label placement method for positioning labels. Choices: 'default', 'angled' [Default: 'default']
+ * [labelPlacement](#labelPlacement) | String   | The label placement method for positioning labels. Choices: 'default', 'angled', 'new' [Default: 'default']
  * [visible](CGObject.html#visible) | Boolean   | Labels are visible [Default: true]
  * [meta](CGObject.html#meta)       | Object    | [Meta data](tutorial-meta.html) for Annotation
  *
@@ -182,7 +183,7 @@ class Annotation extends CGObject {
 
   /**
    * @member {LabelPlacement} - Set the label placement instance for both fast and full drawing.
-   * Value can be one of the following: 'default', 'angled', or a custom LabelPlacement class.
+   * Value can be one of the following: 'default', 'angled', 'new', or a custom LabelPlacement class.
    */
   set labelPlacement(value) {
     const labelPlacement = this._initialializeLabelPlacement(value);
@@ -192,7 +193,7 @@ class Annotation extends CGObject {
 
   /**
    * @member {LabelPlacement} - Get or set the label placement instance for fast drawing.
-   * Values for setting can be one of the following: 'default', 'angled', or a custom LabelPlacement class.
+   * Values for setting can be one of the following: 'default', 'angled', 'new', or a custom LabelPlacement class.
    */
   get labelPlacementFast() {
     return this._labelPlacementFast;
@@ -204,7 +205,7 @@ class Annotation extends CGObject {
 
   /**
    * @member {LabelPlacement} - Get or set the label placement instance for full drawing.
-   * Values for setting can be one of the following: 'default', 'angled', or a custom LabelPlacement class.
+   * Values for setting can be one of the following: 'default', 'angled', 'new', or a custom LabelPlacement class.
    */
   get labelPlacementFull() {
     return this._labelPlacementFull;
@@ -219,7 +220,8 @@ class Annotation extends CGObject {
       switch (nameOrClass) {
         case 'default': return new LabelPlacementDefault(this);
         case 'angled': return new LabelPlacementAngled(this);
-        default: throw new Error(`Label Placement name '${nameOrClass}' unknown. Use one of 'default', 'angled'`);
+        case 'new': return new LabelPlacementNew(this);
+        default: throw new Error(`Label Placement name '${nameOrClass}' unknown. Use one of 'default', 'angled', 'new'`);
       }
     } else {
       // Use provided custom LabelPlacement class
@@ -301,6 +303,7 @@ class Annotation extends CGObject {
       if (containsStart && containsStop) {
         label.bp = label.bpDefault;
         label.lineAttachment = label.lineAttachmentDefault;
+        label.linePoints = undefined;
         // console.log(label.lineAttachment)
       } else {
         if (containsStart) {
@@ -322,6 +325,7 @@ class Annotation extends CGObject {
         // The attachemnt point should be the opposite clock position of the feature.
         // This might need to be recalculated of the label has moved alot
         label.lineAttachment = this.viewer.layout.clockPositionForBp(label.bp, true);
+        label.linePoints = undefined;
       }
     }
   }
@@ -431,9 +435,13 @@ class Annotation extends CGObject {
     const innerPt = this.canvas.pointForBp(label.bp, this._outerCenterOffset + this._labelLineMarginInner);
     const outerPt = label.attachementPt;
     const color = this.color || label.feature.color;
+    const linePoints = Array.isArray(label.linePoints) ? label.linePoints : [outerPt];
     ctx.beginPath();
     ctx.moveTo(innerPt.x, innerPt.y);
-    ctx.lineTo(outerPt.x, outerPt.y);
+    for (let i = 0, len = linePoints.length; i < len; i++) {
+      const point = linePoints[i];
+      ctx.lineTo(point.x, point.y);
+    }
     ctx.strokeStyle = color.rgbaString;
     ctx.lineCap = this.lineCap;
     ctx.lineWidth = lineWidth || this._labelLineWidth;
@@ -545,7 +553,7 @@ class Annotation extends CGObject {
   update(attributes) {
     this.viewer.updateRecords(this, attributes, {
       recordClass: 'Annotation',
-      validKeys: ['color', 'font', 'onlyDrawFavorites', 'visible', 'labelPlacement']
+      validKeys: ['color', 'font', 'onlyDrawFavorites', 'priorityMax', 'visible', 'labelPlacement']
     });
     this.viewer.trigger('annotation-update', { attributes });
   }
@@ -558,6 +566,7 @@ class Annotation extends CGObject {
       font: this.font.string,
       color: this.color && this.color.rgbaString,
       onlyDrawFavorites: this.onlyDrawFavorites,
+      priorityMax: this.priorityMax,
       // In most cases the full and fast method will be the same.
       // We could export both but for now we will only use the 'full' and it will be for both fast and full.
       labelPlacement: this.labelPlacementFull.name,
@@ -574,4 +583,3 @@ class Annotation extends CGObject {
 
 
 export default Annotation;
-

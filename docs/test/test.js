@@ -183,7 +183,7 @@ function loadMapFromID(id) {
     // Label stuff (Below)
     const distance = cgv.sequence.length / 100;
     labelDistance.value = Math.floor(distance);
-    labelFontSize.value = cgv.annotation.font.size;
+    syncLabelControls();
 
     cgv.draw();
     setTimeout( () => {
@@ -422,8 +422,21 @@ function newPostion(bp, change, length) {
 
 const labelDistance = document.getElementById('labels-move-distance');
 const labelFontSize = document.getElementById('labels-font-size');
+const labelPriorityMax = document.getElementById('labels-priority-max');
+
+function syncLabelControls() {
+  labelFontSize.value = cgv.annotation.font.size;
+  labelPriorityMax.value = cgv.annotation.priorityMax;
+}
+
 labelFontSize.addEventListener('change', (e) => {
   cgv.annotation.update({font: `monospace, plain, ${labelFontSize.value}`});
+  cgv.draw();
+});
+labelPriorityMax.addEventListener('change', () => {
+  const priorityMax = Number(labelPriorityMax.value);
+  if (Number.isNaN(priorityMax)) { return; }
+  cgv.annotation.update({priorityMax});
   cgv.draw();
 });
 
@@ -446,6 +459,11 @@ labelsDefault.addEventListener('click', (e) => {
 const labelsAngled = document.getElementById('labels-angled');
 labelsAngled.addEventListener('click', (e) => {
   cgv.annotation.labelPlacement = 'angled';
+  cgv.draw();
+});
+const labelsNew = document.getElementById('labels-new');
+labelsNew.addEventListener('click', () => {
+  cgv.annotation.labelPlacement = 'new';
   cgv.draw();
 });
 
@@ -506,6 +524,7 @@ function parseFile(fileText) {
   // Load Map with JSON
   if (cgvJSON) {
     cgv.io.loadJSON(cgvJSON);
+    syncLabelControls();
     cgv.draw();
     resizeAction(fullSize);
   }

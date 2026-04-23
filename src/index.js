@@ -3,6 +3,7 @@ import { version } from '../package.json';
 import Anchor from './Anchor';
 import Annotation from './Annotation';
 import LabelPlacementDefault from './LabelPlacementDefault';
+import LabelPlacementNew from './LabelPlacementNew';
 import Backbone from './Backbone';
 import Bookmark from './Bookmark';
 import Box from './Box';
@@ -57,6 +58,8 @@ export {
 
   Anchor,
   Annotation,
+  LabelPlacementDefault,
+  LabelPlacementNew,
   Backbone,
   Bookmark,
   Box,

@@ -161,6 +161,9 @@ hr {
 .section-labels #labels-font-size {
   width: 80px;
 }
+.section-labels #labels-priority-max {
+  width: 80px;
+}
 .section-labels #labels-move-distance {
   width: 160px;
 }
