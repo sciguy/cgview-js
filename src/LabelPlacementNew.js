@@ -58,7 +58,9 @@ class LabelPlacementNew extends LabelPlacementDefault {
     for (let i = 0, len = labels.length; i < len; i++) {
       const label = labels[i];
       const outerPt = this.canvas.pointForBp(label.bp, this.rectCenterOffset());
-      const rectOrigin = utils.rectOriginForAttachementPoint(outerPt, label.lineAttachment, label.width, label.height);
+      const lineAttachment = this._lineAttachmentForPoint(outerPt, center);
+      label.lineAttachment = lineAttachment;
+      const rectOrigin = utils.rectOriginForAttachementPoint(outerPt, lineAttachment, label.width, label.height);
       label._defaultRect = new Rect(rectOrigin.x, rectOrigin.y, label.width, label.height);
       label._defaultOuterPt = outerPt;
       label._newPlacementSide = (outerPt.x >= center.x) ? 'right' : 'left';
@@ -148,6 +150,10 @@ class LabelPlacementNew extends LabelPlacementDefault {
         label.rect.y = minY;
       }
     }
+  }
+
+  _lineAttachmentForPoint(point, center) {
+    return (point.x >= center.x) ? 9 : 3;
   }
 
   _updateLinePoints(label, outerOffset) {

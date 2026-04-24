@@ -45,7 +45,7 @@ import utils from './Utils';
  *
  * Attribute                        | Type      | Description
  * ---------------------------------|-----------|------------
- * [font](#font)                    | String    | A string describing the font [Default: 'monospace, plain, 12']. See {@link Font} for details.
+ * [font](#font)                    | String    | A string describing the font [Default: 'monospace, plain, 10']. See {@link Font} for details.
  * [color](#color)                  | String   | A string describing the color [Default: undefined]. If the color is undefined, the legend color for the feature will be used. See {@link Color} for details.
  * [onlyDrawFavorites](#onlyDrawFavorites) | Boolean   | Only draw labels for features that are favorited [Default: false]
  * [labelPlacement](#labelPlacement) | String   | The label placement method for positioning labels. Choices: 'default', 'angled', 'new' [Default: 'default']
@@ -80,9 +80,9 @@ class Annotation extends CGObject {
   constructor(viewer, options = {}, meta = {}) {
     super(viewer, options, meta);
     this._labels = new CGArray();
-    this.font = utils.defaultFor(options.font, 'monospace, plain, 12');
+    this.font = utils.defaultFor(options.font, 'monospace, plain, 10');
     this.labelLineLength = utils.defaultFor(options.labelLineLength, 20);
-    this.priorityMax = utils.defaultFor(options.priorityMax, 50);
+    this.priorityMax = utils.defaultFor(options.priorityMax, 300);
     this._labelLineMarginInner = 10;
     this._labelLineMarginOuter = 5; // NOT REALLY IMPLEMENTED YET
     this._labelLineWidth = 1;
@@ -143,8 +143,8 @@ class Annotation extends CGObject {
    * drawn for sure. If they overlap the label will be moved until they no
    * longer overlap. Priority is defined as features that are marked as a
    * "favorite". After favorites, features are sorted by size. For example, if
-   * priorityMax is 50 and there are 10 "favorite" features. The favorites will
-   * be drawn and then the 40 largest features will be drawn.
+   * priorityMax is 300 and there are 10 "favorite" features. The favorites will
+   * be drawn and then the 290 largest features will be drawn.
    */
   get priorityMax() {
     return this._priorityMax;
