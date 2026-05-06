@@ -18,3 +18,5 @@ src/LabelPlacementOrdered.js
 
 #docs/dist/cgview.min.js
 
+AGENTS.md
+.agents/**
