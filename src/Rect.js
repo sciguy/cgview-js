@@ -130,7 +130,7 @@ class Rect {
     let overlap = false;
     for (let i = 0, len = rectArray.length; i < len; i++) {
       const r2 = rectArray[i];
-      if (r1.x <= r2.right && r2.x <= (r1.right + widthGap) && r1.y <= r2.bottom && r2.y <= r1.bottom) {
+      if (r1.x <= (r2.right + widthGap) && r2.x <= (r1.right + widthGap) && r1.y <= r2.bottom && r2.y <= r1.bottom) {
         overlap = r2;
         break;
       } else {

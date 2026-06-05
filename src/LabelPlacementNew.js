@@ -107,7 +107,7 @@ class LabelPlacementNew extends LabelPlacementDefault {
     }
 
     this._placeUpperHalf(upperLabels);
-    this._placeLowerHalf(lowerLabels);
+    this._placeLowerHalf(lowerLabels, upperLabels);
   }
 
   _placeUpperHalf(labels) {
@@ -124,14 +124,52 @@ class LabelPlacementNew extends LabelPlacementDefault {
     for (let i = 1, len = labels.length; i < len; i++) {
       const previousLabel = labels[i - 1];
       const label = labels[i];
-      const maxY = previousLabel.rect.y - label.height - gap;
-      if (label.rect.y > maxY) {
-        label.rect.y = maxY;
+      if (!this._canResetLabel(label)) {
+        const maxY = previousLabel.rect.y - label.height - gap;
+        if (label.rect.y > maxY) {
+          label.rect.y = maxY;
+        }
       }
+      let blockingLabel;
+      do {
+        blockingLabel = this._blockingPlacedLabel(label, labels, i);
+        if (blockingLabel) {
+          label.rect.y = blockingLabel.rect.y - label.height - gap;
+        }
+      } while (blockingLabel);
     }
   }
 
-  _placeLowerHalf(labels) {
+  _blockingPlacedLabel(label, labels, labelIndex, additionalLabels = []) {
+    for (let i = 0, len = additionalLabels.length; i < len; i++) {
+      const placedLabel = additionalLabels[i];
+      if (this._labelsConflict(label, placedLabel)) {
+        return placedLabel;
+      }
+    }
+    for (let i = 0; i < labelIndex; i++) {
+      const placedLabel = labels[i];
+      if (this._labelsConflict(label, placedLabel)) {
+        return placedLabel;
+      }
+    }
+    return undefined;
+  }
+
+  _labelsConflict(label, placedLabel) {
+    return this._rectsOverlap(label.rect, placedLabel.rect);
+  }
+
+  _canResetLabel(label) {
+    return label.width <= 80;
+  }
+
+  _rectsOverlap(rect1, rect2) {
+    const gap = 4;
+    return rect1.left <= (rect2.right + gap) && rect2.left <= (rect1.right + gap) && rect1.top <= rect2.bottom && rect2.top <= rect1.bottom;
+  }
+
+  _placeLowerHalf(labels, additionalLabels = []) {
     if (labels.length === 0) {
       return;
     }
@@ -142,13 +180,23 @@ class LabelPlacementNew extends LabelPlacementDefault {
       return (delta !== 0) ? delta : a.bp - b.bp;
     });
 
-    for (let i = 1, len = labels.length; i < len; i++) {
+    const startIndex = (additionalLabels.length === 0) ? 1 : 0;
+    for (let i = startIndex, len = labels.length; i < len; i++) {
       const previousLabel = labels[i - 1];
       const label = labels[i];
-      const minY = previousLabel.rect.bottom + gap;
-      if (label.rect.y < minY) {
-        label.rect.y = minY;
+      if (previousLabel && !this._canResetLabel(label)) {
+        const minY = previousLabel.rect.bottom + gap;
+        if (label.rect.y < minY) {
+          label.rect.y = minY;
+        }
       }
+      let blockingLabel;
+      do {
+        blockingLabel = this._blockingPlacedLabel(label, labels, i, additionalLabels);
+        if (blockingLabel) {
+          label.rect.y = blockingLabel.rect.bottom + gap;
+        }
+      } while (blockingLabel);
     }
   }
 
