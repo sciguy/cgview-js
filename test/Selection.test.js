@@ -78,6 +78,22 @@ describe('Selection', () => {
     expect(cgv.draw).toHaveBeenCalledTimes(1);
   });
 
+  test('clicking without a feature clears selected features', () => {
+    features[0].selected = true;
+    features[1].selected = true;
+
+    cgv.selection.handleClick({
+      elementType: 'backbone',
+      element: cgv.backbone,
+      d3: { shiftKey: false }
+    });
+
+    expect(features[0].selected).toBe(false);
+    expect(features[1].selected).toBe(false);
+    expect(features[2].selected).toBe(false);
+    expect(cgv.draw).toHaveBeenCalledTimes(1);
+  });
+
   test('does not select from viewer click events when disabled', () => {
     cgv.selection.enabled = false;
 

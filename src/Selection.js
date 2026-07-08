@@ -102,12 +102,16 @@ class Selection {
   }
 
   /**
-   * Select the clicked feature. Shift-click adds to the existing selection.
+   * Select the clicked feature, or clear selection when no feature is clicked.
+   * Shift-click adds to the existing selection.
    * @param {Object} event - Event-like object from EventMonitor.
    */
   handleClick(event = {}) {
     const feature = this.featureFromEvent(event);
-    if (!feature) { return; }
+    if (!feature) {
+      this.clear();
+      return;
+    }
     const append = Boolean(event.d3 && event.d3.shiftKey);
     this.select(feature, { append });
   }
