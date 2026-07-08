@@ -42,6 +42,7 @@ import CenterLine from './CenterLine';
 import Annotation from './Annotation';
 import Ruler from './Ruler';
 import { Highlighter } from './Highlighter';
+import Selection from './Selection';
 import { CodonTables } from './CodonTable';
 import ColorPicker from './ColorPicker';
 import Debug from './Debug';
@@ -93,6 +94,7 @@ console.log(`CGView.js Version: ${version}`)
  * [centerLine](#centerLine)<sup>iu</sup> | Object | [CenterLine](CenterLine.html) options
  * [annotation](#annotation)<sup>iu</sup> | Object | [Annotation](Annotation.html) options
  * [highlighter](#highlighter)<sup>iu</sup> | Object | [Highlighter](Highlighter.html) options
+ * [selection](#selection)<sup>iu</sup> | Object | [Selection](Selection.html) options
  * 
  * <sup>iu</sup> Ignored on Viewer update
  *
@@ -191,6 +193,8 @@ class Viewer {
     this._ruler = new Ruler(this, options.ruler);
     // Initialize Highlighter
     this._highlighter = new Highlighter(this, options.highlighter);
+    // Initialize Selection
+    this._selection = new Selection(this, options.selection);
     // Initialize Codon Tables
     this.codonTables = new CodonTables;
     // Initialize Debug
@@ -345,6 +349,13 @@ class Viewer {
    */
   get highlighter() {
     return this._highlighter;
+  }
+
+  /**
+   * @member {Selection} - Get the [Selection](Selection.html)
+   */
+  get selection() {
+    return this._selection;
   }
 
 
