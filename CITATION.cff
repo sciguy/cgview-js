@@ -1,0 +1,36 @@
+cff-version: "1.2.0"
+authors:
+- family-names: Grant
+  given-names: Jason R.
+  orcid: "https://orcid.org/0000-0002-0407-9807"
+- family-names: Stothard
+  given-names: Paul
+  orcid: "https://orcid.org/0000-0003-4263-969X"
+contact:
+- family-names: Grant
+  given-names: Jason R.
+  orcid: "https://orcid.org/0000-0002-0407-9807"
+doi: 10.5281/zenodo.20029587
+message: If you use this software, please cite our article in the
+  Journal of Open Source Software.
+preferred-citation:
+  authors:
+  - family-names: Grant
+    given-names: Jason R.
+    orcid: "https://orcid.org/0000-0002-0407-9807"
+  - family-names: Stothard
+    given-names: Paul
+    orcid: "https://orcid.org/0000-0003-4263-969X"
+  date-published: 2026-06-01
+  doi: 10.21105/joss.09930
+  issn: 2475-9066
+  issue: 122
+  journal: Journal of Open Source Software
+  publisher:
+    name: Open Journals
+  start: 9930
+  title: "CGView.js: a JavaScript package for visualizing small genomes"
+  type: article
+  url: "https://joss.theoj.org/papers/10.21105/joss.09930"
+  volume: 11
+title: "CGView.js: a JavaScript package for visualizing small genomes"

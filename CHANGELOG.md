@@ -2,8 +2,11 @@
 # CGView.js Changelog
 --------------------------------------------------------------------------------
 
+## 1.8.2 - 2026-05-04 - Paper Release
+- This version corresponds to our Journal of Open Source Software publication
 
-## 1.8.1 - Unreleased
+
+## 1.8.1 - 2026-05-04
 - Fix undefined background color set to map backgroundColor
 - Add track position 'along'. Show track as a single slot centered on the backbone.
 - Change track position 'both' to 'around'. 'both' is depcrecated and will be removed in v1.9

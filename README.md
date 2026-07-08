@@ -8,11 +8,19 @@
 
 [![npm version](https://img.shields.io/npm/v/cgview)](https://www.npmjs.com/package/cgview)
 ![bundle size](https://img.shields.io/bundlephobia/min/cgview)
-[![Min+Gzip](https://img.shields.io/bundlephobia/minzip/cgview)](https://bundlephobia.com/package/cgview)
 [![jsDelivr hits](https://data.jsdelivr.com/v1/package/npm/cgview/badge)](https://www.jsdelivr.com/package/npm/cgview)
+[![DOI](https://joss.theoj.org/papers/10.21105/joss.09930/status.svg)](https://doi.org/10.21105/joss.09930)
 
 CGView.js is a <strong>C</strong>ircular <strong>G</strong>enome <strong>View</strong>ing
 tool for visualizing and interacting with small genomes. 
+
+## Citing CGView.js
+
+Grant JR and Stothard P  
+CGView.js: a JavaScript package for visualizing small genomes.  
+Journal of Open Source Software, 2026, 11(122), 9930.  
+[https://doi.org/10.21105/joss.09930](https://doi.org/10.21105/joss.09930)
+
 
 ## Resources
 
