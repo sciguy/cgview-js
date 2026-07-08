@@ -275,7 +275,7 @@ class Slot extends CGObject {
       const slotThickness = this.thickness;
       const ctx = this.canvas.context('map');
       ctx.globalCompositeOperation = 'destination-out'; // The existing content is kept where it doesn't overlap the new shape.
-      this.canvas.drawElement('map', range.start, range.stop, centerOffset, 'white', slotThickness);
+      this.canvas.drawElement({layer: 'map', start: range.start, stop: range.stop, centerOffset, color: 'white', width: slotThickness});
       ctx.globalCompositeOperation = 'source-over'; // Default
     }
   }
@@ -285,7 +285,7 @@ class Slot extends CGObject {
     if (range && this.visible) {
       const centerOffset = this.centerOffset;
       const slotThickness = this.thickness;
-      this.canvas.drawElement('background', range.start, range.stop, centerOffset, color, slotThickness);
+      this.canvas.drawElement({layer: 'background', start: range.start, stop: range.stop, centerOffset, color, width: slotThickness});
     }
   }
 
@@ -351,7 +351,7 @@ class Slot extends CGObject {
     // Draw progress like thickening circle
     if (progress > 0 && progress < 100 && range) {
       const thickness = slotThickness * progress / 100;
-      canvas.drawElement('background', range.start, range.stop, centerOffset, '#EAEAEE', thickness, 'arc', false);
+      canvas.drawElement({layer: 'background', start: range.start, stop: range.stop, centerOffset, color: '#EAEAEE', width: thickness, decoration: 'arc', showShading: false});
     }
   }
 

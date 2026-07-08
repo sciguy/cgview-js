@@ -40,6 +40,9 @@ import utils from './Utils';
  * [format](#format)                   | String    | The layout format of the map: circular, linear [Default: circular]
  * [backgroundColor](#backgroundColor) | String    | A string describing the background color of the map [Default: 'white']. See {@link Color} for details.
  * [showShading](#showShading)         | Boolean   | Should a shading effect be drawn on the features [Default: true]
+ * [showBorder](#showBorder)           | Boolean   | Should a border be drawn on the features [Default: true]
+ * [borderColor](#borderColor)         | String    | A string describing the border color of features [Default: 'rgba(0,0,0,1)']. See {@link Color} for details.
+ * [borderThickness](#borderThickness) | Number    | The width of the border drawn on features in pixels [Default: 1.5]
  * [arrowHeadLength](#arrowHeadLength) | Number    | Length of feature arrowheads as a proportion of the feature thickness. From 0 (no arrowhead) to 1 (arrowhead as long on the feature is thick) [Default: 0.3]
  * [initialMapThicknessProportion](#initialMapThicknessProportion) | Number  | Proportion of canvas size to use for drawing map tracks at a zoomFactor of 1 [Default: 0.1]
  * [maxMapThicknessProportion](#maxMapThicknessProportion) | Number  | Proportion of canvas size to use for drawing map tracks at max zoom level [Default: 0.5]
@@ -64,6 +67,9 @@ class Settings {
     this._geneticCode = utils.defaultFor(options.geneticCode, 11);
     this.arrowHeadLength = utils.defaultFor(options.arrowHeadLength, 0.3);
     this._showShading = utils.defaultFor(options.showShading, true);
+    this._showBorder = utils.defaultFor(options.showBorder, false);
+    this._borderColor = new Color( utils.defaultFor(options.borderColor, 'rgba(0,0,0,1)') );
+    this._borderThickness = utils.defaultFor(options.borderThickness, 1.5);
     this.initialMapThicknessProportion = utils.defaultFor(options.initialMapThicknessProportion, 0.1);
     this.maxMapThicknessProportion = utils.defaultFor(options.maxMapThicknessProportion, 0.5);
     this.viewer.trigger('settings-update', {attributes: this.toJSON({includeDefaults: true})});
@@ -143,6 +149,48 @@ class Settings {
   }
 
   /**
+   * @member {Boolean} - Get or set whether features should be drawn with a border (Default: true).
+   */
+  get showBorder() {
+    return this._showBorder;
+  }
+
+  set showBorder(value) {
+    this._showBorder = value;
+    this.viewer.drawFull();
+  }
+
+  /**
+   * @member {Color} - Get or set the borderColor. When setting the color, a string representing the color or a {@link Color} object can be used. For details see {@link Color}.
+   */
+  get borderColor() {
+    return this._borderColor;
+  }
+
+  set borderColor(color) {
+    if (color === undefined) {
+      this._borderColor = new Color('rgba(0,0,0,1)');
+    } else if (color.toString() === 'Color') {
+      this._borderColor = color;
+    } else {
+      this._borderColor = new Color(color);
+    }
+    this.viewer.drawFull();
+  }
+
+  /**
+   * @member {Number} - Get or set the border width in pixels (Default: 1.5).
+   */
+  get borderThickness() {
+    return this._borderThickness;
+  }
+
+  set borderThickness(value) {
+    this._borderThickness = Number(value);
+    this.viewer.drawFull();
+  }
+
+  /**
    * @member {Boolean} - Get or set the initial width/thickness of the map as a
    * proportion of the canvas dimension (Circular: minDimension; Linear:
    * height). The width will grow/shrink with the zoomFactor (Default: 0.1).
@@ -177,7 +225,7 @@ class Settings {
   update(attributes) {
     this.viewer.updateRecords(this, attributes, {
       recordClass: 'Settings',
-      validKeys: ['format', 'backgroundColor', 'showShading', 'arrowHeadLength', 'geneticCode', 'initialMapThicknessProportion', 'maxMapThicknessProportion']
+      validKeys: ['format', 'backgroundColor', 'showShading', 'showBorder', 'borderColor', 'borderThickness', 'arrowHeadLength', 'geneticCode', 'initialMapThicknessProportion', 'maxMapThicknessProportion']
     });
     this.viewer.trigger('settings-update', { attributes });
   }
@@ -191,6 +239,9 @@ class Settings {
       geneticCode: this.geneticCode,
       backgroundColor: this.backgroundColor.rgbaString,
       showShading: this.showShading,
+      showBorder: this.showBorder,
+      borderColor: this.borderColor.rgbaString,
+      borderThickness: this.borderThickness,
       arrowHeadLength: this.arrowHeadLength,
       initialMapThicknessProportion: this.initialMapThicknessProportion,
       maxMapThicknessProportion: this.maxMapThicknessProportion

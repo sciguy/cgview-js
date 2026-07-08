@@ -9,7 +9,7 @@ console.log('Available Maps (from map.js):', maps)
 // Initial input file to load: '', 'file', or map from map.js (e.g. 'small')
 // const defaultMap = '';     // Empty
 // const defaultMap = 'file'; // File Choose
-const defaultMap = 'small';
+// const defaultMap = 'small';
 // const defaultMap = 'small_noplots';
 // const defaultMap = 'medium';
 // const defaultMap = 'locations';
@@ -19,6 +19,7 @@ const defaultMap = 'small';
 // const defaultMap = 'pcET30c';
 // const defaultMap = 'pcDNA3';
 // const defaultMap = 'paper';
+const defaultMap = 'test_single_bases';
 
 
 
@@ -42,6 +43,17 @@ const labelPlacement = 'default';
 // The non-full size dimensions of the map
 // Performanace tests should be done at this size for consistency
 const defaultSize = 600;
+const defaultMapStorageKey = 'cgview-test-default-map';
+
+function getInitialMap() {
+  const storedMap = localStorage.getItem(defaultMapStorageKey);
+  if (storedMap === 'file' || maps[storedMap]) {
+    return storedMap;
+  }
+  return defaultMap;
+}
+
+const initialMap = getInitialMap();
 
 // Initialize CGView
 cgv = new CGView.Viewer('#my-viewer', {
@@ -52,7 +64,7 @@ cgv = new CGView.Viewer('#my-viewer', {
 });
 
 // Initialize File Section: hide or show
-const fileSectionDisplayStyle = (defaultMap === 'file') ? 'block' : 'none';
+const fileSectionDisplayStyle = (initialMap === 'file') ? 'block' : 'none';
 document.getElementById('file-section').style.display = fileSectionDisplayStyle;
 clearFileInput();
 
@@ -76,7 +88,7 @@ const svgModeCheckbox = document.getElementById('option-show-svg');
 svgModeCheckbox.checked = showSVGTest;
 
 // Load default map
-loadMapFromID(defaultMap);
+loadMapFromID(initialMap);
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -92,7 +104,7 @@ const order = ['basic', 'contigs', 'large', 'test', 'labels', 'version', 'bad'];
 const optionsByGroup = {};
 for (const inputKey of Object.keys(maps)) {
   const input = maps[inputKey];
-  const selected = (inputKey === defaultMap) ? 'selected' : '';
+  const selected = (inputKey === initialMap) ? 'selected' : '';
   const option = `<option value='${inputKey}' ${selected}>${input.name}</option>`;
   if (optionsByGroup[input.type]) {
     optionsByGroup[input.type].push(option);
@@ -109,9 +121,9 @@ for (const group of order) {
 }
 
 let options = `
-  <option value='' disabled ${(defaultMap == '') ? 'selected' : ''}>Select an map...</option>
+  <option value='' disabled ${(initialMap == '') ? 'selected' : ''}>Select an map...</option>
   <option disabled>─────────</option>
-  <option value='file' ${(defaultMap == 'file') ? 'selected' : ''}>Open a file...</option>
+  <option value='file' ${(initialMap == 'file') ? 'selected' : ''}>Open a file...</option>
   <option disabled>─────────</option>
   ${optionGroups}
 `;
@@ -121,6 +133,7 @@ let options = `
 mapSelect.innerHTML = options;
 mapSelect.addEventListener('change', (e) => {
   const id = e.target.value;
+  localStorage.setItem(defaultMapStorageKey, id);
   const fileSection = document.getElementById('file-section');
   if (id === 'file') {
     fileSection.style.display = 'block';
@@ -165,6 +178,7 @@ fileInput.addEventListener('change', (event) => {
 // Load local predefined map by id
 function loadMapFromID(id) {
   if (id === 'file') { return; }
+  if (!maps[id]) { return; }
   const url = maps[id].url
   console.log(`Loading Map: ${url}`);
   var request = new XMLHttpRequest();

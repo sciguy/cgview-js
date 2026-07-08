@@ -57,6 +57,7 @@ import utils from './Utils';
  * [strand](#strand)                | String   | Strand the features is on [Default: 1]
  * [score](#score)                  | Number   | Score associated with the feature
  * [favorite](#favorite)            | Boolean  | Feature is a favorite [Default: false]
+ * [selected](#selected)            | Boolean  | Feature is selected [Default: false]
  * [visible](CGObject.html#visible) | Boolean  | Feature is visible [Default: true]
  * [meta](CGObject.html#meta)       | Object   | [Meta data](../tutorials/details-meta-data.html) for Feature
  * [qualifiers](#qualifiers)        | Object   | Qualifiers associated with the feature (from GenBank/EMBL) [Default: {}]
@@ -93,6 +94,7 @@ class Feature extends CGObject {
     this.source = utils.defaultFor(data.source, '');
     this.tags = data.tags;
     this.favorite = utils.defaultFor(data.favorite, false);
+    this.selected = utils.defaultFor(data.selected, false);
     // This will hold the name temporarily until the Label is created
     // Useful if there are errors in contig creation
     this._tempName = data.name;
@@ -456,6 +458,17 @@ class Feature extends CGObject {
   }
 
   /**
+   * @member {Boolean} - Get or set the feature as selected.
+   */
+  get selected() {
+    return Boolean(this._selected);
+  }
+
+  set selected(value) {
+    this._selected = value;
+  }
+
+  /**
    * @member {String} - Get or set the color. TODO: reference COLOR class
    */
   get color() {
@@ -672,9 +685,10 @@ class Feature extends CGObject {
       for (const connector of connectors) {
         const start = connector[0] + this.contig.lengthOffset;
         const stop = connector[1] + this.contig.lengthOffset;
-        canvas.drawElement(layer, start, stop,
-          this.adjustedCenterOffset(slotCenterOffset, slotThickness),
-          color.rgbaString, connectorWidth, 'arc', showShading, minArcLength);
+        canvas.drawElement({layer, start, stop,
+          centerOffset: this.adjustedCenterOffset(slotCenterOffset, slotThickness),
+          color: color.rgbaString, width: connectorWidth, decoration: 'arc', showShading, minArcLength,
+          selected: this.selected});
       }
     } else {
       this.drawRange(this.mapRange, layer, slotCenterOffset, slotThickness, visibleRange, options);
@@ -717,19 +731,56 @@ class Feature extends CGObject {
       // const unzoomedSplitLinearFeature = containsStart && containsStop && this.range.isWrapped() && (this.viewer.format === 'linear');
       const unzoomedSplitLinearFeature = containsStart && containsStop && range.isWrapped() && (this.viewer.format === 'linear');
 
+  //     L. guizhouensis No Plots [9,997,872 bp] [9,521 features]
+  // Zoom  Fast  Full   Visible Range (bp)
+  //   1x     6    20            9,997,872
+  //   5x     4     6            1,790,229
+  //  10x     2     3              859,041
+      // if (zoomedSplitFeature || unzoomedSplitLinearFeature) {
+      //   const visibleStart = Math.max((visibleRange.start - 100), 1); // Do not draw off the edge of linear maps
+      //   const visibleStop = Math.min((visibleRange.stop + 100), this.sequence.length); // Do not draw off the edge of linear maps
+      //   canvas.drawElement(layer, visibleStart, stop,
+      //     this.adjustedCenterOffset(slotCenterOffset, slotThickness),
+      //     color.rgbaString, this.adjustedWidth(slotThickness), directionalDecoration, showShading, minArcLength);
+      //   canvas.drawElement(layer, start, visibleStop,
+      //     this.adjustedCenterOffset(slotCenterOffset, slotThickness),
+      //     color.rgbaString, this.adjustedWidth(slotThickness), directionalDecoration, showShading, minArcLength);
+      // } else {
+      //   canvas.drawElement(layer, start, stop,
+      //     this.adjustedCenterOffset(slotCenterOffset, slotThickness),
+      //     color.rgbaString, this.adjustedWidth(slotThickness), directionalDecoration, showShading, minArcLength);
+      // }
+
+// L. guizhouensis No Plots [9,997,872 bp] [9,521 features]
+//   Zoom  Fast  Full   Visible Range (bp)
+//     1x     4    19            9,997,872
+//     5x     3     5            1,790,229
+//    10x     2     3              859,041
       if (zoomedSplitFeature || unzoomedSplitLinearFeature) {
         const visibleStart = Math.max((visibleRange.start - 100), 1); // Do not draw off the edge of linear maps
         const visibleStop = Math.min((visibleRange.stop + 100), this.sequence.length); // Do not draw off the edge of linear maps
-        canvas.drawElement(layer, visibleStart, stop,
-          this.adjustedCenterOffset(slotCenterOffset, slotThickness),
-          color.rgbaString, this.adjustedWidth(slotThickness), directionalDecoration, showShading, minArcLength);
-        canvas.drawElement(layer, start, visibleStop,
-          this.adjustedCenterOffset(slotCenterOffset, slotThickness),
-          color.rgbaString, this.adjustedWidth(slotThickness), directionalDecoration, showShading, minArcLength);
+        canvas.drawElement({
+          layer, start: visibleStart, stop,
+          centerOffset: this.adjustedCenterOffset(slotCenterOffset, slotThickness),
+          color: color.rgbaString, width: this.adjustedWidth(slotThickness),
+          decoration: directionalDecoration, showShading, minArcLength,
+          selected: this.selected,
+        });
+        canvas.drawElement({
+          layer, start, stop: visibleStop,
+          centerOffset: this.adjustedCenterOffset(slotCenterOffset, slotThickness),
+          color: color.rgbaString, width: this.adjustedWidth(slotThickness),
+          decoration: directionalDecoration, showShading, minArcLength,
+          selected: this.selected,
+        });
       } else {
-        canvas.drawElement(layer, start, stop,
-          this.adjustedCenterOffset(slotCenterOffset, slotThickness),
-          color.rgbaString, this.adjustedWidth(slotThickness), directionalDecoration, showShading, minArcLength);
+        canvas.drawElement({
+          layer, start, stop,
+          centerOffset: this.adjustedCenterOffset(slotCenterOffset, slotThickness),
+          color: color.rgbaString, width: this.adjustedWidth(slotThickness),
+          decoration: directionalDecoration, showShading, minArcLength,
+          selected: this.selected,
+        });
       }
     }
   }
@@ -974,6 +1025,10 @@ class Feature extends CGObject {
     // Favorite is normally false
     if (this.favorite || options.includeDefaults) {
       json.favorite = this.favorite;
+    }
+    // Selected is normally false
+    if (this.selected || options.includeDefaults) {
+      json.selected = this.selected;
     }
     // Meta Data (TODO: add an option to exclude this)
     if (Object.keys(this.meta).length > 0) {

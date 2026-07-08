@@ -44,6 +44,8 @@ import utils from './Utils';
  * [color](#color)                   | String    | A string describing the main backbone color [Default: 'grey']. See {@link Color} for details.
  * [colorAlternate](#alternateColor) | String    | A string describing the alternate color used for contigs [Default: 'rgb(200,200,200)']. See {@link Color} for details.
  * [decoration](#decoration)         | String    | How the bakcbone should be drawn. Choices: 'arc', 'arrow' [Default: arc for single contig, arrow for muliple contigs]
+ * [showShading](#showShading)       | Boolean   | Override {@link Settings#showShading} for the backbone. When set, this value is used instead of the global setting. [Default: undefined]
+ * [showBorder](#showBorder)         | Boolean   | Override {@link Settings#showBorder} for the backbone. When set, this value is used instead of the global setting. [Default: undefined]
  * [visible](CGObject.html#visible)  | Boolean   | Backbone is visible [Default: true]
  * [meta](CGObject.html#meta)        | Object    | [Meta data](../tutorials/details-meta-data.html)
  *
@@ -73,6 +75,8 @@ class Backbone extends CGObject {
     // Default decoration is arrow for multiple contigs and arc for single contig
     const defaultDecoration = this.sequence.hasMultipleContigs ? 'arrow' : 'arc';
     this.decoration = utils.defaultFor(options.decoration, defaultDecoration);
+    this.showShading = options.showShading;
+    this.showBorder = options.showBorder;
 
     this.viewer.trigger('backbone-update', { attributes: this.toJSON({includeDefaults: true}) });
   }
@@ -137,6 +141,32 @@ class Backbone extends CGObject {
 
   set decoration(value) {
     this._decoration = value;
+  }
+
+  /**
+   * @member {Boolean} - Get or set whether the backbone should be drawn with shading.
+   *   Overrides the global {@link Settings#showShading} value for the backbone.
+   *   When undefined, the value from Settings is used.
+   */
+  get showShading() {
+    return this._showShading;
+  }
+
+  set showShading(value) {
+    this._showShading = value;
+  }
+
+  /**
+   * @member {Boolean} - Get or set whether the backbone should be drawn with a border.
+   *   Overrides the global {@link Settings#showBorder} value for the backbone.
+   *   When undefined, the value from Settings is used.
+   */
+  get showBorder() {
+    return this._showBorder;
+  }
+
+  set showBorder(value) {
+    this._showBorder = value;
   }
 
   /**
@@ -277,7 +307,7 @@ class Backbone extends CGObject {
         const contigs = this.sequence.contigsForMapRange(this.visibleRange);
         if (fast && contigs.length > this._maxContigsForFastDraw) {
           // Use fast drawing method when too many contigs
-          this.viewer.canvas.drawElement('map', this.visibleRange.start, this.visibleRange.stop, this.adjustedCenterOffset, this.color.rgbaString, this.adjustedThickness, this.directionalDecorationForContig(this.sequence.mapContig));
+          this.viewer.canvas.drawElement({layer: 'map', start: this.visibleRange.start, stop: this.visibleRange.stop, centerOffset: this.adjustedCenterOffset, color: this.color.rgbaString, width: this.adjustedThickness, decoration: this.directionalDecorationForContig(this.sequence.mapContig), showShading: this.showShading, showBorder: this.showBorder});
           return;
         }
         for (let i = 0, len = contigs.length; i < len; i++) {
@@ -297,14 +327,14 @@ class Backbone extends CGObject {
           if (contig.color) {
             color = contig.color;
           }
-          this.viewer.canvas.drawElement('map', start, stop, this.adjustedCenterOffset, color.rgbaString, this.adjustedThickness, this.directionalDecorationForContig(contig));
+          this.viewer.canvas.drawElement({layer: 'map', start, stop, centerOffset: this.adjustedCenterOffset, color: color.rgbaString, width: this.adjustedThickness, decoration: this.directionalDecorationForContig(contig), showShading: this.showShading, showBorder: this.showBorder});
         }
       } else {
         if (this.visibleRange.isWrapped() && this.decoration === 'arrow') {
-          this.viewer.canvas.drawElement('map', this.visibleRange.start, this.sequence.length, this.adjustedCenterOffset, this.color.rgbaString, this.adjustedThickness, this.directionalDecorationForContig(this.sequence.mapContig));
-          this.viewer.canvas.drawElement('map', 1, this.visibleRange.stop, this.adjustedCenterOffset, this.color.rgbaString, this.adjustedThickness, this.directionalDecorationForContig(this.sequence.mapContig));
+          this.viewer.canvas.drawElement({layer: 'map', start: this.visibleRange.start, stop: this.sequence.length, centerOffset: this.adjustedCenterOffset, color: this.color.rgbaString, width: this.adjustedThickness, decoration: this.directionalDecorationForContig(this.sequence.mapContig), showShading: this.showShading, showBorder: this.showBorder});
+          this.viewer.canvas.drawElement({layer: 'map', start: 1, stop: this.visibleRange.stop, centerOffset: this.adjustedCenterOffset, color: this.color.rgbaString, width: this.adjustedThickness, decoration: this.directionalDecorationForContig(this.sequence.mapContig), showShading: this.showShading, showBorder: this.showBorder});
         } else {
-          this.viewer.canvas.drawElement('map', this.visibleRange.start, this.visibleRange.stop, this.adjustedCenterOffset, this.color.rgbaString, this.adjustedThickness, this.directionalDecorationForContig(this.sequence.mapContig));
+          this.viewer.canvas.drawElement({layer: 'map', start: this.visibleRange.start, stop: this.visibleRange.stop, centerOffset: this.adjustedCenterOffset, color: this.color.rgbaString, width: this.adjustedThickness, decoration: this.directionalDecorationForContig(this.sequence.mapContig), showShading: this.showShading, showBorder: this.showBorder});
         }
       }
 
@@ -340,7 +370,7 @@ class Backbone extends CGObject {
   update(attributes) {
     this.viewer.updateRecords(this, attributes, {
       recordClass: 'Backbone',
-      validKeys: ['color', 'colorAlternate', 'thickness', 'decoration', 'visible']
+      validKeys: ['color', 'colorAlternate', 'thickness', 'decoration', 'showShading', 'showBorder', 'visible']
     });
     this.viewer.trigger('backbone-update', { attributes });
   }
@@ -358,6 +388,13 @@ class Backbone extends CGObject {
     // Optionally add default values
     if (!this.visible || options.includeDefaults) {
       json.visible = this.visible;
+    }
+    // Only include overrides when they are explicitly set
+    if (this.showShading !== undefined) {
+      json.showShading = this.showShading;
+    }
+    if (this.showBorder !== undefined) {
+      json.showBorder = this.showBorder;
     }
     return json;
   }

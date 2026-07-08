@@ -420,7 +420,7 @@ class Contig extends CGObject {
     if (this.visible) {
       const start = this.sequence.bpForContig(this);
       const stop = this.sequence.bpForContig(this, this.length);
-      this.viewer.canvas.drawElement('ui', start, stop, backbone.adjustedCenterOffset, highlightColor.rgbaString, backbone.adjustedThickness, backbone.directionalDecorationForContig(this));
+      this.viewer.canvas.drawElement({layer: 'ui', start, stop, centerOffset: backbone.adjustedCenterOffset, color: highlightColor.rgbaString, width: backbone.adjustedThickness, decoration: backbone.directionalDecorationForContig(this)});
     }
   }
 
@@ -450,7 +450,7 @@ class Contig extends CGObject {
     if (this.visible) {
       const mapStart = this.sequence.bpForContig(this, start);
       const mapStop = this.sequence.bpForContig(this, stop);
-      this.viewer.canvas.drawElement('ui', mapStart, mapStop, backbone.adjustedCenterOffset, highlightColor.rgbaString, backbone.adjustedThickness);
+      this.viewer.canvas.drawElement({layer: 'ui', start: mapStart, stop: mapStop, centerOffset: backbone.adjustedCenterOffset, color: highlightColor.rgbaString, width: backbone.adjustedThickness});
     }
   }
 
