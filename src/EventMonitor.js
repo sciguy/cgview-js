@@ -59,7 +59,7 @@ import * as d3 from 'd3';
 class EventMonitor {
 
   /**
-   * Adds event handlers for mouse clicks and movement
+   * Adds event handlers for mouse clicks, presses, releases, and movement
    */
   // NOTE: - a mouse property will be updated with every mouse move
   //       - This will be aliased to Viewer.mouse
@@ -71,6 +71,8 @@ class EventMonitor {
     this.events = viewer.events;
 
     this._initializeMousemove();
+    this._initializeMousedown();
+    this._initializeMouseup();
     this._initializeClick();
     this._initializeBookmarkShortcuts();
     // this.events.on('mousemove', (e) => {console.log(e.bp)})
@@ -131,6 +133,26 @@ class EventMonitor {
       viewer.clear('ui');
       this.events.trigger('mousemove', event);
       // this.events.trigger('mousemove', this._createEvent(d3Event));
+    });
+  }
+
+  /**
+   * Initialize mouse down events under 'cgv' namespace.
+   * @private
+   */
+  _initializeMousedown() {
+    d3.select(this.canvas.node('ui')).on('mousedown.cgv', (d3Event) => {
+      this.events.trigger('mousedown', this._createEvent(d3Event));
+    });
+  }
+
+  /**
+   * Initialize mouse up events under 'cgv' namespace.
+   * @private
+   */
+  _initializeMouseup() {
+    d3.select(this.canvas.node('ui')).on('mouseup.cgv', (d3Event) => {
+      this.events.trigger('mouseup', this._createEvent(d3Event));
     });
   }
 
@@ -350,4 +372,3 @@ class EventMonitor {
 }
 
 export default EventMonitor;
-

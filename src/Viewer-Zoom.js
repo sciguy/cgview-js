@@ -37,6 +37,7 @@ export default function initializeZooming(viewer) {
   const zoomMax = viewer.backbone.maxZoomFactor();
   viewer._zoom = d3.zoom()
     .scaleExtent([1, zoomMax])
+    .filter(zoomFilter)
     .on('start', zoomstart)
     .on('zoom',  zooming)
     .on('end',   zoomend);
@@ -46,6 +47,24 @@ export default function initializeZooming(viewer) {
   // Keep track of pan/translate changes
   let panX = 0;
   let panY = 0;
+
+  function zoomFilter(d3Event) {
+    const isWheel = d3Event.type === 'wheel';
+    const defaultZoomAllowed = (!d3Event.ctrlKey || isWheel) && !d3Event.button;
+    if (!defaultZoomAllowed) { return false; }
+
+    const canStartMarquee = (
+      d3Event.type === 'mousedown' &&
+      d3Event.shiftKey &&
+      viewer.selection &&
+      viewer.selection.enabled &&
+      viewer.eventMonitor
+    );
+    if (!canStartMarquee) { return true; }
+
+    const event = viewer.eventMonitor._createEvent(d3Event);
+    return Boolean(event.elementType);
+  }
 
   function zoomstart() {
     viewer.trigger('zoom-start');
@@ -103,4 +122,3 @@ export default function initializeZooming(viewer) {
     viewer.drawFull();
   }
 };
-

@@ -114,6 +114,10 @@ class Canvas {
         .classed('cgv-layer', true)
         .classed(`cgv-layer-${layerName}`, true)
         .style('z-index',  zIndex)
+        .style('user-select', 'none')
+        .style('-webkit-user-select', 'none')
+        .style('-webkit-user-drag', 'none')
+        .attr('draggable', false)
         .attr('width', width)
         .attr('height', height).node();
 
@@ -735,5 +739,4 @@ class Canvas {
 }
 
 export default Canvas;
-
 

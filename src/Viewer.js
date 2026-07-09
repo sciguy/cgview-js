@@ -136,7 +136,9 @@ class Viewer {
       .attr('class', 'cgv-wrapper')
       .style('position', 'relative')
       .style('width', `${this.width}px`)
-      .style('height', `${this.height}px`);
+      .style('height', `${this.height}px`)
+      .style('user-select', 'none')
+      .style('-webkit-user-select', 'none');
 
     // Create map id
     this._id = utils.randomHexString(40);

@@ -20,6 +20,7 @@
  */
 
 import utils from './Utils';
+import CGRange from './CGRange';
 
 /**
  * The Selection object controls feature selection from viewer interactions.
@@ -41,6 +42,8 @@ class Selection {
   constructor(viewer, options = {}) {
     this.viewer = viewer;
     this._handleKeydown = this.handleKeydown.bind(this);
+    this._marquee = undefined;
+    this._suppressClick = false;
     this.enabled = utils.defaultFor(options.enabled, true);
   }
 
@@ -74,7 +77,10 @@ class Selection {
    * Enable viewer selection interactions.
    */
   attach() {
-    this.viewer.off('click.cgv-selection');
+    this.viewer.off('.cgv-selection');
+    this.viewer.on('mousedown.cgv-selection', (event) => this.handleMousedown(event));
+    this.viewer.on('mousemove.cgv-selection', (event) => this.handleMousemove(event));
+    this.viewer.on('mouseup.cgv-selection', (event) => this.handleMouseup(event));
     this.viewer.on('click.cgv-selection', (event) => this.handleClick(event));
     document.removeEventListener('keydown', this._handleKeydown);
     document.addEventListener('keydown', this._handleKeydown);
@@ -84,7 +90,9 @@ class Selection {
    * Disable viewer selection interactions.
    */
   detach() {
-    this.viewer.off('click.cgv-selection');
+    this.viewer.off('.cgv-selection');
+    this._marquee = undefined;
+    this._suppressClick = false;
     document.removeEventListener('keydown', this._handleKeydown);
   }
 
@@ -107,6 +115,10 @@ class Selection {
    * @param {Object} event - Event-like object from EventMonitor.
    */
   handleClick(event = {}) {
+    if (this._suppressClick) {
+      this._suppressClick = false;
+      return;
+    }
     const feature = this.featureFromEvent(event);
     if (!feature) {
       this.clear();
@@ -114,6 +126,54 @@ class Selection {
     }
     const append = Boolean(event.d3 && event.d3.shiftKey);
     this.select(feature, { append });
+  }
+
+  /**
+   * Start marquee selection from empty map space while Shift is pressed.
+   * @param {Object} event - Event-like object from EventMonitor.
+   */
+  handleMousedown(event = {}) {
+    const shiftKeyDown = Boolean(event.d3 && event.d3.shiftKey);
+    if (!shiftKeyDown || event.elementType) { return; }
+    this._marquee = {
+      startBp: event.bp,
+      stopBp: event.bp,
+      dragged: false,
+      initialSelectedFeatures: new Set(this.selectedFeatures()),
+      selectedFeatures: new Set()
+    };
+    if (event.d3.preventDefault) {
+      event.d3.preventDefault();
+    }
+  }
+
+  /**
+   * Update marquee selection while dragging.
+   * @param {Object} event - Event-like object from EventMonitor.
+   */
+  handleMousemove(event = {}) {
+    if (!this._marquee) { return; }
+    this._marquee.stopBp = event.bp;
+    this._marquee.dragged = this._marquee.dragged || (event.bp !== this._marquee.startBp);
+    this.selectFeaturesInMarquee();
+    this.drawMarquee();
+  }
+
+  /**
+   * Finish marquee selection and clear it from the UI layer.
+   * @param {Object} event - Event-like object from EventMonitor.
+   */
+  handleMouseup(event = {}) {
+    if (!this._marquee) { return; }
+    if (event.bp !== undefined) {
+      this._marquee.stopBp = event.bp;
+    }
+    if (this._marquee.dragged) {
+      this.selectFeaturesInMarquee();
+      this._suppressClick = true;
+    }
+    this._marquee = undefined;
+    this.viewer.clear('ui');
   }
 
   /**
@@ -176,6 +236,80 @@ class Selection {
   }
 
   /**
+   * Select visible features that overlap the active marquee range.
+   */
+  selectFeaturesInMarquee() {
+    const range = this.marqueeRange();
+    if (!range) { return; }
+    const updates = {};
+    const featuresInRange = new Set();
+    const features = this.viewer.features();
+    for (const feature of features) {
+      if (feature.visible && feature.mapRange.overlapsMapRange(range)) {
+        featuresInRange.add(feature);
+        if (!feature.selected) {
+          updates[feature.cgvID] = { selected: true };
+        }
+        if (!this._marquee.initialSelectedFeatures.has(feature)) {
+          this._marquee.selectedFeatures.add(feature);
+        }
+      }
+    }
+    for (const feature of this._marquee.selectedFeatures) {
+      if (!featuresInRange.has(feature)) {
+        updates[feature.cgvID] = { selected: false };
+        this._marquee.selectedFeatures.delete(feature);
+      }
+    }
+    this.updateFeatures(updates);
+  }
+
+  /**
+   * Return the active marquee selection range.
+   * @return {CGRange|undefined}
+   */
+  marqueeRange() {
+    if (!this._marquee) { return; }
+    let start = this._marquee.startBp;
+    let stop = this._marquee.stopBp;
+    if (this.viewer.format === 'linear' && stop < start) {
+      [start, stop] = [stop, start];
+    }
+    return new CGRange(this.viewer.sequence.mapContig, start, stop);
+  }
+
+  /**
+   * Draw the active marquee on the UI layer.
+   */
+  drawMarquee() {
+    const range = this.marqueeRange();
+    if (!range) { return; }
+    const layout = this.viewer.layout;
+    const innerOffset = Math.min(layout.centerInsideOffset, layout.centerOutsideOffset);
+    const outerOffset = Math.max(layout.centerInsideOffset, layout.centerOutsideOffset);
+    const width = outerOffset - innerOffset;
+    if (width <= 0) { return; }
+    const centerOffset = innerOffset + (width / 2);
+    const color = 'rgba(0, 120, 215, 0.18)';
+    const edgeColor = 'rgba(0, 120, 215, 0.75)';
+
+    this.viewer.canvas.drawElement({
+      layer: 'ui',
+      start: range.start,
+      stop: range.stop,
+      centerOffset,
+      color,
+      width,
+      decoration: 'arc',
+      showShading: false,
+      showBorder: false,
+      minArcLength: 0
+    });
+    this.viewer.canvas.radiantLine('ui', range.start, innerOffset, width, 1, edgeColor, 'butt', [4, 2]);
+    this.viewer.canvas.radiantLine('ui', range.stop, innerOffset, width, 1, edgeColor, 'butt', [4, 2]);
+  }
+
+  /**
    * Return all selected features.
    * @return {CGArray}
    */
@@ -187,10 +321,12 @@ class Selection {
    * Apply selection updates and redraw when the selection changed.
    * @param {Object} updates - Per-feature updates keyed by cgvID.
    */
-  updateFeatures(updates) {
+  updateFeatures(updates, options = {}) {
     if (Object.keys(updates).length === 0) { return; }
     this.viewer.updateFeatures(updates);
-    this.viewer.draw();
+    if (utils.defaultFor(options.draw, true)) {
+      this.viewer.draw();
+    }
   }
 
   /**

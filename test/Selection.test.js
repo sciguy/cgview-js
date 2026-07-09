@@ -94,6 +94,85 @@ describe('Selection', () => {
     expect(cgv.draw).toHaveBeenCalledTimes(1);
   });
 
+  test('shift-mousedown over no element starts marquee selection', () => {
+    const preventDefault = jest.fn();
+
+    cgv.selection.handleMousedown({
+      bp: 5,
+      elementType: undefined,
+      d3: { shiftKey: true, preventDefault }
+    });
+
+    expect(cgv.selection.marqueeRange().start).toBe(5);
+    expect(cgv.selection.marqueeRange().stop).toBe(5);
+    expect(preventDefault).toHaveBeenCalledTimes(1);
+  });
+
+  test('marquee drag selects overlapping visible features and draws on UI layer', () => {
+    cgv.canvas.drawElement = jest.fn();
+    cgv.canvas.radiantLine = jest.fn();
+
+    cgv.selection.handleMousedown({
+      bp: 5,
+      elementType: undefined,
+      d3: { shiftKey: true, preventDefault: jest.fn() }
+    });
+    cgv.selection.handleMousemove({ bp: 35 });
+
+    expect(features[0].selected).toBe(true);
+    expect(features[1].selected).toBe(true);
+    expect(features[2].selected).toBe(false);
+    expect(cgv.canvas.drawElement).toHaveBeenCalledWith(expect.objectContaining({
+      layer: 'ui',
+      start: 5,
+      stop: 35
+    }));
+    expect(cgv.canvas.radiantLine).toHaveBeenCalledTimes(2);
+  });
+
+  test('marquee drag reverses only features selected by the marquee', () => {
+    features[1].selected = true;
+    cgv.canvas.drawElement = jest.fn();
+    cgv.canvas.radiantLine = jest.fn();
+
+    cgv.selection.handleMousedown({
+      bp: 5,
+      elementType: undefined,
+      d3: { shiftKey: true, preventDefault: jest.fn() }
+    });
+    cgv.selection.handleMousemove({ bp: 65 });
+
+    expect(features[0].selected).toBe(true);
+    expect(features[1].selected).toBe(true);
+    expect(features[2].selected).toBe(true);
+
+    cgv.selection.handleMousemove({ bp: 20 });
+
+    expect(features[0].selected).toBe(true);
+    expect(features[1].selected).toBe(true);
+    expect(features[2].selected).toBe(false);
+  });
+
+  test('marquee mouseup clears UI and suppresses the generated click', () => {
+    cgv.clear = jest.fn();
+    cgv.canvas.drawElement = jest.fn();
+    cgv.canvas.radiantLine = jest.fn();
+
+    cgv.selection.handleMousedown({
+      bp: 5,
+      elementType: undefined,
+      d3: { shiftKey: true, preventDefault: jest.fn() }
+    });
+    cgv.selection.handleMousemove({ bp: 35 });
+    cgv.selection.handleMouseup({ bp: 35 });
+    cgv.selection.handleClick({});
+
+    expect(features[0].selected).toBe(true);
+    expect(features[1].selected).toBe(true);
+    expect(features[2].selected).toBe(false);
+    expect(cgv.clear).toHaveBeenCalledWith('ui');
+  });
+
   test('does not select from viewer click events when disabled', () => {
     cgv.selection.enabled = false;
 

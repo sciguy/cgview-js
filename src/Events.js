@@ -31,6 +31,8 @@
  * ------------------|-----------------------------------------------------
  * cgv-load-json     | Called when [IO.loadJSON()](IO.html#loadJSON) is executed
  * mousemove         | Called when mouse moves on the Viewer. Returns [event-like object](EventMonitor.html)
+ * mousedown         | Called when mouse button is pressed on the Viewer. Returns [event-like object](EventMonitor.html)
+ * mouseup           | Called when mouse button is released on the Viewer. Returns [event-like object](EventMonitor.html)
  * click             | Called when mouse clicks on the Viewer. Returns [event-like object](EventMonitor.html)
  * zoom-start        | Called once before the viewer is zoomed or moved
  * zoom              | Called every frame of the zoom or move
@@ -175,5 +177,4 @@ const parseNamespace = function(event) {
 };
 
 export default Events;
-
 
