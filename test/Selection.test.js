@@ -193,6 +193,47 @@ describe('Selection', () => {
     expect(cgv.canvas.radiantLine).toHaveBeenCalledTimes(2);
   });
 
+  test('circular counterclockwise marquee uses the swept range instead of the inverse', () => {
+    cgv.selection.enabled = true;
+    const newFeatures = cgv.addFeatures([
+      { name: 'near-start', start: 90, stop: 95 },
+      { name: 'inverse-side', start: 500, stop: 510 },
+    ]);
+
+    cgv.selection.handleMousedown({
+      bp: 100,
+      elementType: undefined,
+      d3: { shiftKey: true, preventDefault: jest.fn() }
+    });
+    cgv.selection.handleMousemove({ bp: 90 });
+
+    expect(cgv.selection.marqueeRange().start).toBe(90);
+    expect(cgv.selection.marqueeRange().stop).toBe(100);
+    expect(newFeatures[0].selected).toBe(true);
+    expect(newFeatures[1].selected).toBe(false);
+    expect(features[0].selected).toBe(false);
+  });
+
+  test('circular counterclockwise marquee can cross the origin', () => {
+    cgv.selection.enabled = true;
+    const newFeatures = cgv.addFeatures([
+      { name: 'near-origin', start: 990, stop: 995 },
+      { name: 'inverse-side', start: 500, stop: 510 },
+    ]);
+
+    cgv.selection.handleMousedown({
+      bp: 10,
+      elementType: undefined,
+      d3: { shiftKey: true, preventDefault: jest.fn() }
+    });
+    cgv.selection.handleMousemove({ bp: 990 });
+
+    expect(cgv.selection.marqueeRange().start).toBe(990);
+    expect(cgv.selection.marqueeRange().stop).toBe(10);
+    expect(newFeatures[0].selected).toBe(true);
+    expect(newFeatures[1].selected).toBe(false);
+  });
+
   test('marquee drag reverses only features selected by the marquee', () => {
     cgv.selection.enabled = true;
     features[1].selected = true;

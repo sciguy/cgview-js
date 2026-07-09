@@ -147,6 +147,7 @@ class Selection {
     this._marquee = {
       startBp: event.bp,
       stopBp: event.bp,
+      stopBpUnwrapped: event.bp,
       dragged: false,
       initialSelectedFeatures: new Set(this.selectedFeatures()),
       selectedFeatures: new Set()
@@ -163,8 +164,8 @@ class Selection {
   handleMousemove(event = {}) {
     if (!this.enabled) { return; }
     if (!this._marquee) { return; }
-    this._marquee.stopBp = event.bp;
-    this._marquee.dragged = this._marquee.dragged || (event.bp !== this._marquee.startBp);
+    this.updateMarqueeStop(event.bp);
+    this._marquee.dragged = this._marquee.dragged || (this._marquee.stopBpUnwrapped !== this._marquee.startBp);
     this.selectFeaturesInMarquee();
     this.drawMarquee();
   }
@@ -177,7 +178,7 @@ class Selection {
     if (!this.enabled) { return; }
     if (!this._marquee) { return; }
     if (event.bp !== undefined) {
-      this._marquee.stopBp = event.bp;
+      this.updateMarqueeStop(event.bp);
     }
     if (this._marquee.dragged) {
       this.selectFeaturesInMarquee();
@@ -277,6 +278,24 @@ class Selection {
   }
 
   /**
+   * Update the marquee stop position, preserving circular drag direction.
+   * @param {Number} bp - Base pair position under the mouse.
+   */
+  updateMarqueeStop(bp) {
+    if (bp === undefined) { return; }
+    if (this.viewer.format === 'linear') {
+      this._marquee.stopBp = bp;
+      this._marquee.stopBpUnwrapped = bp;
+      return;
+    }
+
+    const referenceBp = (this._marquee.stopBpUnwrapped === undefined) ? this._marquee.startBp : this._marquee.stopBpUnwrapped;
+    const stopBpUnwrapped = this.nearestUnwrappedBp(bp, referenceBp);
+    this._marquee.stopBpUnwrapped = stopBpUnwrapped;
+    this._marquee.stopBp = this.normalizeMapBp(stopBpUnwrapped);
+  }
+
+  /**
    * Return the active marquee selection range.
    * @return {CGRange|undefined}
    */
@@ -286,8 +305,33 @@ class Selection {
     let stop = this._marquee.stopBp;
     if (this.viewer.format === 'linear' && stop < start) {
       [start, stop] = [stop, start];
+    } else if (this.viewer.format === 'circular' && this._marquee.stopBpUnwrapped < this._marquee.startBp) {
+      [start, stop] = [stop, start];
     }
     return new CGRange(this.viewer.sequence.mapContig, start, stop);
+  }
+
+  /**
+   * Return the equivalent base pair nearest to a continuous reference position.
+   * @param {Number} bp - Wrapped base pair.
+   * @param {Number} referenceBp - Continuous base pair position to compare with.
+   * @return {Number}
+   */
+  nearestUnwrappedBp(bp, referenceBp) {
+    const length = this.viewer.sequence.mapContig.length;
+    const normalizedBp = this.normalizeMapBp(bp);
+    const rotations = Math.round((referenceBp - normalizedBp) / length);
+    return normalizedBp + (rotations * length);
+  }
+
+  /**
+   * Normalize a base pair to the map coordinate range.
+   * @param {Number} bp - Base pair.
+   * @return {Number}
+   */
+  normalizeMapBp(bp) {
+    const length = this.viewer.sequence.mapContig.length;
+    return ((((bp - 1) % length) + length) % length) + 1;
   }
 
   /**
