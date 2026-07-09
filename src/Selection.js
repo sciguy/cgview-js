@@ -142,8 +142,7 @@ class Selection {
    */
   handleMousedown(event = {}) {
     if (!this.enabled) { return; }
-    const shiftKeyDown = Boolean(event.d3 && event.d3.shiftKey);
-    if (!shiftKeyDown || event.elementType) { return; }
+    if (!this.canStartMarquee(event)) { return; }
     this._marquee = {
       startBp: event.bp,
       stopBp: event.bp,
@@ -155,6 +154,17 @@ class Selection {
     if (event.d3.preventDefault) {
       event.d3.preventDefault();
     }
+  }
+
+  /**
+   * Return whether a mousedown event should start marquee selection.
+   * @param {Object} event - Event-like object from EventMonitor.
+   * @return {Boolean}
+   */
+  canStartMarquee(event = {}) {
+    const marqueeStartElementTypes = [undefined, 'feature', 'label', 'plot', 'backbone', 'contig'];
+    const shiftKeyDown = Boolean(event.d3 && event.d3.shiftKey);
+    return Boolean(this.enabled && shiftKeyDown && marqueeStartElementTypes.includes(event.elementType));
   }
 
   /**

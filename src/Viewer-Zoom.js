@@ -63,7 +63,7 @@ export default function initializeZooming(viewer) {
     if (!canStartMarquee) { return true; }
 
     const event = viewer.eventMonitor._createEvent(d3Event);
-    return Boolean(event.elementType);
+    return !viewer.selection.canStartMarquee(event);
   }
 
   function zoomstart() {

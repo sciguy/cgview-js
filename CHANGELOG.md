@@ -2,6 +2,17 @@
 # CGView.js Changelog
 --------------------------------------------------------------------------------
 
+## 1.9.0 - Unreleased
+- Added `selected` as a Feature attribute, with selected feature rendering support.
+- Added configurable map element borders: `showBorder`, `borderColor`, and `borderThickness`.
+- Added backbone `showBorder` and `showShading` overrides.
+- Updated canvas element drawing to support border styling, selected outlines, and object-style draw options.
+- Added `Selection` support to the Viewer, disabled by default.
+- Added click selection: click selects one feature, shift-click adds to the selection, Escape clears selected features.
+- Added marquee selection with shift-drag.
+- Added a Selection checkbox to the test page options.
+
+
 ## 1.8.2 - 2026-05-04 - Paper Release
 - This version corresponds to our Journal of Open Source Software publication
 

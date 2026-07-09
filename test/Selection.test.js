@@ -170,6 +170,36 @@ describe('Selection', () => {
     expect(preventDefault).toHaveBeenCalledTimes(1);
   });
 
+  test('shift-mousedown over map elements starts marquee selection', () => {
+    cgv.selection.enabled = true;
+    const elementTypes = ['feature', 'label', 'plot'];
+
+    for (const elementType of elementTypes) {
+      const preventDefault = jest.fn();
+      cgv.selection.handleMousedown({
+        bp: 5,
+        elementType,
+        d3: { shiftKey: true, preventDefault }
+      });
+
+      expect(cgv.selection.marqueeRange().start).toBe(5);
+      expect(preventDefault).toHaveBeenCalledTimes(1);
+      cgv.selection.handleMouseup({ bp: 5 });
+    }
+  });
+
+  test('shift-mousedown over page chrome does not start marquee selection', () => {
+    cgv.selection.enabled = true;
+
+    cgv.selection.handleMousedown({
+      bp: 5,
+      elementType: 'legendItem',
+      d3: { shiftKey: true, preventDefault: jest.fn() }
+    });
+
+    expect(cgv.selection.marqueeRange()).toBeUndefined();
+  });
+
   test('marquee drag selects overlapping visible features and draws on UI layer', () => {
     cgv.selection.enabled = true;
     cgv.canvas.drawElement = jest.fn();
