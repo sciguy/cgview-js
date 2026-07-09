@@ -27,6 +27,7 @@ const defaultMap = 'test_single_bases';
 const fullSize = true;
 const debug = false;
 const drawRange = false;
+const selection = false;
 const showPerformanceTest = false;
 const showLabelsTest = false;
 const showSVGTest = false; // fullSize must be turned off for this to be true
@@ -77,6 +78,19 @@ debugModeCheckbox.checked = debug;
 // Draw Range
 const drawRangeCheckbox = document.getElementById('test-draw-range');
 drawRangeCheckbox.checked = drawRange;
+// Selection
+const selectionCheckbox = document.getElementById('option-selection');
+setSelectionEnabled(selection);
+selectionCheckbox.addEventListener('click', (e) => {
+  setSelectionEnabled(e.target.checked);
+});
+cgv.on('selection-update.selection-option', () => {
+  selectionCheckbox.checked = cgv.selection.enabled;
+});
+function setSelectionEnabled(enabled) {
+  selectionCheckbox.checked = enabled;
+  cgv.selection.enabled = enabled;
+}
 // Toggle Label Test
 const labelsCheckbox = document.getElementById('option-show-labels');
 labelsCheckbox.checked = showLabelsTest;

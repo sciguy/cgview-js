@@ -23,11 +23,67 @@ describe('Selection', () => {
     cgv.selection.detach();
   });
 
-  test('is enabled by default', () => {
-    expect(cgv.selection.enabled).toBe(true);
+  test('is disabled by default', () => {
+    expect(cgv.selection.enabled).toBe(false);
+  });
+
+  test('can be enabled and disabled repeatedly from viewer events', () => {
+    cgv.selection.enabled = true;
+    cgv.trigger('click', {
+      elementType: 'feature',
+      element: features[0],
+      d3: { shiftKey: false }
+    });
+
+    expect(features[0].selected).toBe(true);
+
+    features[0].selected = false;
+    cgv.draw.mockClear();
+    cgv.selection.enabled = false;
+    cgv.trigger('click', {
+      elementType: 'feature',
+      element: features[0],
+      d3: { shiftKey: false }
+    });
+
+    expect(features[0].selected).toBe(false);
+    expect(cgv.draw).not.toHaveBeenCalled();
+
+    cgv.selection.enabled = true;
+    cgv.trigger('click', {
+      elementType: 'feature',
+      element: features[0],
+      d3: { shiftKey: false }
+    });
+
+    expect(features[0].selected).toBe(true);
+    expect(cgv.draw).toHaveBeenCalledTimes(1);
+  });
+
+  test('triggers selection-update when enabled changes directly', () => {
+    const listener = jest.fn();
+    cgv.on('selection-update.test', listener);
+
+    cgv.selection.enabled = true;
+    cgv.selection.enabled = false;
+
+    expect(listener).toHaveBeenCalledWith({ attributes: { enabled: true } });
+    expect(listener).toHaveBeenCalledWith({ attributes: { enabled: false } });
+  });
+
+  test('does not select from direct click handling when disabled', () => {
+    cgv.selection.handleClick({
+      elementType: 'feature',
+      element: features[0],
+      d3: { shiftKey: false }
+    });
+
+    expect(features[0].selected).toBe(false);
+    expect(cgv.draw).not.toHaveBeenCalled();
   });
 
   test('selects one clicked feature and deselects other features', () => {
+    cgv.selection.enabled = true;
     features[1].selected = true;
 
     cgv.selection.handleClick({
@@ -43,6 +99,7 @@ describe('Selection', () => {
   });
 
   test('shift-click adds a feature to the selection', () => {
+    cgv.selection.enabled = true;
     features[1].selected = true;
 
     cgv.selection.handleClick({
@@ -57,6 +114,8 @@ describe('Selection', () => {
   });
 
   test('selects a feature from its label click event', () => {
+    cgv.selection.enabled = true;
+
     cgv.selection.handleClick({
       elementType: 'label',
       element: features[0].label,
@@ -67,6 +126,7 @@ describe('Selection', () => {
   });
 
   test('escape clears selected features', () => {
+    cgv.selection.enabled = true;
     features[0].selected = true;
     features[1].selected = true;
 
@@ -79,6 +139,7 @@ describe('Selection', () => {
   });
 
   test('clicking without a feature clears selected features', () => {
+    cgv.selection.enabled = true;
     features[0].selected = true;
     features[1].selected = true;
 
@@ -95,6 +156,7 @@ describe('Selection', () => {
   });
 
   test('shift-mousedown over no element starts marquee selection', () => {
+    cgv.selection.enabled = true;
     const preventDefault = jest.fn();
 
     cgv.selection.handleMousedown({
@@ -109,6 +171,7 @@ describe('Selection', () => {
   });
 
   test('marquee drag selects overlapping visible features and draws on UI layer', () => {
+    cgv.selection.enabled = true;
     cgv.canvas.drawElement = jest.fn();
     cgv.canvas.radiantLine = jest.fn();
 
@@ -131,6 +194,7 @@ describe('Selection', () => {
   });
 
   test('marquee drag reverses only features selected by the marquee', () => {
+    cgv.selection.enabled = true;
     features[1].selected = true;
     cgv.canvas.drawElement = jest.fn();
     cgv.canvas.radiantLine = jest.fn();
@@ -154,6 +218,7 @@ describe('Selection', () => {
   });
 
   test('marquee mouseup clears UI and suppresses the generated click', () => {
+    cgv.selection.enabled = true;
     cgv.clear = jest.fn();
     cgv.canvas.drawElement = jest.fn();
     cgv.canvas.radiantLine = jest.fn();

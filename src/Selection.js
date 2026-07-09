@@ -30,7 +30,7 @@ import CGRange from './CGRange';
  *
  * Attribute           | Type    | Description
  * --------------------|---------|------------
- * [enabled](#enabled) | Boolean | Select features from clicks and clear with Escape [Default: true]
+ * [enabled](#enabled) | Boolean | Select features from clicks and clear with Escape [Default: false]
  */
 class Selection {
 
@@ -44,7 +44,7 @@ class Selection {
     this._handleKeydown = this.handleKeydown.bind(this);
     this._marquee = undefined;
     this._suppressClick = false;
-    this.enabled = utils.defaultFor(options.enabled, true);
+    this.enabled = utils.defaultFor(options.enabled, false);
   }
 
   /**
@@ -65,11 +65,15 @@ class Selection {
   set enabled(value) {
     const enabled = Boolean(value);
     if (this._enabled === enabled) { return; }
+    const initialized = this._enabled !== undefined;
     this._enabled = enabled;
     if (enabled) {
       this.attach();
     } else {
       this.detach();
+    }
+    if (initialized) {
+      this.viewer.trigger('selection-update', { attributes: { enabled } });
     }
   }
 
@@ -78,10 +82,10 @@ class Selection {
    */
   attach() {
     this.viewer.off('.cgv-selection');
-    this.viewer.on('mousedown.cgv-selection', (event) => this.handleMousedown(event));
-    this.viewer.on('mousemove.cgv-selection', (event) => this.handleMousemove(event));
-    this.viewer.on('mouseup.cgv-selection', (event) => this.handleMouseup(event));
-    this.viewer.on('click.cgv-selection', (event) => this.handleClick(event));
+    this.viewer.on('mousedown.cgv-selection', (event) => this.enabled && this.handleMousedown(event));
+    this.viewer.on('mousemove.cgv-selection', (event) => this.enabled && this.handleMousemove(event));
+    this.viewer.on('mouseup.cgv-selection', (event) => this.enabled && this.handleMouseup(event));
+    this.viewer.on('click.cgv-selection', (event) => this.enabled && this.handleClick(event));
     document.removeEventListener('keydown', this._handleKeydown);
     document.addEventListener('keydown', this._handleKeydown);
   }
@@ -102,11 +106,14 @@ class Selection {
    * @param {Object} attributes - Object describing the properties to change
    */
   update(attributes) {
+    const previousEnabled = this.enabled;
     this.viewer.updateRecords(this, attributes, {
       recordClass: 'Selection',
       validKeys: ['enabled']
     });
-    this.viewer.trigger('selection-update', { attributes });
+    if (!Object.prototype.hasOwnProperty.call(attributes, 'enabled') || previousEnabled === this.enabled) {
+      this.viewer.trigger('selection-update', { attributes });
+    }
   }
 
   /**
@@ -115,6 +122,7 @@ class Selection {
    * @param {Object} event - Event-like object from EventMonitor.
    */
   handleClick(event = {}) {
+    if (!this.enabled) { return; }
     if (this._suppressClick) {
       this._suppressClick = false;
       return;
@@ -133,6 +141,7 @@ class Selection {
    * @param {Object} event - Event-like object from EventMonitor.
    */
   handleMousedown(event = {}) {
+    if (!this.enabled) { return; }
     const shiftKeyDown = Boolean(event.d3 && event.d3.shiftKey);
     if (!shiftKeyDown || event.elementType) { return; }
     this._marquee = {
@@ -152,6 +161,7 @@ class Selection {
    * @param {Object} event - Event-like object from EventMonitor.
    */
   handleMousemove(event = {}) {
+    if (!this.enabled) { return; }
     if (!this._marquee) { return; }
     this._marquee.stopBp = event.bp;
     this._marquee.dragged = this._marquee.dragged || (event.bp !== this._marquee.startBp);
@@ -164,6 +174,7 @@ class Selection {
    * @param {Object} event - Event-like object from EventMonitor.
    */
   handleMouseup(event = {}) {
+    if (!this.enabled) { return; }
     if (!this._marquee) { return; }
     if (event.bp !== undefined) {
       this._marquee.stopBp = event.bp;
@@ -181,6 +192,7 @@ class Selection {
    * @param {KeyboardEvent} event - Keyboard event.
    */
   handleKeydown(event) {
+    if (!this.enabled) { return; }
     if (event.key === 'Escape') {
       this.clear();
     }
