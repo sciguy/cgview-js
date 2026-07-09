@@ -353,11 +353,16 @@ class Selection {
     const layout = this.viewer.layout;
     const innerOffset = Math.min(layout.centerInsideOffset, layout.centerOutsideOffset);
     const outerOffset = Math.max(layout.centerInsideOffset, layout.centerOutsideOffset);
-    const width = outerOffset - innerOffset;
+    const boundaryPadding = 2;
+    const marqueeInnerOffset = innerOffset - boundaryPadding;
+    const marqueeOuterOffset = outerOffset + boundaryPadding;
+    const width = marqueeOuterOffset - marqueeInnerOffset;
     if (width <= 0) { return; }
-    const centerOffset = innerOffset + (width / 2);
+    const centerOffset = marqueeInnerOffset + (width / 2);
     const color = 'rgba(0, 120, 215, 0.18)';
     const edgeColor = 'rgba(0, 120, 215, 0.75)';
+    const edgeWidth = 1;
+    const edgeDashes = [4, 2];
 
     this.viewer.canvas.drawElement({
       layer: 'ui',
@@ -371,8 +376,32 @@ class Selection {
       showBorder: false,
       minArcLength: 0
     });
-    this.viewer.canvas.radiantLine('ui', range.start, innerOffset, width, 1, edgeColor, 'butt', [4, 2]);
-    this.viewer.canvas.radiantLine('ui', range.stop, innerOffset, width, 1, edgeColor, 'butt', [4, 2]);
+    this.drawMarqueeBoundary(range, marqueeInnerOffset, edgeWidth, edgeColor, edgeDashes);
+    this.drawMarqueeBoundary(range, marqueeOuterOffset, edgeWidth, edgeColor, edgeDashes);
+    this.viewer.canvas.radiantLine('ui', range.start, marqueeInnerOffset, width, edgeWidth, edgeColor, 'butt', edgeDashes);
+    this.viewer.canvas.radiantLine('ui', range.stop, marqueeInnerOffset, width, edgeWidth, edgeColor, 'butt', edgeDashes);
+    this.viewer.canvas.context('ui').setLineDash([]);
+  }
+
+  /**
+   * Draw one dotted marquee boundary along the map.
+   * @param {CGRange} range - Base pair range covered by the marquee.
+   * @param {Number} centerOffset - Distance from center of map to the boundary.
+   * @param {Number} lineWidth - Boundary line width.
+   * @param {String} color - Boundary stroke color.
+   * @param {Array} dashes - Boundary dash pattern.
+   */
+  drawMarqueeBoundary(range, centerOffset, lineWidth, color, dashes) {
+    const layer = 'ui';
+    const ctx = this.viewer.canvas.context(layer);
+    ctx.beginPath();
+    ctx.strokeStyle = color;
+    ctx.lineCap = 'butt';
+    ctx.lineWidth = lineWidth;
+    ctx.setLineDash(dashes);
+    this.viewer.canvas.path(layer, centerOffset, range.start, range.stop);
+    ctx.stroke();
+    ctx.setLineDash([]);
   }
 
   /**

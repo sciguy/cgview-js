@@ -203,7 +203,13 @@ describe('Selection', () => {
   test('marquee drag selects overlapping visible features and draws on UI layer', () => {
     cgv.selection.enabled = true;
     cgv.canvas.drawElement = jest.fn();
+    cgv.canvas.path = jest.fn();
     cgv.canvas.radiantLine = jest.fn();
+    const innerOffset = Math.min(cgv.layout.centerInsideOffset, cgv.layout.centerOutsideOffset);
+    const outerOffset = Math.max(cgv.layout.centerInsideOffset, cgv.layout.centerOutsideOffset);
+    const marqueeInnerOffset = innerOffset - 2;
+    const marqueeOuterOffset = outerOffset + 2;
+    const marqueeWidth = marqueeOuterOffset - marqueeInnerOffset;
 
     cgv.selection.handleMousedown({
       bp: 5,
@@ -220,6 +226,10 @@ describe('Selection', () => {
       start: 5,
       stop: 35
     }));
+    expect(cgv.canvas.drawElement.mock.calls[0][0].width).toBeCloseTo(marqueeWidth);
+    expect(cgv.canvas.path).toHaveBeenCalledTimes(2);
+    expect(cgv.canvas.path).toHaveBeenNthCalledWith(1, 'ui', marqueeInnerOffset, 5, 35);
+    expect(cgv.canvas.path).toHaveBeenNthCalledWith(2, 'ui', marqueeOuterOffset, 5, 35);
     expect(cgv.canvas.radiantLine).toHaveBeenCalledTimes(2);
   });
 
