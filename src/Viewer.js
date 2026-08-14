@@ -125,6 +125,7 @@ class Viewer {
    * @param {String} containerId - The ID (with or without '#') of the element to contain the viewer.
    * @param {Object} options - [Attributes](#attributes) used to create the viewer.
    *    Component options will be passed to the contructor of that component.
+   * @param {Object|Array} [options.plugins] - Plugin or plugins installed after the standard plugins.
    */
   constructor(containerId, options = {}) {
     this.containerId = containerId.replace('#', '');
@@ -212,8 +213,10 @@ class Viewer {
 
     // Plugins
     this.plugins = new Plugins(this, PluginsStandard);
-    // FIXME: add plugin from options
-    // this.plugins.add(options.plugins);
+    if (options.plugins) {
+      const plugins = Array.isArray(options.plugins) ? options.plugins : [options.plugins];
+      plugins.forEach(plugin => this.plugins.add(plugin));
+    }
 
     // TEMP adding
     if (options.features) {

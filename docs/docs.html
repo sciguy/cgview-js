@@ -74,6 +74,7 @@
         <li><a class="side-link" href="#s.setup">Setup</a></li>
         <li><a class="side-link" href="#s.overview">Overview</a></li>
         <li><a class="side-link" href="#s.components">Components</a></li>
+        <li><a class="side-link" href="#s.plugins">Plugins</a></li>
         <li><a class="side-link" href="#s.record-actions">Record Actions</a></li>
         <li><a class="side-link indent" href="#s.adding-records">Add</a></li>
         <li><a class="side-link indent" href="#s.removing-records">Remove</a></li>
@@ -181,6 +182,36 @@ Component                        | Accessor                                   | 
 [Caption](api/Caption.html)          | [captions()](api/Viewer.html#captions)         | Returns one or more Captions.
 FeatureType                          | [featureType()](api/Viewer.html#featureTypes)  | Returns one or more FeatureTypes.
 <!-- [Messenger](api/Messenger.html)      | [messenger](api/Viewer.html#messenger)         | Messenger provides an interface for showing messages. -->
+
+</section>
+<section id="s.plugins">
+
+# Plugins
+
+Custom plugins can be supplied when creating a Viewer. The `plugins` option accepts
+one plugin definition or an array of definitions. Standard CGView plugins are always
+installed first, followed by custom plugins in the order provided.
+
+```js
+const MyPlugin = {
+  name: 'MyPlugin',
+  id: 'pluginMyPlugin',
+  version: '0.1.0',
+  type: 'General',
+  install(cgv) {
+    console.log('MyPlugin installed');
+  }
+};
+
+const cgv = new CGView.Viewer('#viewer', {
+  plugins: [MyPlugin]
+});
+```
+
+Each plugin must have a unique, case-sensitive `id`. The optional `install(cgv)`
+method receives the Viewer being created. Plugin definition objects may be shared
+between Viewer instances, so store viewer-specific state on the Viewer or in closures
+created during installation, not on the plugin definition object.
 
 </section>
 <section id="s.record-actions">

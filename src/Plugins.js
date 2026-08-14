@@ -116,6 +116,9 @@ class Plugins {
     if (!plugin.type) {
       throw new Error('Plugin must have a type.');
     }
+    if (this.includes(plugin.id)) {
+      throw new Error(`Plugin '${plugin.id}' is already installed.`);
+    }
     if (!Plugins.types.includes(plugin.type)) {
       throw new Error(`Plugin type is not valid. Must be one of: ${Plugins.types.join(', ')}`);
     }
@@ -134,7 +137,7 @@ class Plugins {
    * @return {Boolean} - Whether the object has the plugin
    */
   includes(pluginID) {
-    return this._plugins.some(plugin => plugin.name === pluginID);
+    return this._plugins.some(plugin => plugin.id === pluginID);
   }
 
   /**
