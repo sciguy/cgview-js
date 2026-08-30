@@ -118,6 +118,9 @@ class Highlighter extends CGObject {
       //   this.hidePopoverBox();
       // }
     });
+    this.viewer.on('mouseleave.cgv-highlighter', () => {
+      this.hidePopoverBox();
+    });
   }
 
   // mouseOver(type, e) {
