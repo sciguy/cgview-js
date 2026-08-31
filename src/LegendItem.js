@@ -47,7 +47,7 @@ import utils from './Utils';
  * [name](#name)                    | String    | Name to diplay for legendItem 
  * [font](#font)                    | String    | A string describing the font [Default: 'SansSerif, plain, 8']. See {@link Font} for details.
  * [fontColor](#fontColor)          | String    | A string describing the font color [Default: 'black']. See {@link Color} for details.
- * [decoration](#decoration)        | String    | How the features should be drawn. Choices: 'arc' [Default], 'arrow', 'score', 'none' [Default: 'arc']
+ * [decoration](#decoration)        | String    | How the features should be drawn. Choices: 'arc' [Default], 'arrow', 'auto', 'score', 'none'. Auto uses an arc at or below 2 pixels and an arrow above 2 pixels. [Default: 'arc']
  * [swatchColor](#swatchColor)      | String    | A string describing the legendItem display color [Default: 'black']. See {@link Color} for details.
  * [minArcLength](#minArcLength)    | Number    | Minimum length in pixels to use when drawing arcs. From 0 to 2 pixels [Default: 1]
  * [drawSwatch](#drawSwatch)        | Boolean   | Draw the swatch beside the legendItem name [Default: true]
@@ -293,14 +293,15 @@ class LegendItem extends CGObject {
   }
 
   /**
-   * @member {String} - Get or set the decoration. Choices are *arc* [Default], *arrow*, *score*, *none*.
+   * @member {String} - Get or set the decoration. Choices are *arc* [Default], *arrow*, *auto*, *score*, *none*.
+   * Auto uses an arc at or below 2 pixels and an arrow with a progressively sized head above 2 pixels.
    */
   get decoration() {
     return this._decoration || 'arc';
   }
 
   set decoration(value) {
-    if ( utils.validate(value, ['arc', 'arrow', 'none', 'score']) ) {
+    if ( utils.validate(value, ['arc', 'arrow', 'auto', 'score', 'none']) ) {
       this._decoration = value;
     }
   }
@@ -573,5 +574,3 @@ class LegendItem extends CGObject {
 }
 
 export default LegendItem;
-
-

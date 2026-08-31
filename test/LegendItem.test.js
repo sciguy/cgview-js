@@ -32,6 +32,18 @@ describe('LegendItem', () => {
 
   });
 
-});
+  describe('decoration', () => {
 
+    test('accepts and serializes auto', () => {
+      const item = cgv.legend.addItems({name: 'CDS', decoration: 'arc'})[0];
+
+      item.update({decoration: 'auto'});
+
+      expect(item.decoration).toBe('auto');
+      expect(item.toJSON().decoration).toBe('auto');
+    });
+
+  });
+
+});
 

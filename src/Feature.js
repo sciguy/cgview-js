@@ -485,7 +485,7 @@ class Feature extends CGObject {
   }
 
   get directionalDecoration() {
-    if (this.decoration === 'arrow') {
+    if (this.decoration === 'arrow' || this.decoration === 'auto') {
       return this.strand === 1 ? 'clockwise-arrow' : 'counterclockwise-arrow';
     } else if (this.decoration === 'score') {
       return 'arc';
@@ -656,7 +656,7 @@ class Feature extends CGObject {
         const location = this.locations[i];
         const range = new CGRange(this.contig, location[0], location[1]);
         const newOptions = {...options};
-        if (this.decoration === 'arrow') {
+        if (this.decoration === 'arrow' || this.decoration === 'auto') {
           if (this.isDirect() && i !== this.locations.length - 1) {
             newOptions.directionalDecoration = 'arc';
           } else if (this.isReverse() && i !== 0) {
@@ -709,6 +709,7 @@ class Feature extends CGObject {
       const containsStop = visibleRange.containsMapBp(stop);
       const color = options.color || this.color;
       const directionalDecoration = options.directionalDecoration || this.directionalDecoration;
+      const autoArrow = this.decoration === 'auto';
       const showShading = options.showShading;
       const minArcLength = this.legendItem.minArcLength;
       if (!containsStart) {
@@ -763,14 +764,14 @@ class Feature extends CGObject {
           layer, start: visibleStart, stop,
           centerOffset: this.adjustedCenterOffset(slotCenterOffset, slotThickness),
           color: color.rgbaString, width: this.adjustedWidth(slotThickness),
-          decoration: directionalDecoration, showShading, minArcLength,
+          decoration: directionalDecoration, autoArrow, showShading, minArcLength,
           selected: this.selected,
         });
         canvas.drawElement({
           layer, start, stop: visibleStop,
           centerOffset: this.adjustedCenterOffset(slotCenterOffset, slotThickness),
           color: color.rgbaString, width: this.adjustedWidth(slotThickness),
-          decoration: directionalDecoration, showShading, minArcLength,
+          decoration: directionalDecoration, autoArrow, showShading, minArcLength,
           selected: this.selected,
         });
       } else {
@@ -778,7 +779,7 @@ class Feature extends CGObject {
           layer, start, stop,
           centerOffset: this.adjustedCenterOffset(slotCenterOffset, slotThickness),
           color: color.rgbaString, width: this.adjustedWidth(slotThickness),
-          decoration: directionalDecoration, showShading, minArcLength,
+          decoration: directionalDecoration, autoArrow, showShading, minArcLength,
           selected: this.selected,
         });
       }
@@ -1044,5 +1045,4 @@ class Feature extends CGObject {
 }
 
 export default Feature;
-
 
