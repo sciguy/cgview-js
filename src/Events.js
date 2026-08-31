@@ -31,6 +31,7 @@
  * ------------------|-----------------------------------------------------
  * cgv-load-json     | Called when [IO.loadJSON()](IO.html#loadJSON) is executed
  * mousemove         | Called when mouse moves on the Viewer. Returns [event-like object](EventMonitor.html)
+ * mouseleave        | Called when the pointer leaves the Viewer
  * mousedown         | Called when mouse button is pressed on the Viewer. Returns [event-like object](EventMonitor.html)
  * mouseup           | Called when mouse button is released on the Viewer. Returns [event-like object](EventMonitor.html)
  * click             | Called when mouse clicks on the Viewer. Returns [event-like object](EventMonitor.html)

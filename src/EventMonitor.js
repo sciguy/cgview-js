@@ -71,6 +71,7 @@ class EventMonitor {
     this.events = viewer.events;
 
     this._initializeMousemove();
+    this._initializeMouseleave();
     this._initializeMousedown();
     this._initializeMouseup();
     this._initializeClick();
@@ -133,6 +134,20 @@ class EventMonitor {
       viewer.clear('ui');
       this.events.trigger('mousemove', event);
       // this.events.trigger('mousemove', this._createEvent(d3Event));
+    });
+  }
+
+  /**
+   * Clear transient hover state when the pointer leaves the Viewer.
+   * A final mousemove is not guaranteed when the pointer exits quickly.
+   * @private
+   */
+  _initializeMouseleave() {
+    const viewer = this.viewer;
+    d3.select(this.canvas.node('ui')).on('mouseleave.cgv', (d3Event) => {
+      this._mouse = undefined;
+      viewer.clear('ui');
+      this.events.trigger('mouseleave', {d3: d3Event});
     });
   }
 
@@ -366,6 +381,13 @@ class EventMonitor {
         this.canvas.cursor = 'auto';
         legend.draw();
       }
+    });
+    this.events.on('mouseleave.swatch', () => {
+      const legend = viewer.legend;
+      if (!legend.highlightedSwatchedItem) { return; }
+      legend.highlightedSwatchedItem = undefined;
+      this.canvas.cursor = 'auto';
+      legend.draw();
     });
   }
 
