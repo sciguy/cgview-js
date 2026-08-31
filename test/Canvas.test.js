@@ -61,35 +61,45 @@ describe('Canvas', () => {
     });
   }
 
-  test('draws auto as an arc at the two-pixel threshold', () => {
-    drawAutoArrow({pixelsPerBp: 2});
+  test('draws auto as an arc at the minimum-length threshold', () => {
+    drawAutoArrow({pixelsPerBp: 5});
 
     expect(context.stroke).toHaveBeenCalledTimes(1);
     expect(context.fill).not.toHaveBeenCalled();
   });
 
-  test('draws auto as an arrow above the two-pixel threshold', () => {
-    drawAutoArrow({pixelsPerBp: 2.01});
+  test('draws auto as an arrow above the minimum-length threshold', () => {
+    drawAutoArrow({pixelsPerBp: 5.01});
 
     expect(context.fill).toHaveBeenCalledTimes(1);
     expect(context.stroke).not.toHaveBeenCalled();
   });
 
-  test('caps an auto arrowhead at the current element length', () => {
-    drawAutoArrow({pixelsPerBp: 1, start: 10, stop: 13});
+  test('grows the auto arrowhead while preserving the minimum body', () => {
+    drawAutoArrow({pixelsPerBp: 1, start: 10, stop: 17});
 
     const firstPath = canvas.path.mock.calls[0];
     expect(firstPath[2]).toBeCloseTo(9.5);
-    expect(firstPath[3]).toBeCloseTo(9.5);
-    expect(canvas.pointForBp).toHaveBeenCalledWith(13.5, 100);
+    expect(firstPath[3]).toBeCloseTo(14.5);
+    expect(canvas.pointForBp).toHaveBeenCalledWith(17.5, 100);
   });
 
   test('uses the configured arrowhead length when it fits', () => {
-    drawAutoArrow({pixelsPerBp: 1, start: 10, stop: 19});
+    drawAutoArrow({pixelsPerBp: 1, start: 10, stop: 21});
 
     const firstPath = canvas.path.mock.calls[0];
     expect(firstPath[2]).toBeCloseTo(9.5);
-    expect(firstPath[3]).toBeCloseTo(13.5);
+    expect(firstPath[3]).toBeCloseTo(15.5);
+    expect(canvas.pointForBp).toHaveBeenCalledWith(21.5, 100);
+  });
+
+  test('keeps the configured arrowhead length while the body grows', () => {
+    drawAutoArrow({pixelsPerBp: 1, start: 10, stop: 25});
+
+    const firstPath = canvas.path.mock.calls[0];
+    expect(firstPath[2]).toBeCloseTo(9.5);
+    expect(firstPath[3]).toBeCloseTo(19.5);
+    expect(canvas.pointForBp).toHaveBeenCalledWith(25.5, 100);
   });
 
   test('preserves the existing short-arrow expansion', () => {

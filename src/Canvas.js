@@ -258,7 +258,7 @@ class Canvas {
    * @param {String} [options.decoration='arc'] - How the element should be drawn.
    *   Values: 'arc', 'clockwise-arrow', 'counterclockwise-arrow', 'none'
    * @param {Boolean} [options.autoArrow=false] - Draw a short directional element as an
-   *   arc and limit its arrowhead to the element's current pixel length
+   *   arc, then grow its arrowhead while preserving the minimum arc length
    * @param {Boolean} [options.showShading] - Should the element be drawn with shading
    *   [Default: value from settings {@link Settings#showShading}]
    * @param {Boolean} [options.showBorder] - Should the element be drawn with a border
@@ -360,7 +360,12 @@ class Canvas {
         decoration = 'arc';
       } else {
         const configuredArrowHeadLengthPixels = width * settings.arrowHeadLength;
-        autoArrowHeadLengthPixels = Math.min(configuredArrowHeadLengthPixels, featureLengthPixels);
+        const availableArrowHeadLengthPixels = featureLengthPixels -
+          AUTO_ARROW_MIN_LENGTH_PIXELS;
+        autoArrowHeadLengthPixels = Math.min(
+          configuredArrowHeadLengthPixels,
+          availableArrowHeadLengthPixels
+        );
       }
     }
 
