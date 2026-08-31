@@ -11,6 +11,10 @@
 - Added click selection: click selects one feature, shift-click adds to the selection, Escape clears selected features.
 - Added marquee selection with shift-drag.
 - Added a Selection checkbox to the test page options.
+- Fixed unnamed feature popovers showing `undefined`.
+- Kept hover highlights below legends and captions.
+- Cleared transient hover state when the pointer leaves the viewer.
+- Resumed progressive Canvas drawing after SVG and PNG exports.
 
 
 ## 1.8.2 - 2026-05-04 - Paper Release
