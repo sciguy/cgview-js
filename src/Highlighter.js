@@ -175,13 +175,30 @@ class Highlighter extends CGObject {
     return metaDivs;
   }
 
+  /**
+   * Return a concise title for the default feature popover. Features derived
+   * from sequence analysis do not always have an explicit name, so common
+   * annotation qualifiers are used before falling back to the feature type.
+   * @private
+   */
+  static featurePopoverTitle(feature) {
+    const qualifierValue = (key) => {
+      const value = feature.qualifiers?.[key];
+      return Array.isArray(value) ? value[0] : value;
+    };
+    const name = feature.name || qualifierValue('gene') ||
+      qualifierValue('locus_tag') || qualifierValue('product');
+    const type = feature.type || feature.legendItem?.name || 'Feature';
+    return name ? `${type}: ${name}` : type;
+  }
+
   featurePopoverContentsDefault(e) {
     const feature = e.element;
     // return `<div style='margin: 0 5px; font-size: 14px'>${feature.type}: ${feature.name}</div>`;
     const fullLength = feature.length !== feature.fullLength ? `(${utils.commaNumber(feature.fullLength)} bp)` : '';
     return (`
       <div style='margin: 0 5px; font-size: 14px'>
-        <div>${feature.type}: ${feature.name}<div>
+        <div>${Highlighter.featurePopoverTitle(feature)}<div>
         <div class='track-data'>Length: ${utils.commaNumber(feature.length)} bp ${fullLength}</div>
         ${Highlighter.getMetaDivs(feature.qualifiers)}
         ${this.showMetaData && Highlighter.getMetaDivs(feature.meta)}
@@ -367,5 +384,4 @@ class HighlighterElement {
 }
 
 export { Highlighter, HighlighterElement };
-
 
