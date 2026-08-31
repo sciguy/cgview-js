@@ -695,93 +695,109 @@ class Feature extends CGObject {
     }
   }
 
-  // drawRange(layer, slotCenterOffset, slotThickness, visibleRange, options = {}) {
-  drawRange(range, layer, slotCenterOffset, slotThickness, visibleRange, options = {}) {
-    // if (!this.visible) { return; }
-    // if (this.mapRange.overlapsMapRange(visibleRange)) {
-    if (range.overlapsMapRange(visibleRange)) {
-      const canvas = this.canvas;
-      // let start = this.mapStart;
-      // let stop = this.mapStop;
-      let start = range.mapStart;
-      let stop = range.mapStop;
-      const containsStart = visibleRange.containsMapBp(start);
-      const containsStop = visibleRange.containsMapBp(stop);
-      const color = options.color || this.color;
-      const directionalDecoration = options.directionalDecoration || this.directionalDecoration;
-      const showShading = options.showShading;
-      const minArcLength = this.legendItem.minArcLength;
-      if (!containsStart) {
-        // start = visibleRange.start - 100;
-        start = Math.max(1, visibleRange.start - 100);
-      }
-      if (!containsStop) {
-        // stop = visibleRange.stop + 100;
-        stop = Math.min(this.sequence.length, visibleRange.stop + 100);
-      }
+  /**
+   * Split a map range into one or two non-wrapping coordinate segments.
+   * @private
+   */
+  _linearMapSegments(range) {
+    const start = range.mapStart;
+    const stop = range.mapStop;
+    return start <= stop ? [[start, stop]] : [[start, this.sequence.length], [1, stop]];
+  }
 
-      // When zoomed in, if the feature starts in the visible range and wraps around to end
-      // in the visible range, the feature should be drawn as 2 arcs. Using overHalfMapLength() instead of isWrapped()
-      // should catch features that wrap around the map but not the Origin (ie. almost fulll circle features)
-      // const zoomedSplitFeature = containsStart && containsStop && (this.viewer.zoomFactor > 1000) && this.range.isWrapped();
-      // const zoomedSplitFeature = containsStart && containsStop && (this.viewer.zoomFactor > 1000) && this.range.overHalfMapLength();
-      const zoomedSplitFeature = containsStart && containsStop && (this.viewer.zoomFactor > 1000) && range.overHalfMapLength();
-      //  When the feature wraps the origin on a linear map and both the start and stop
-      //  can be seen, draw as 2 elements.
-      // const unzoomedSplitLinearFeature = containsStart && containsStop && this.range.isWrapped() && (this.viewer.format === 'linear');
-      const unzoomedSplitLinearFeature = containsStart && containsStop && range.isWrapped() && (this.viewer.format === 'linear');
-
-  //     L. guizhouensis No Plots [9,997,872 bp] [9,521 features]
-  // Zoom  Fast  Full   Visible Range (bp)
-  //   1x     6    20            9,997,872
-  //   5x     4     6            1,790,229
-  //  10x     2     3              859,041
-      // if (zoomedSplitFeature || unzoomedSplitLinearFeature) {
-      //   const visibleStart = Math.max((visibleRange.start - 100), 1); // Do not draw off the edge of linear maps
-      //   const visibleStop = Math.min((visibleRange.stop + 100), this.sequence.length); // Do not draw off the edge of linear maps
-      //   canvas.drawElement(layer, visibleStart, stop,
-      //     this.adjustedCenterOffset(slotCenterOffset, slotThickness),
-      //     color.rgbaString, this.adjustedWidth(slotThickness), directionalDecoration, showShading, minArcLength);
-      //   canvas.drawElement(layer, start, visibleStop,
-      //     this.adjustedCenterOffset(slotCenterOffset, slotThickness),
-      //     color.rgbaString, this.adjustedWidth(slotThickness), directionalDecoration, showShading, minArcLength);
-      // } else {
-      //   canvas.drawElement(layer, start, stop,
-      //     this.adjustedCenterOffset(slotCenterOffset, slotThickness),
-      //     color.rgbaString, this.adjustedWidth(slotThickness), directionalDecoration, showShading, minArcLength);
-      // }
-
-// L. guizhouensis No Plots [9,997,872 bp] [9,521 features]
-//   Zoom  Fast  Full   Visible Range (bp)
-//     1x     4    19            9,997,872
-//     5x     3     5            1,790,229
-//    10x     2     3              859,041
-      if (zoomedSplitFeature || unzoomedSplitLinearFeature) {
-        const visibleStart = Math.max((visibleRange.start - 100), 1); // Do not draw off the edge of linear maps
-        const visibleStop = Math.min((visibleRange.stop + 100), this.sequence.length); // Do not draw off the edge of linear maps
-        canvas.drawElement({
-          layer, start: visibleStart, stop,
-          centerOffset: this.adjustedCenterOffset(slotCenterOffset, slotThickness),
-          color: color.rgbaString, width: this.adjustedWidth(slotThickness),
-          decoration: directionalDecoration, showShading, minArcLength,
-          selected: this.selected,
-        });
-        canvas.drawElement({
-          layer, start, stop: visibleStop,
-          centerOffset: this.adjustedCenterOffset(slotCenterOffset, slotThickness),
-          color: color.rgbaString, width: this.adjustedWidth(slotThickness),
-          decoration: directionalDecoration, showShading, minArcLength,
-          selected: this.selected,
-        });
+  /**
+   * Merge overlapping or adjacent linear coordinate segments.
+   * @private
+   */
+  _mergeLinearSegments(segments) {
+    const sorted = segments.slice().sort((first, second) => first[0] - second[0]);
+    const merged = [];
+    for (const segment of sorted) {
+      const previous = merged[merged.length - 1];
+      if (previous && segment[0] <= previous[1] + 1) {
+        previous[1] = Math.max(previous[1], segment[1]);
       } else {
-        canvas.drawElement({
-          layer, start, stop,
-          centerOffset: this.adjustedCenterOffset(slotCenterOffset, slotThickness),
-          color: color.rgbaString, width: this.adjustedWidth(slotThickness),
-          decoration: directionalDecoration, showShading, minArcLength,
-          selected: this.selected,
-        });
+        merged.push(segment.slice());
       }
+    }
+    return merged;
+  }
+
+  /**
+   * Return the portions of a feature range that are near the visible range.
+   * Both inputs are split at the map origin before intersection, so a drawing
+   * margin can never extend a feature past its real coordinates.
+   * @private
+   */
+  _drawSegmentsForRange(range, visibleRange, margin = 100) {
+    const mapLength = this.sequence.length;
+    if (visibleRange.isMapLength()) {
+      return this._linearMapSegments(range);
+    }
+
+    // Almost every draw takes this path. Keep the ordinary non-wrapping case
+    // allocation-light; splitting and merging are reserved for origin wraps.
+    if (range.mapStart <= range.mapStop && visibleRange.mapStart <= visibleRange.mapStop) {
+      const start = Math.max(range.mapStart, Math.max(1, visibleRange.mapStart - margin));
+      const stop = Math.min(range.mapStop, Math.min(mapLength, visibleRange.mapStop + margin));
+      return start <= stop ? [[start, stop]] : [];
+    }
+
+    const featureSegments = this._linearMapSegments(range);
+    const visibleSegments = this._mergeLinearSegments(
+      this._linearMapSegments(visibleRange).map(([start, stop]) => [
+        Math.max(1, start - margin),
+        Math.min(mapLength, stop + margin),
+      ])
+    );
+    const intersections = [];
+    for (const [featureStart, featureStop] of featureSegments) {
+      for (const [visibleStart, visibleStop] of visibleSegments) {
+        const start = Math.max(featureStart, visibleStart);
+        const stop = Math.min(featureStop, visibleStop);
+        if (start <= stop) {
+          intersections.push([start, stop]);
+        }
+      }
+    }
+    return this._mergeLinearSegments(intersections);
+  }
+
+  /**
+   * Do not place an arrowhead at a clipping boundary. The segment containing
+   * the feature's biological endpoint retains the directional decoration.
+   * @private
+   */
+  _decorationForDrawSegment(decoration, segment, range) {
+    if (decoration === 'clockwise-arrow' && segment[1] !== range.mapStop) {
+      return 'arc';
+    }
+    if (decoration === 'counterclockwise-arrow' && segment[0] !== range.mapStart) {
+      return 'arc';
+    }
+    return decoration;
+  }
+
+  drawRange(range, layer, slotCenterOffset, slotThickness, visibleRange, options = {}) {
+    const drawSegments = this._drawSegmentsForRange(range, visibleRange);
+    if (drawSegments.length === 0) { return; }
+
+    const canvas = this.canvas;
+    const color = options.color || this.color;
+    const directionalDecoration = options.directionalDecoration || this.directionalDecoration;
+    const showShading = options.showShading;
+    const minArcLength = this.legendItem.minArcLength;
+    const centerOffset = this.adjustedCenterOffset(slotCenterOffset, slotThickness);
+    const width = this.adjustedWidth(slotThickness);
+    for (const segment of drawSegments) {
+      canvas.drawElement({
+        layer, start: segment[0], stop: segment[1],
+        centerOffset,
+        color: color.rgbaString, width,
+        decoration: this._decorationForDrawSegment(directionalDecoration, segment, range),
+        showShading, minArcLength,
+        selected: this.selected,
+      });
     }
   }
 
@@ -1044,5 +1060,3 @@ class Feature extends CGObject {
 }
 
 export default Feature;
-
-
