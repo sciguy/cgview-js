@@ -907,6 +907,14 @@ class Layout {
     }
   }
 
+  /**
+   * Whether a full-quality canvas draw is still replacing its fast slot
+   * preview.
+   */
+  get fullDrawInProgress() {
+    return this._slotTimeoutID !== undefined;
+  }
+
   drawFull() {
     this.drawMapWithoutSlots();
     this.drawAllSlots(true);
@@ -975,6 +983,7 @@ class Layout {
     if (layout._slotIndex < slots.length) {
       layout._slotTimeoutID = setTimeout(layout.drawSlotWithTimeOut, 0, layout);
     } else {
+      layout._slotTimeoutID = undefined;
       if (layout.viewer.debug) {
         layout.viewer.debug.data.time.fullDraw = utils.elapsedTime(layout._drawFullStartTime);
         layout.viewer.debug.draw();
@@ -1149,5 +1158,4 @@ class Layout {
 }
 
 export default Layout;
-
 

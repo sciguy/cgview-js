@@ -537,6 +537,7 @@ class IO {
     const canvas = viewer.canvas;
     const width = viewer.width;
     const height = viewer.height;
+    const resumeCanvasDraw = viewer.layout.fullDrawInProgress;
 
     // Save current settings
     const origLayers = canvas._layers;
@@ -547,39 +548,46 @@ class IO {
     // const layerNames = canvas.layerNames.concat(['export']);
     const layerNames = canvas.layerNames;
     const tempLayers = canvas.createLayers(d3.select('body'), layerNames, width, height, false);
-    canvas._layers = tempLayers;
+    let svg;
+    try {
+      canvas._layers = tempLayers;
 
-    const svgContext = new SVGContext(width, height); 
-    tempLayers.map.ctx = svgContext;
-    tempLayers.foreground.ctx = svgContext;
-    tempLayers.canvas.ctx = svgContext;
+      const svgContext = new SVGContext(width, height);
+      tempLayers.map.ctx = svgContext;
+      tempLayers.foreground.ctx = svgContext;
+      tempLayers.canvas.ctx = svgContext;
 
-    // Override the clearRect method as it's not required for SVG drawing.
-    // Otherwise, an additional SVG rect will be drawn obscuring the background.
-    svgContext.clearRect = () => {};
+      // Override the clearRect method as it's not required for SVG drawing.
+      // Otherwise, an additional SVG rect will be drawn obscuring the background.
+      svgContext.clearRect = () => {};
 
-    // Manually Draw background here
-    svgContext.fillStyle = viewer.settings.backgroundColor.rgbaString;
-    svgContext.fillRect(0, 0, width, height);
+      // Manually Draw background here
+      svgContext.fillStyle = viewer.settings.backgroundColor.rgbaString;
+      svgContext.fillRect(0, 0, width, height);
 
-    // Draw map on to new layers
-    viewer.drawExport();
-    // Legend
-    viewer.legend.draw();
-    // Captions
-    for (let i = 0, len = viewer._captions.length; i < len; i++) {
-      viewer._captions[i].draw();
-    }
-    // Create SVG
-    const svg = tempLayers.map.ctx.getSerializedSvg();
+      // Draw map on to new layers
+      viewer.drawExport();
+      // Legend
+      viewer.legend.draw();
+      // Captions
+      for (let i = 0, len = viewer._captions.length; i < len; i++) {
+        viewer._captions[i].draw();
+      }
+      // Create SVG
+      svg = tempLayers.map.ctx.getSerializedSvg();
+    } finally {
+      // Restore the live layers before restarting any progressive draw that
+      // drawExport() interrupted on a large map.
+      canvas._layers = origLayers;
+      viewer.debug = debug;
 
-    // Restore original layers and settings
-    canvas._layers = origLayers;
-    viewer.debug = debug;
+      for (const name of layerNames) {
+        d3.select(tempLayers[name].node).remove();
+      }
 
-    // Delete temp canvas layers
-    for (const name of layerNames) {
-      d3.select(tempLayers[name].node).remove();
+      if (resumeCanvasDraw) {
+        viewer.drawFull();
+      }
     }
 
     return svg;
@@ -707,4 +715,3 @@ class IO {
 // }
 
 export default IO;
-

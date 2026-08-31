@@ -35,6 +35,60 @@ describe('IO', () => {
 
   });
 
+  describe('getSVG', () => {
+
+    test('resumes an in-progress canvas draw after the temporary SVG render', () => {
+      const SVGContext = function() {
+        const context = document.createElement('canvas').getContext('2d');
+        context.getSerializedSvg = () => '<svg></svg>';
+        return context;
+      };
+      const viewer = new Viewer('#map', {SVGContext});
+      const originalLayers = viewer.canvas._layers;
+      if (viewer.layout._slotTimeoutID !== undefined) {
+        clearTimeout(viewer.layout._slotTimeoutID);
+      }
+      const pendingSlotDraw = setTimeout(() => {}, 1000);
+      viewer.layout._slotTimeoutID = pendingSlotDraw;
+      const drawFull = jest.spyOn(viewer, 'drawFull').mockImplementation(() => {});
+
+      try {
+        expect(viewer.io.getSVG()).toBe('<svg></svg>');
+        expect(viewer.canvas._layers).toBe(originalLayers);
+        expect(drawFull).toHaveBeenCalledTimes(1);
+      } finally {
+        clearTimeout(pendingSlotDraw);
+        viewer.layout._slotTimeoutID = undefined;
+      }
+    });
+
+    test('does not start a new canvas draw when no progressive draw was active', () => {
+      const SVGContext = function() {
+        const context = document.createElement('canvas').getContext('2d');
+        context.getSerializedSvg = () => '<svg></svg>';
+        return context;
+      };
+      const viewer = new Viewer('#map', {SVGContext});
+      const drawFull = jest.spyOn(viewer, 'drawFull').mockImplementation(() => {});
+
+      expect(viewer.layout.fullDrawInProgress).toBe(false);
+      expect(viewer.io.getSVG()).toBe('<svg></svg>');
+      expect(drawFull).not.toHaveBeenCalled();
+    });
+
+    test('restores live canvas layers when SVG serialization throws', () => {
+      const SVGContext = function() {
+        const context = document.createElement('canvas').getContext('2d');
+        context.getSerializedSvg = () => { throw new Error('SVG serialization failed'); };
+        return context;
+      };
+      const viewer = new Viewer('#map', {SVGContext});
+      const originalLayers = viewer.canvas._layers;
+
+      expect(() => viewer.io.getSVG()).toThrow('SVG serialization failed');
+      expect(viewer.canvas._layers).toBe(originalLayers);
+    });
+
+  });
+
 });
-
-
