@@ -129,6 +129,7 @@ class Highlighter extends CGObject {
     }
     if (this[type].highlighting) {
       this[`highlight${utils.capitalize(type)}`](e);
+      this._clearOverlayBoxes();
     }
     if (this[type].popovers && this.visible) {
       const position = this.position(e);
@@ -265,6 +266,24 @@ class Highlighter extends CGObject {
     // e.element.highlight(e.slot);
   }
 
+  /**
+   * Remove transient hover graphics from areas occupied by visible overlays.
+   * Legends and captions are rendered on persistent layers below the UI layer,
+   * so clearing these boxes reveals the overlays without redrawing the map.
+   * @private
+   */
+  _clearOverlayBoxes() {
+    const ctx = this.viewer.canvas.context('ui');
+    const clearBox = (overlay) => {
+      if (overlay?.visible && overlay.box) {
+        overlay.box.clear(ctx);
+      }
+    };
+
+    clearBox(this.viewer.legend);
+    this.viewer.captions().each((i, caption) => clearBox(caption));
+  }
+
   hidePopoverBox() {
     this.popoverBox.style('visibility', 'hidden');
   }
@@ -368,5 +387,4 @@ class HighlighterElement {
 }
 
 export { Highlighter, HighlighterElement };
-
 
