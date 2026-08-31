@@ -457,6 +457,43 @@ class IO {
   }
 
   /**
+   * Render with temporary export layers, then restore the live viewer state.
+   * If export rendering interrupts a progressive Canvas draw, restart it only
+   * after the live layers have been restored.
+   * @param {Array} layerNames - Canvas layer names to create.
+   * @param {Number} width - Export width.
+   * @param {Number} height - Export height.
+   * @param {Function} render - Callback that renders with the temporary layers.
+   * @return {*} The callback result.
+   * @private
+   */
+  _withTemporaryExportLayers(layerNames, width, height, render) {
+    const viewer = this._viewer;
+    const canvas = viewer.canvas;
+    const origLayers = canvas._layers;
+    const debug = viewer.debug;
+    const resumeCanvasDraw = viewer.layout.fullDrawInProgress;
+    const tempLayers = canvas.createLayers(d3.select('body'), layerNames, width, height, false);
+
+    try {
+      viewer.debug = false;
+      canvas._layers = tempLayers;
+      return render(tempLayers);
+    } finally {
+      canvas._layers = origLayers;
+      viewer.debug = debug;
+
+      for (const name of layerNames) {
+        d3.select(tempLayers[name].node).remove();
+      }
+
+      if (resumeCanvasDraw) {
+        viewer.drawFull();
+      }
+    }
+  }
+
+  /**
    * Download the currently visible map as a PNG image.
    * @param {Number} width - Width of image
    * @param {Number} height - Height of image
@@ -468,58 +505,38 @@ class IO {
     width = width || viewer.width;
     height = height || viewer.height;
 
-    // Save current settings
-    // let origContext = canvas.ctx;
-    const origLayers = canvas._layers;
-    const debug = viewer.debug;
-    viewer.debug = false;
-
     // Create new layers and add export layer
     const layerNames = canvas.layerNames.concat(['export']);
-    const tempLayers = canvas.createLayers(d3.select('body'), layerNames, width, height, false);
+    this._withTemporaryExportLayers(layerNames, width, height, (tempLayers) => {
+      // Calculate scaling factor
+      const minNewDimension = d3.min([width, height]);
+      const scaleFactor = minNewDimension / viewer.minDimension;
 
-    // Calculate scaling factor
-    const minNewDimension = d3.min([width, height]);
-    const scaleFactor = minNewDimension / viewer.minDimension;
+      // Scale context of layers, excluding the 'export' layer
+      for (const name of canvas.layerNames) {
+        tempLayers[name].ctx.scale(scaleFactor, scaleFactor);
+      }
 
-    // Scale context of layers, excluding the 'export' layer
-    for (const name of canvas.layerNames) {
-      tempLayers[name].ctx.scale(scaleFactor, scaleFactor);
-    }
-    canvas._layers = tempLayers;
+      // Draw map on to new layers
+      viewer.drawExport();
+      viewer.fillBackground();
+      // Legend
+      viewer.legend.draw();
+      // Captions
+      for (let i = 0, len = viewer._captions.length; i < len; i++) {
+        viewer._captions[i].draw();
+      }
 
-   // tempLayers.map.ctx = new C2S(1000, 1000); 
+      // Copy drawing layers to export layer
+      const exportContext = tempLayers.export.ctx;
+      exportContext.drawImage(tempLayers.background.node, 0, 0);
+      exportContext.drawImage(tempLayers.map.node, 0, 0);
+      exportContext.drawImage(tempLayers.foreground.node, 0, 0);
+      exportContext.drawImage(tempLayers.canvas.node, 0, 0);
 
-    // Draw map on to new layers
-    viewer.drawExport();
-    viewer.fillBackground();
-    // Legend
-    viewer.legend.draw();
-    // Captions
-    for (let i = 0, len = viewer._captions.length; i < len; i++) {
-      viewer._captions[i].draw();
-    }
-
-    // Copy drawing layers to export layer
-    const exportContext = tempLayers.export.ctx;
-    exportContext.drawImage(tempLayers.background.node, 0, 0);
-    exportContext.drawImage(tempLayers.map.node, 0, 0);
-    exportContext.drawImage(tempLayers.foreground.node, 0, 0);
-    exportContext.drawImage(tempLayers.canvas.node, 0, 0);
-
-    // Generate image from export layer
-    // let image = tempLayers['export'].node.toDataURL();
-    tempLayers.export.node.toBlob( (blob) => { this.download(blob, filename, 'image/png');} );
-    // console.log(tempLayers.map.ctx.getSerializedSvg(true));
-
-    // Restore original layers and settings
-    canvas._layers = origLayers;
-    viewer.debug = debug;
-
-    // Delete temp canvas layers
-    for (const name of layerNames) {
-      d3.select(tempLayers[name].node).remove();
-    }
+      // Generate image from export layer
+      tempLayers.export.node.toBlob( (blob) => { this.download(blob, filename, 'image/png');} );
+    });
   }
 
   /**
@@ -538,51 +555,32 @@ class IO {
     const width = viewer.width;
     const height = viewer.height;
 
-    // Save current settings
-    const origLayers = canvas._layers;
-    const debug = viewer.debug;
-    viewer.debug = false;
-
-    // Create new layers and add export layer
-    // const layerNames = canvas.layerNames.concat(['export']);
     const layerNames = canvas.layerNames;
-    const tempLayers = canvas.createLayers(d3.select('body'), layerNames, width, height, false);
-    canvas._layers = tempLayers;
+    return this._withTemporaryExportLayers(layerNames, width, height, (tempLayers) => {
+      const svgContext = new SVGContext(width, height);
+      tempLayers.map.ctx = svgContext;
+      tempLayers.foreground.ctx = svgContext;
+      tempLayers.canvas.ctx = svgContext;
 
-    const svgContext = new SVGContext(width, height); 
-    tempLayers.map.ctx = svgContext;
-    tempLayers.foreground.ctx = svgContext;
-    tempLayers.canvas.ctx = svgContext;
+      // Override the clearRect method as it's not required for SVG drawing.
+      // Otherwise, an additional SVG rect will be drawn obscuring the background.
+      svgContext.clearRect = () => {};
 
-    // Override the clearRect method as it's not required for SVG drawing.
-    // Otherwise, an additional SVG rect will be drawn obscuring the background.
-    svgContext.clearRect = () => {};
+      // Manually Draw background here
+      svgContext.fillStyle = viewer.settings.backgroundColor.rgbaString;
+      svgContext.fillRect(0, 0, width, height);
 
-    // Manually Draw background here
-    svgContext.fillStyle = viewer.settings.backgroundColor.rgbaString;
-    svgContext.fillRect(0, 0, width, height);
+      // Draw map on to new layers
+      viewer.drawExport();
+      // Legend
+      viewer.legend.draw();
+      // Captions
+      for (let i = 0, len = viewer._captions.length; i < len; i++) {
+        viewer._captions[i].draw();
+      }
 
-    // Draw map on to new layers
-    viewer.drawExport();
-    // Legend
-    viewer.legend.draw();
-    // Captions
-    for (let i = 0, len = viewer._captions.length; i < len; i++) {
-      viewer._captions[i].draw();
-    }
-    // Create SVG
-    const svg = tempLayers.map.ctx.getSerializedSvg();
-
-    // Restore original layers and settings
-    canvas._layers = origLayers;
-    viewer.debug = debug;
-
-    // Delete temp canvas layers
-    for (const name of layerNames) {
-      d3.select(tempLayers[name].node).remove();
-    }
-
-    return svg;
+      return svgContext.getSerializedSvg();
+    });
   }
   /**
    * Download the currently visible map as a SVG image.
@@ -707,4 +705,3 @@ class IO {
 // }
 
 export default IO;
-

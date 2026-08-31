@@ -889,7 +889,7 @@ class Layout {
 
     // Slots timout
     this._slotIndex = 0;
-    if (this._slotTimeoutID) {
+    if (this._slotTimeoutID !== undefined) {
       clearTimeout(this._slotTimeoutID);
       this._slotTimeoutID = undefined;
     }
@@ -905,6 +905,15 @@ class Layout {
       this.viewer.debug.data.time.fastDraw = utils.elapsedTime(startTime);
       this.viewer.debug.draw();
     }
+  }
+
+  /**
+   * Whether a full-quality Canvas draw is still replacing its fast slot
+   * preview.
+   * @private
+   */
+  get fullDrawInProgress() {
+    return this._slotTimeoutID !== undefined;
   }
 
   drawFull() {
@@ -962,7 +971,10 @@ class Layout {
   drawSlotWithTimeOut(layout) {
     const slots = layout.visibleSlots();
     const slot = slots[layout._slotIndex];
-    if (!slot) { return; }
+    if (!slot) {
+      layout._slotTimeoutID = undefined;
+      return;
+    }
 
     slot.clear();
     // Redraw the Backbone if this is the first slot and the slot is 'along' the backbone
@@ -975,6 +987,7 @@ class Layout {
     if (layout._slotIndex < slots.length) {
       layout._slotTimeoutID = setTimeout(layout.drawSlotWithTimeOut, 0, layout);
     } else {
+      layout._slotTimeoutID = undefined;
       if (layout.viewer.debug) {
         layout.viewer.debug.data.time.fullDraw = utils.elapsedTime(layout._drawFullStartTime);
         layout.viewer.debug.draw();
@@ -1149,5 +1162,4 @@ class Layout {
 }
 
 export default Layout;
-
 
