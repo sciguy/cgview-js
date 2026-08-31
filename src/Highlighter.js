@@ -179,9 +179,10 @@ class Highlighter extends CGObject {
     const feature = e.element;
     // return `<div style='margin: 0 5px; font-size: 14px'>${feature.type}: ${feature.name}</div>`;
     const fullLength = feature.length !== feature.fullLength ? `(${utils.commaNumber(feature.fullLength)} bp)` : '';
+    const title = feature.name ? `${feature.type}: ${feature.name}` : `${feature.type}`;
     return (`
       <div style='margin: 0 5px; font-size: 14px'>
-        <div>${feature.type}: ${feature.name}<div>
+        <div>${title}</div>
         <div class='track-data'>Length: ${utils.commaNumber(feature.length)} bp ${fullLength}</div>
         ${Highlighter.getMetaDivs(feature.qualifiers)}
         ${this.showMetaData && Highlighter.getMetaDivs(feature.meta)}
