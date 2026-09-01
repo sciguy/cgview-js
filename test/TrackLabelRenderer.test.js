@@ -106,7 +106,60 @@ describe('Track labels', () => {
     const plans = cgv.layout._trackLabelRenderer.plans();
 
     expect(plans.map(plan => plan.track.name)).toEqual(['Genes', 'Genes', 'Coverage']);
+    expect(plans.map(plan => plan.characters.join(''))).toEqual(['Genes (+)', 'Genes (-)', 'Coverage']);
     expect(plans.map(plan => plan.position).sort()).toEqual(['inside', 'inside', 'outside']);
+  });
+
+  test('labels each reading-frame slot', () => {
+    const cgv = viewerWithTrack({
+      format: 'linear',
+      track: {separateFeaturesBy: 'readingFrame'},
+    });
+    zoomForLabels(cgv);
+
+    const plans = cgv.layout._trackLabelRenderer.plans();
+
+    expect(plans.map(plan => plan.characters.join(''))).toEqual([
+      'Genes (+1)',
+      'Genes (+2)',
+      'Genes (+3)',
+      'Genes (-1)',
+      'Genes (-2)',
+      'Genes (-3)',
+    ]);
+  });
+
+  test('uses feature types as slot details', () => {
+    const cgv = viewerWithTrack({
+      features: [
+        {name: 'cds', source: 'genes', type: 'CDS', start: 100, stop: 200},
+        {name: 'trna', source: 'genes', type: 'tRNA', start: 300, stop: 400},
+      ],
+      track: {separateFeaturesBy: 'type'},
+    });
+    zoomForLabels(cgv);
+
+    const plans = cgv.layout._trackLabelRenderer.plans();
+
+    expect(plans.map(plan => plan.characters.join(''))).toEqual(['Genes (CDS)', 'Genes (tRNA)']);
+  });
+
+  test('uses feature legends as slot details', () => {
+    const cgv = viewerWithTrack({
+      features: [
+        {name: 'first', source: 'genes', legend: 'Forward genes', start: 100, stop: 200},
+        {name: 'second', source: 'genes', legend: 'Reverse genes', start: 300, stop: 400},
+      ],
+      track: {separateFeaturesBy: 'legend'},
+    });
+    zoomForLabels(cgv);
+
+    const plans = cgv.layout._trackLabelRenderer.plans();
+
+    expect(plans.map(plan => plan.characters.join(''))).toEqual([
+      'Genes (Forward genes)',
+      'Genes (Reverse genes)',
+    ]);
   });
 
   test('honors the option at label zoom and refreshes the visible result', () => {
@@ -142,6 +195,60 @@ describe('Track labels', () => {
     expect(text).not.toBe(name);
     expect(plan.totalWidth).toBeLessThanOrEqual(150);
     expect(plan.characters.length).toBeGreaterThan(4);
+  });
+
+  test('preserves a short slot detail while truncating the track name', () => {
+    const name = 'A very long feature track name that cannot fit at full width';
+    const cgv = viewerWithTrack({track: {name, separateFeaturesBy: 'strand'}});
+    const ctx = cgv.canvas.context('foreground');
+    ctx.measureText.mockImplementation(() => ({width: 10}));
+    zoomForLabels(cgv);
+
+    const plan = cgv.layout._trackLabelRenderer.plans(ctx).find(candidate => candidate.detail === '+');
+    const text = plan.characters.join('');
+
+    expect(text.endsWith('… (+)')).toBe(true);
+    expect(plan.totalWidth).toBeLessThanOrEqual(150);
+  });
+
+  test('preserves a short track name while truncating a long slot detail', () => {
+    const detail = 'Very long feature type that cannot fit at full width';
+    const cgv = viewerWithTrack({
+      features: [{name: 'example', source: 'genes', type: detail, start: 100, stop: 300}],
+      track: {separateFeaturesBy: 'type'},
+    });
+    const ctx = cgv.canvas.context('foreground');
+    ctx.measureText.mockImplementation(() => ({width: 10}));
+    zoomForLabels(cgv);
+
+    const [plan] = cgv.layout._trackLabelRenderer.plans(ctx);
+    const text = plan.characters.join('');
+
+    expect(text).toMatch(/^Genes \(.+…\)$/);
+    expect(plan.totalWidth).toBeLessThanOrEqual(150);
+  });
+
+  test('caches slot descriptors until relevant viewer data changes', () => {
+    const cgv = viewerWithTrack();
+    zoomForLabels(cgv);
+    const renderer = cgv.layout._trackLabelRenderer;
+    const buildTrackList = jest.spyOn(renderer, '_buildTrackList');
+
+    renderer.plans();
+    renderer.plans();
+
+    expect(buildTrackList).toHaveBeenCalledTimes(1);
+
+    cgv.updateTracks(cgv.tracks().first, {loadProgress: 50});
+    renderer.plans();
+
+    expect(buildTrackList).toHaveBeenCalledTimes(1);
+
+    cgv.updateTracks(cgv.tracks().first, {separateFeaturesBy: 'strand'});
+    const plans = renderer.plans();
+
+    expect(buildTrackList).toHaveBeenCalledTimes(2);
+    expect(plans.map(plan => plan.detail)).toEqual(['-', '+']);
   });
 
   test('uses contrasting text and a background-colored halo', () => {

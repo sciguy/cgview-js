@@ -32,11 +32,21 @@ const MIN_ZOOM_FACTOR = 4;
 const EDGE_GUTTER = 12;
 const MAX_LABEL_WIDTH = 150;
 const MIN_TRUNCATED_CHARACTERS = 4;
+const TRACK_LIST_EVENTS = [
+  'cgv-json-load',
+  'tracks-add',
+  'tracks-remove',
+  'tracks-update',
+  'tracks-moved',
+  'features-add',
+  'features-remove',
+  'features-update',
+];
 
 /**
  * Draw compact track identifiers once individual lanes are readable.
  * Labels align just inside the leading edge of the visible map range, with one
- * label per visible side of a track.
+ * label per visible slot.
  *
  * @private
  */
@@ -46,6 +56,8 @@ class TrackLabelRenderer {
     this.layout = layout;
     this.font = new Font('sans-serif, bold, 10');
     this._measurementCache = new Map();
+    this._trackList = undefined;
+    this._trackListEventsAttached = false;
   }
 
   get viewer() {
@@ -81,9 +93,12 @@ class TrackLabelRenderer {
     return measurement;
   }
 
-  _fittedMeasurement(text, ctx) {
+  _maximumLabelWidth() {
+    return Math.min(MAX_LABEL_WIDTH, this.canvas.width * 0.22);
+  }
+
+  _fittedMeasurement(text, ctx, maximumWidth = this._maximumLabelWidth()) {
     const measurement = this._measurementFor(text, ctx);
-    const maximumWidth = Math.min(MAX_LABEL_WIDTH, this.canvas.width * 0.22);
     if (measurement.totalWidth <= maximumWidth) { return measurement; }
 
     const ellipsisWidth = this._measurementFor(ELLIPSIS, ctx).totalWidth;
@@ -103,25 +118,101 @@ class TrackLabelRenderer {
     return {characters, widths, totalWidth};
   }
 
-  _groupsForTrack(track) {
-    const groups = new Map();
-    for (const slot of track.slots()) {
-      if (!slot.visible || !Number.isFinite(slot.thickness) || slot.thickness <= 0) { continue; }
-      const key = slot.position;
-      let group = groups.get(key);
-      if (!group) {
-        group = {position: key, slots: [], innerOffset: Infinity, outerOffset: -Infinity};
-        groups.set(key, group);
-      }
-      group.slots.push(slot);
-      group.innerOffset = Math.min(group.innerOffset, slot.centerOffset - (slot.thickness / 2));
-      group.outerOffset = Math.max(group.outerOffset, slot.centerOffset + (slot.thickness / 2));
+  _labelMeasurement(name, detail, ctx) {
+    if (!detail) { return this._fittedMeasurement(name, ctx); }
+
+    const maximumWidth = this._maximumLabelWidth();
+    const fullMeasurement = this._measurementFor(`${name} (${detail})`, ctx);
+    if (fullMeasurement.totalWidth <= maximumWidth) { return fullMeasurement; }
+
+    const prefixMeasurement = this._measurementFor(' (', ctx);
+    const suffixMeasurement = this._measurementFor(')', ctx);
+    const availableWidth = maximumWidth - prefixMeasurement.totalWidth - suffixMeasurement.totalWidth;
+    if (availableWidth <= 0) { return; }
+
+    const nameMeasurement = this._measurementFor(name, ctx);
+    const detailMeasurement = this._measurementFor(detail, ctx);
+    const halfWidth = availableWidth / 2;
+    let nameWidth = halfWidth;
+    let detailWidth = halfWidth;
+    // Keep a short component intact and give the remaining width to the other.
+    if (nameMeasurement.totalWidth <= halfWidth) {
+      nameWidth = nameMeasurement.totalWidth;
+      detailWidth = availableWidth - nameWidth;
+    } else if (detailMeasurement.totalWidth <= halfWidth) {
+      detailWidth = detailMeasurement.totalWidth;
+      nameWidth = availableWidth - detailWidth;
     }
-    return [...groups.values()].map(group => ({
-      ...group,
-      centerOffset: (group.innerOffset + group.outerOffset) / 2,
-      thickness: group.outerOffset - group.innerOffset,
-    }));
+
+    const fittedName = this._fittedMeasurement(name, ctx, nameWidth);
+    const fittedDetail = this._fittedMeasurement(detail, ctx, detailWidth);
+    if (!fittedName || !fittedDetail) { return; }
+
+    const measurements = [fittedName, prefixMeasurement, fittedDetail, suffixMeasurement];
+    return {
+      characters: measurements.flatMap(measurement => measurement.characters),
+      widths: measurements.flatMap(measurement => measurement.widths),
+      totalWidth: measurements.reduce((sum, measurement) => sum + measurement.totalWidth, 0),
+    };
+  }
+
+  _detailForSlot(track, slot, readingFrames) {
+    if (track.type !== 'feature') { return; }
+
+    if (track.separateFeaturesBy === 'strand') {
+      return slot.isReverse() ? '-' : '+';
+    }
+    if (track.separateFeaturesBy === 'readingFrame') {
+      const strand = slot.isReverse() ? 'reverse' : 'direct';
+      readingFrames[strand] += 1;
+      return `${strand === 'reverse' ? '-' : '+'}${readingFrames[strand]}`;
+    }
+
+    const feature = slot.features().first;
+    if (track.separateFeaturesBy === 'type') { return feature?.type; }
+    if (track.separateFeaturesBy === 'legend') { return feature?.legend?.name; }
+  }
+
+  _buildTrackList() {
+    const entries = [];
+    for (const track of this.viewer.tracks()) {
+      const supportedType = track.type === 'feature' || (IncludePlotTracks && track.type === 'plot');
+      if (!supportedType) { continue; }
+
+      const readingFrames = {direct: 0, reverse: 0};
+      for (const slot of track.slots()) {
+        const value = this._detailForSlot(track, slot, readingFrames);
+        const detail = value === undefined || value === null ? undefined : String(value).trim();
+        entries.push({track, slot, detail: detail || undefined});
+      }
+    }
+    return entries;
+  }
+
+  _onlyLoadProgressChanged({attributes, updates} = {}) {
+    const changes = updates ? Object.values(updates) : attributes ? [attributes] : [];
+    return changes.length > 0 && changes.every((change) => {
+      const keys = Object.keys(change || {});
+      return keys.length > 0 && keys.every(key => key === 'loadProgress');
+    });
+  }
+
+  _attachTrackListEvents() {
+    if (this._trackListEventsAttached || !this.viewer.events) { return; }
+    for (const event of TRACK_LIST_EVENTS) {
+      this.viewer.on(`${event}.trackLabelRenderer`, (data) => {
+        if (event === 'tracks-update' && this._onlyLoadProgressChanged(data)) { return; }
+        this._trackList = undefined;
+      });
+    }
+    // Viewer initializes its event registry after Layout, so registration is lazy.
+    this._trackListEventsAttached = true;
+  }
+
+  _trackListEntries() {
+    this._attachTrackListEvents();
+    if (!this._trackList) { this._trackList = this._buildTrackList(); }
+    return this._trackList;
   }
 
   _sequenceDetailIsReadable() {
@@ -133,16 +224,16 @@ class TrackLabelRenderer {
     return pixelsPerBp >= 1 && scaleFactor >= 0.5;
   }
 
-  _planForGroup(track, group, ctx) {
-    if (group.thickness < this.font.height + 4) { return; }
-    if (group.position === 'along' && this._sequenceDetailIsReadable()) { return; }
+  _planForSlot(track, slot, detail, ctx) {
+    if (!slot.visible || !Number.isFinite(slot.thickness) || slot.thickness < this.font.height + 4) { return; }
+    if (slot.position === 'along' && this._sequenceDetailIsReadable()) { return; }
 
-    const range = this.canvas.visibleRangeForCenterOffset(group.centerOffset, {float: true});
+    const range = this.canvas.visibleRangeForCenterOffset(slot.centerOffset, {float: true});
     if (!range || range.isMapLength()) { return; }
-    const measurement = this._fittedMeasurement(track.name.trim(), ctx);
+    const measurement = this._labelMeasurement(track.name.trim(), detail, ctx);
     if (!measurement) { return; }
 
-    const pixelsPerBp = this.canvas.pixelsPerBp(group.centerOffset);
+    const pixelsPerBp = this.canvas.pixelsPerBp(slot.centerOffset);
     if (!Number.isFinite(pixelsPerBp) || pixelsPerBp <= 0) { return; }
     const requiredWidth = measurement.totalWidth + (EDGE_GUTTER * 2);
     if ((range.length * pixelsPerBp) < requiredWidth) { return; }
@@ -154,9 +245,11 @@ class TrackLabelRenderer {
 
     return {
       track,
-      position: group.position,
+      slot,
+      detail,
+      position: slot.position,
       bp,
-      centerOffset: group.centerOffset,
+      centerOffset: slot.centerOffset,
       ...measurement,
     };
   }
@@ -164,14 +257,11 @@ class TrackLabelRenderer {
   plans(ctx = this.canvas.context('foreground')) {
     if (!this.isVisibleAtCurrentZoom()) { return []; }
     const plans = [];
-    for (const track of this.viewer.tracks()) {
+    for (const {track, slot, detail} of this._trackListEntries()) {
       const name = typeof track.name === 'string' ? track.name.trim() : '';
-      const supportedType = track.type === 'feature' || (IncludePlotTracks && track.type === 'plot');
-      if (!track.visible || !supportedType || !name || name === 'Unknown') { continue; }
-      for (const group of this._groupsForTrack(track)) {
-        const plan = this._planForGroup(track, group, ctx);
-        if (plan) { plans.push(plan); }
-      }
+      if (!track.visible || !name || name === 'Unknown') { continue; }
+      const plan = this._planForSlot(track, slot, detail, ctx);
+      if (plan) { plans.push(plan); }
     }
     return plans;
   }
