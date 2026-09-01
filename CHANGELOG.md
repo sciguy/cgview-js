@@ -16,6 +16,7 @@
 - Cleared transient hover state when the pointer leaves the viewer.
 - Resumed progressive Canvas drawing after SVG and PNG exports.
 - Added browser-based performance benchmarks with local revision comparisons and automated GitHub Actions runs for pull requests and main pushes.
+- Fixed blurry large-radius circular arcs in Safari using adaptive polylines. This workaround remains necessary because the underlying Safari canvas rendering bug is still present in Safari 26.6.2 and Safari Technology Preview 251.
 
 
 ## 1.8.2 - 2026-05-04 - Paper Release

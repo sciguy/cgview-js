@@ -129,6 +129,8 @@ class Viewer {
    */
   constructor(containerId, options = {}) {
     this.containerId = containerId.replace('#', '');
+    // Safari blurs large-radius canvas arcs. The bug remains in Safari 26.6.2
+    // and Safari Technology Preview 251, so detect once and cache the workaround flag.
     this._isSafari = utils.isSafari();
     this._container = d3.select(`#${this.containerId}`);
     // Get options
