@@ -23,6 +23,7 @@
 
 import LayoutCircular from './LayoutCircular';
 import LayoutLinear from './LayoutLinear';
+import TrackLabelRenderer from './TrackLabelRenderer';
 import utils from './Utils';
 import * as d3 from 'd3';
 
@@ -60,6 +61,7 @@ class Layout {
     // Default values. These will be overridden by the values in Settings.
     this._maxMapThicknessProportion = 0.5;
     this._initialMapThicknessProportion = 0.1;
+    this._trackLabelRenderer = new TrackLabelRenderer(this);
 
     // Setup scales
     this._scale = {};
@@ -103,6 +105,14 @@ class Layout {
    */
   get sequence() {
     return this.viewer.sequence;
+  }
+
+  /**
+   * Return whether track names could currently be visible.
+   * @private
+   */
+  trackLabelsAtCurrentZoom() {
+    return this._trackLabelRenderer.isAtLabelZoom();
   }
 
   /** * @member {Backbone} - Get the *Backbone*
@@ -846,8 +856,9 @@ class Layout {
     // let startTime = new Date().getTime();
 
     viewer.clear('map');
+    viewer.clear('foreground');
     viewer.clear('ui');
-    // Note: we clear the foreground in the drawForeground method
+    // drawForeground repopulates its layer after map data is complete.
 
     if (viewer.messenger.visible) {
       viewer.messenger.close();
@@ -873,9 +884,6 @@ class Layout {
       viewer.annotation.draw(this.centerInsideOffset, this.centerOutsideOffset, fast);
     }
 
-    // Draw foreground layer (centerLine, captions/legend on map)
-    this.drawForeground();
-
     // Progess
     this.drawProgress();
 
@@ -900,6 +908,7 @@ class Layout {
     this.drawMapWithoutSlots(true);
     this.drawAllSlots(true);
     this.sequence.draw();
+    this.drawForeground();
     // Debug
     if (this.viewer.debug) {
       this.viewer.debug.data.time.fastDraw = utils.elapsedTime(startTime);
@@ -922,12 +931,14 @@ class Layout {
     this._drawFullStartTime = new Date().getTime();
     this.drawSlotWithTimeOut(this);
     this.sequence.draw();
+    this.drawForeground();
   }
 
   drawExport() {
     this.drawMapWithoutSlots();
     this.drawAllSlots(false);
     this.sequence.draw();
+    this.drawForeground();
   }
 
   draw(fast) {
@@ -938,6 +949,8 @@ class Layout {
   drawForeground() {
     const viewer = this.viewer;
     viewer.clear('foreground');
+    // Track identifiers sit above map data but below established overlays.
+    this._trackLabelRenderer.draw();
     // Draw center line for current bp
     viewer.centerLine.draw();
     // Captions positioned on the Map
@@ -1162,4 +1175,3 @@ class Layout {
 }
 
 export default Layout;
-

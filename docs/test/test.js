@@ -28,6 +28,7 @@ const fullSize = true;
 const debug = false;
 const drawRange = false;
 const selection = false;
+const showTrackLabels = true;
 const showPerformanceTest = false;
 const showLabelsTest = false;
 const showSVGTest = false; // fullSize must be turned off for this to be true
@@ -90,6 +91,16 @@ cgv.on('selection-update.selection-option', () => {
 function setSelectionEnabled(enabled) {
   selectionCheckbox.checked = enabled;
   cgv.selection.enabled = enabled;
+}
+// Track Labels
+const trackLabelsCheckbox = document.getElementById('option-show-track-labels');
+setTrackLabelsEnabled(showTrackLabels);
+trackLabelsCheckbox.addEventListener('click', (e) => {
+  setTrackLabelsEnabled(e.target.checked);
+});
+function setTrackLabelsEnabled(enabled) {
+  trackLabelsCheckbox.checked = enabled;
+  cgv.settings.showTrackLabels = enabled;
 }
 // Toggle Label Test
 const labelsCheckbox = document.getElementById('option-show-labels');
@@ -224,6 +235,7 @@ function loadMapFromID(id) {
 function loadMapJSON(json, name) {
   cgv.io.loadJSON(json);
   cgv.name = name;
+  setTrackLabelsEnabled(trackLabelsCheckbox.checked);
 
   // Default label placement
   cgv.annotation.labelPlacement = labelPlacement;

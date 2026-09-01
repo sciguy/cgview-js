@@ -13,6 +13,7 @@
 - Added click selection: click selects one feature, shift-click adds to the selection, Escape clears selected features.
 - Added marquee selection with shift-drag.
 - Added a Selection checkbox to the test page options.
+- Added `showTrackLabels` for compact feature and plot track names at close zoom in circular and linear maps, based on work by @paulstothard.
 - Fixed unnamed feature popovers showing `undefined`.
 - Kept hover highlights below legends and captions.
 - Cleared transient hover state when the pointer leaves the viewer.

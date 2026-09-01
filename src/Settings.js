@@ -40,6 +40,7 @@ import utils from './Utils';
  * [format](#format)                   | String    | The layout format of the map: circular, linear [Default: circular]
  * [backgroundColor](#backgroundColor) | String    | A string describing the background color of the map [Default: 'white']. See {@link Color} for details.
  * [showShading](#showShading)         | Boolean   | Should a shading effect be drawn on the features [Default: true]
+ * [showTrackLabels](#showTrackLabels) | Boolean | Show compact track names when the map is zoomed in [Default: true]
  * [showBorder](#showBorder)           | Boolean   | Should a border be drawn on the features [Default: true]
  * [borderColor](#borderColor)         | String    | A string describing the border color of features [Default: 'rgba(0,0,0,1)']. See {@link Color} for details.
  * [borderThickness](#borderThickness) | Number    | The width of the border drawn on features in pixels [Default: 1.5]
@@ -67,6 +68,7 @@ class Settings {
     this._geneticCode = utils.defaultFor(options.geneticCode, 11);
     this.arrowHeadLength = utils.defaultFor(options.arrowHeadLength, 0.3);
     this._showShading = utils.defaultFor(options.showShading, true);
+    this._showTrackLabels = utils.defaultFor(options.showTrackLabels, true);
     this._showBorder = utils.defaultFor(options.showBorder, false);
     this._borderColor = new Color( utils.defaultFor(options.borderColor, 'rgba(0,0,0,1)') );
     this._borderThickness = utils.defaultFor(options.borderThickness, 1.5);
@@ -149,6 +151,26 @@ class Settings {
   }
 
   /**
+   * @member {Boolean} - Get or set whether compact track names are shown after
+   * the map has been zoomed far enough to read individual lanes. Names appear
+   * just inside the leading edge of each visible track side, follow circular
+   * map curvature, and use a background-derived protective outline
+   * (Default: true).
+   */
+  get showTrackLabels() {
+    return this._showTrackLabels;
+  }
+
+  set showTrackLabels(value) {
+    const nextValue = Boolean(value);
+    const changed = this._showTrackLabels !== nextValue;
+    this._showTrackLabels = nextValue;
+    if (changed && this.viewer.layout.trackLabelsAtCurrentZoom()) {
+      this.viewer.drawFull();
+    }
+  }
+
+  /**
    * @member {Boolean} - Get or set whether features should be drawn with a border (Default: true).
    */
   get showBorder() {
@@ -225,7 +247,7 @@ class Settings {
   update(attributes) {
     this.viewer.updateRecords(this, attributes, {
       recordClass: 'Settings',
-      validKeys: ['format', 'backgroundColor', 'showShading', 'showBorder', 'borderColor', 'borderThickness', 'arrowHeadLength', 'geneticCode', 'initialMapThicknessProportion', 'maxMapThicknessProportion']
+      validKeys: ['format', 'backgroundColor', 'showShading', 'showTrackLabels', 'showBorder', 'borderColor', 'borderThickness', 'arrowHeadLength', 'geneticCode', 'initialMapThicknessProportion', 'maxMapThicknessProportion']
     });
     this.viewer.trigger('settings-update', { attributes });
   }
@@ -239,6 +261,7 @@ class Settings {
       geneticCode: this.geneticCode,
       backgroundColor: this.backgroundColor.rgbaString,
       showShading: this.showShading,
+      showTrackLabels: this.showTrackLabels,
       showBorder: this.showBorder,
       borderColor: this.borderColor.rgbaString,
       borderThickness: this.borderThickness,
@@ -251,5 +274,3 @@ class Settings {
 }
 
 export default Settings;
-
-
