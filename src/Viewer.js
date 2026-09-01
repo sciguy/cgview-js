@@ -129,6 +129,7 @@ class Viewer {
    */
   constructor(containerId, options = {}) {
     this.containerId = containerId.replace('#', '');
+    this._isSafari = utils.isSafari();
     this._container = d3.select(`#${this.containerId}`);
     // Get options
     this._width = utils.defaultFor(options.width, 600);

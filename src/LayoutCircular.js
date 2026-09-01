@@ -206,6 +206,9 @@ class LayoutCircular {
       } else if (startType === 'noMoveTo') {
         ctx.lineTo(p2.x, p2.y);
       }
+    } else if (this.viewer._isSafari && !this._isSvgContext(ctx) &&
+               (rangeLength / canvas.sequence.length) <= 0.95) {
+      this._pathAsAdaptivePolyline(ctx, centerOffset, startBp, rangeLength, anticlockwise, startType);
     } else {
       // ctx.arc(scale.x(0), scale.y(0), centerOffset, scale.bp(startBp), scale.bp(stopBp), anticlockwise);
 
@@ -234,6 +237,51 @@ class LayoutCircular {
       }
 
     }
+  }
+
+  /**
+   * Safari loses antialiasing precision for arcs whose centers and radii are
+   * far outside the canvas. Approximate those arcs with a screen-accurate
+   * polyline instead. Segment length is derived from the circle sagitta, so
+   * the maximum deviation remains below a quarter physical pixel regardless
+   * of map radius or zoom level.
+   * @private
+   */
+  _pathAsAdaptivePolyline(ctx, centerOffset, startBp, rangeLength, anticlockwise, startType) {
+    const radius = Math.abs(centerOffset);
+    const totalAngle = (rangeLength / this.sequence.length) * Math.PI * 2;
+    const pixelRatio = this.canvas.pixelRatio || 1;
+    const tolerance = 0.25 / pixelRatio;
+    const cosine = radius > 0 ? Math.max(-1, Math.min(1, 1 - (tolerance / radius))) : -1;
+    const maximumAngle = radius > 0 ? 2 * Math.acos(cosine) : totalAngle;
+    // At extremely large radii, `1 - tolerance / radius` can round to 1.
+    // The small-angle form of the sagitta equation remains stable there.
+    const stableMaximumAngle = maximumAngle > 0 ?
+      maximumAngle : Math.sqrt((8 * tolerance) / radius);
+    const segmentCount = Math.max(1, Math.ceil(totalAngle / stableMaximumAngle));
+    const direction = anticlockwise ? -1 : 1;
+    const startAngle = this.scale.bp(startBp);
+    const centerX = this.scale.x(0);
+    const centerY = this.scale.y(0);
+
+    for (let index = 0; index <= segmentCount; index++) {
+      const angle = startAngle + (direction * totalAngle * index / segmentCount);
+      const x = centerX + (centerOffset * Math.cos(angle));
+      const y = centerY + (centerOffset * Math.sin(angle));
+      if (index === 0) {
+        if (startType === 'moveTo') {
+          ctx.moveTo(x, y);
+        } else if (startType === 'lineTo') {
+          ctx.lineTo(x, y);
+        }
+      } else {
+        ctx.lineTo(x, y);
+      }
+    }
+  }
+
+  _isSvgContext(ctx) {
+    return typeof ctx.getSerializedSvg === 'function';
   }
 
   centerCaptionPoint() {
@@ -354,4 +402,3 @@ class LayoutCircular {
 }
 
 export default LayoutCircular;
-

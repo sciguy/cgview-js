@@ -82,6 +82,21 @@ utils.capitalize = function(string) {
   return string.replace(/^\w/, c => c.toUpperCase());
 }
 
+/**
+ * Return whether a user agent represents Safari rather than another browser
+ * built on WebKit/Blink. An explicit value keeps the function independently
+ * testable and useful outside the browser.
+ * @param {String} [userAgent] - User-agent string. Defaults to navigator.userAgent.
+ * @return {Boolean}
+ */
+utils.isSafari = function(userAgent) {
+  const agent = userAgent === undefined && typeof navigator !== 'undefined' ?
+    navigator.userAgent : (userAgent || '');
+  return /AppleWebKit/i.test(agent) &&
+    /Safari/i.test(agent) &&
+    !/(Chrome|Chromium|CriOS|FxiOS|EdgiOS|EdgA|Edg|OPR)/i.test(agent);
+};
+
 // Returns the pixel ratio of the canvas. Typical displays will have a pixel
 // ratio of 1, while retina displays will have a pixel ration of 2.
 utils.getPixelRatio = function(canvas) {
