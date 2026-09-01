@@ -11,10 +11,11 @@ dist/
 scripts/copy*
 scripts/open*
 docs/test/maps/local/*
+.benchmark-results/
+benchmark-base/
 
 # Temp
 src/LabelPlacementTemp.js
 src/LabelPlacementOrdered.js
 
 #docs/dist/cgview.min.js
-

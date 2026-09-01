@@ -25,6 +25,10 @@
     "dev": "echo \"Error: no dev specified\" && exit 1",
     "test": "jest --watch",
     "build": "rollup --config --watch",
+    "benchmark": "yarn gh-pages && node scripts/benchmark.mjs",
+    "benchmark:ci": "node scripts/benchmark.mjs",
+    "benchmark:compare": "node scripts/benchmark-compare.mjs",
+    "benchmark:install": "playwright install --with-deps chromium",
     "gh-test": "jest --silent",
     "gh-pages": "rollup --config",
     "api": "jsdoc --configure ./template/jsdoc_conf.json --template ./template/jaguarjs-jsdoc --destination ./docs/api --readme ./README.md"
@@ -44,6 +48,7 @@
   },
   "browserslist": "> 1%, not dead",
   "devDependencies": {
+    "@playwright/test": "^1.62.1",
     "@rollup/plugin-json": "^4.1.0",
     "es-jest": "^1.2.0",
     "jest": "^27.0.4",

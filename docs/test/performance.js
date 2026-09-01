@@ -1,124 +1,176 @@
 class CGVPerformance {
 
-  constructor(cgv, name = 'My Test', iterations = 3) {
+  /**
+   * Benchmark CGView drawing at representative zoom levels.
+   *
+   * The benchmark runs sequentially so each timing measures one completed
+   * operation. Consumers should await the public `ready` promise.
+   *
+   * @param {Viewer} cgv - Viewer to benchmark.
+   * @param {String} name - Display name for the benchmark.
+   * @param {Number} iterations - Number of recorded iterations.
+   * @param {Object} options - Benchmark configuration.
+   * @param {Number} options.warmupIterations - Unrecorded warm-up iterations.
+   * @param {Number[]} options.zoomLevels - Zoom factors to benchmark.
+   * @param {Number} options.timeout - Readiness timeout in milliseconds.
+   */
+  constructor(cgv, name = 'My Test', iterations = 3, options = {}) {
     this.cgv = cgv;
     this.name = name;
     this.iterations = iterations;
-    this.zoomLevels = [1, 5, 10];
+    this.warmupIterations = options.warmupIterations ?? 1;
+    this.zoomLevels = options.zoomLevels ?? [1, 5, 10];
+    this.timeout = options.timeout ?? 60_000;
     this.results = {};
+
     for (const zoomLevel of this.zoomLevels) {
       this.results[zoomLevel] = {
         visibleRange: undefined,
-        numFeatures: undefined,
         drawFast: [],
         drawFull: []
       };
     }
-    this.run();
+
+    this.ready = this.run();
   }
 
-  run() {
-    const cgv = this.cgv;
-    const layout = cgv.layout;
-    const results = this.results;
-    for (let iteration = 1; iteration <= this.iterations; iteration++) {
-      const p = new Progress();
+  async run() {
+    await this.waitForSequenceTracks();
+
+    const totalIterations = this.warmupIterations + this.iterations;
+    for (let iteration = 0; iteration < totalIterations; iteration++) {
+      const record = iteration >= this.warmupIterations;
       for (const zoomLevel of this.zoomLevels) {
-        const bp = (zoomLevel === 1) ? 0 : 1;
-        cgv.zoomTo(bp, zoomLevel, {duration: 0, callback: function() {
-          // Visible Range
-          results[zoomLevel].visibleRange = `${d3.format(',')(cgv.backbone.visibleRange.length)}`;
-          // Fast
-          p.startInterval();
-          cgv.drawFast();
-          results[zoomLevel].drawFast.push(p.intervalTime());
-          // Full (Simulate Full Draw)
-          p.startInterval();
-          layout.drawMapWithoutSlots();
-          layout.drawAllSlots(true);
-          layout.drawAllSlots(false);
-          results[zoomLevel].drawFull.push(p.intervalTime());
-        }});
+        await this.zoomTo(zoomLevel);
+        await this.measureDraws(zoomLevel, record);
       }
     }
-    window.results = results;
+
+    return this.results;
+  }
+
+  async waitForSequenceTracks() {
+    const sequenceTracksReady = () => this.cgv.tracks().every((track) => {
+      return track.dataMethod !== 'sequence' || track.loadProgress === 100;
+    });
+
+    await this.waitUntil(sequenceTracksReady, 'sequence-generated tracks');
+  }
+
+  zoomTo(zoomLevel) {
+    const bp = (zoomLevel === 1) ? 0 : 1;
+    return new Promise((resolve) => {
+      this.cgv.zoomTo(bp, zoomLevel, {duration: 0, callback: resolve});
+    });
+  }
+
+  async measureDraws(zoomLevel, record) {
+    const cgv = this.cgv;
+    const result = this.results[zoomLevel];
+    result.visibleRange = cgv.backbone.visibleRange.length;
+
+    let start = performance.now();
+    cgv.drawFast();
+    const drawFast = performance.now() - start;
+
+    start = performance.now();
+    cgv.drawFull();
+    await this.waitUntil(() => !cgv.layout.fullDrawInProgress, 'full draw');
+    const drawFull = performance.now() - start;
+
+    if (record) {
+      result.drawFast.push(drawFast);
+      result.drawFull.push(drawFull);
+    }
+  }
+
+  waitUntil(predicate, description) {
+    const start = performance.now();
+
+    return new Promise((resolve, reject) => {
+      const check = () => {
+        if (predicate()) {
+          resolve();
+        } else if ((performance.now() - start) >= this.timeout) {
+          reject(new Error(`Timed out waiting for ${description}`));
+        } else {
+          setTimeout(check, 1);
+        }
+      };
+
+      check();
+    });
+  }
+
+  summary() {
+    return this.zoomLevels.map((zoomLevel) => {
+      const result = this.results[zoomLevel];
+      return {
+        zoomLevel,
+        visibleRange: result.visibleRange,
+        drawFast: this.statistics(result.drawFast),
+        drawFull: this.statistics(result.drawFull)
+      };
+    });
+  }
+
+  statistics(samples) {
+    const sorted = [...samples].sort((a, b) => a - b);
+    return {
+      median: this.percentile(sorted, 0.5),
+      p90: this.percentile(sorted, 0.9),
+      min: sorted[0],
+      max: sorted[sorted.length - 1]
+    };
+  }
+
+  percentile(sortedSamples, percentile) {
+    if (sortedSamples.length === 0) return undefined;
+    const index = Math.ceil(percentile * sortedSamples.length) - 1;
+    return sortedSamples[Math.max(0, index)];
+  }
+
+  toJSON() {
+    return {
+      schemaVersion: 1,
+      name: this.name,
+      featureCount: this.cgv.features().length,
+      width: this.cgv.width,
+      height: this.cgv.height,
+      iterations: this.iterations,
+      warmupIterations: this.warmupIterations,
+      zoomLevels: this.zoomLevels,
+      results: this.results,
+      summary: this.summary()
+    };
   }
 
   report() {
-    const cgv = this.cgv;
-    const results = this.results;
-    let text = `<pre><strong>${this.name} [${d3.format(',')(cgv.features().length)} features]</strong>\n`;
-    const padding = Array(7).join(' ');
-    const bpPadding = Array(22).join(' ');
-    text += this.pad(padding, 'Zoom');
-    text += this.pad(padding, 'Fast');
-    text += this.pad(padding, 'Full');
-    text += this.pad(bpPadding, 'Visible Range (bp)');
-    text += '\n';
-    for (const zoomLevel of this.zoomLevels) {
-      text += this.pad(padding, `${zoomLevel}x`);
-      text += this.pad(padding, this.mean(zoomLevel, 'drawFast'));
-      text += this.pad(padding, this.mean(zoomLevel, 'drawFull'));
-      text += this.pad(bpPadding, results[zoomLevel].visibleRange);
-      text += '\n';
+    const featureCount = d3.format(',')(this.cgv.features().length);
+    let text = `<pre><strong>${this.name} [${featureCount} features]</strong>\n`;
+    text += 'Median draw time (ms)\n';
+    text += '  Zoom    Fast    Full    Visible Range (bp)\n';
+
+    for (const result of this.summary()) {
+      const zoom = `${result.zoomLevel}x`.padStart(6);
+      const fast = Math.round(result.drawFast.median).toString().padStart(8);
+      const full = Math.round(result.drawFull.median).toString().padStart(8);
+      const visibleRange = d3.format(',')(result.visibleRange).padStart(22);
+      text += `${zoom}${fast}${full}${visibleRange}\n`;
     }
+
     text += '--------------------------------\nDetails:\n';
-    text += 'Fast Draw (ms):\n';
     for (const zoomLevel of this.zoomLevels) {
-      text += ` - Zoom ${zoomLevel}x: ${results[zoomLevel].drawFast.join(', ')}\n`;
+      const result = this.results[zoomLevel];
+      const fast = result.drawFast.map((value) => value.toFixed(2)).join(', ');
+      const full = result.drawFull.map((value) => value.toFixed(2)).join(', ');
+      text += ` - Zoom ${zoomLevel}x fast: ${fast}\n`;
+      text += ` - Zoom ${zoomLevel}x full: ${full}\n`;
     }
-    text += 'Full Draw (ms):\n';
-    for (const zoomLevel of this.zoomLevels) {
-      text += ` - Zoom ${zoomLevel}x: ${results[zoomLevel].drawFull.join(', ')}\n`;
-    }
-    return text;
-  }
 
-  mean(zoomLevel, key) {
-    return Math.round(d3.mean(this.results[zoomLevel][key]));
-  }
-
-  pad(pad, str, padRight) {
-    if (typeof str === 'undefined') return pad;
-    if (padRight) {
-      return (str + pad).substring(0, pad.length);
-    } else {
-      return (pad + str).slice(-pad.length);
-    }
+    return `${text}</pre>`;
   }
 
 }
 
-class Progress {
-
-  constructor() {
-    this.reset();
-  }
-
-  reset() {
-    this._startTime = this.currentTime();
-    this._intervalStartTime = undefined;
-  }
-
-  // Could have names intervals in the future
-  startInterval() {
-    this._intervalStartTime = this.currentTime();
-  }
-
-  removeInterval() {
-    this._intervalStartTime = undefined;
-  }
-
-  currentTime() {
-    return new Date().getTime();
-  }
-
-  totalTime() {
-    return this.currentTime() - this._startTime;
-  }
-
-  intervalTime() {
-    return this._intervalStartTime ? (this.currentTime() - this._intervalStartTime) : undefined;
-  }
-
-}
+globalThis.CGVPerformance = CGVPerformance;
