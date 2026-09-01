@@ -37,15 +37,6 @@ const scenarios = [
     name: 'L. guizhouensis, no plots',
     fixture: 'docs/test/maps/large_lentzea_no_plots.json',
     mapOverrides: {settings: {format: 'circular'}}
-  },
-  {
-    id: 'large-inline-labels',
-    name: 'L. guizhouensis, inline labels',
-    fixture: 'docs/test/maps/large_lentzea_no_plots.json',
-    mapOverrides: {
-      annotation: {labelPosition: 'both'},
-      settings: {format: 'circular'}
-    }
   }
 ];
 
