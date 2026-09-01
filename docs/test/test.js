@@ -271,14 +271,24 @@ cgv.on('mousemove', (e) => {
 // Start Performance Test
 const resultsDiv = document.getElementById('results');
 const perfBtn = document.getElementById('performance-start');
-perfBtn.addEventListener('click', (e) => {
+perfBtn.addEventListener('click', async () => {
   const iterationSelect = document.getElementById('iterations-select');
   const iterations = Number(iterationSelect.value);
-  let performance = new CGVPerformance(cgv, cgv.name, iterations);
-  console.log(performance.results);
-  setTimeout(function() {
+  resizeAction(false);
+  perfBtn.disabled = true;
+  resultsDiv.textContent = 'Running benchmark...';
+
+  try {
+    const performance = new CGVPerformance(cgv, cgv.name, iterations);
+    await performance.ready;
+    console.log(performance.toJSON());
     resultsDiv.innerHTML = performance.report();
-  }, 1000);
+  } catch (error) {
+    console.error(error);
+    resultsDiv.textContent = `Benchmark failed: ${error.message}`;
+  } finally {
+    perfBtn.disabled = false;
+  }
 });
 
 // Clear Test Results

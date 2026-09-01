@@ -1,0 +1,71 @@
+name: Performance
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  benchmark:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout candidate
+        uses: actions/checkout@v4
+
+      - name: Checkout pull request base
+        if: github.event_name == 'pull_request'
+        uses: actions/checkout@v4
+        with:
+          path: benchmark-base
+          ref: ${{ github.event.pull_request.base.sha }}
+
+      - name: Checkout previous main revision
+        if: github.event_name == 'push' && github.event.before != '0000000000000000000000000000000000000000'
+        uses: actions/checkout@v4
+        with:
+          path: benchmark-base
+          ref: ${{ github.event.before }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          cache: yarn
+          node-version: 24
+
+      - name: Install candidate dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Install Chromium
+        run: yarn benchmark:install
+
+      - name: Build candidate
+        run: yarn gh-pages
+
+      - name: Install and build base
+        if: github.event_name == 'pull_request' || (github.event_name == 'push' && github.event.before != '0000000000000000000000000000000000000000')
+        run: |
+          yarn --cwd benchmark-base install --frozen-lockfile
+          yarn --cwd benchmark-base gh-pages
+
+      - name: Compare revision with base
+        if: github.event_name == 'pull_request' || (github.event_name == 'push' && github.event.before != '0000000000000000000000000000000000000000')
+        run: yarn benchmark:ci --baseline-root benchmark-base
+
+      - name: Benchmark current revision
+        if: github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.event.before == '0000000000000000000000000000000000000000')
+        run: yarn benchmark:ci
+
+      - name: Upload raw benchmark results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          if-no-files-found: ignore
+          name: benchmark-results
+          path: .benchmark-results/benchmark-results.json
+          retention-days: 30
