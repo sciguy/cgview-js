@@ -4,6 +4,7 @@
 
 ## 1.9.0 - Unreleased
 - Added an `auto` feature decoration that changes from an arc to a progressively sized arrow as its projected length grows.
+- Added a Legend `defaultDecoration`, defaulting to `auto`, for LegendItems without an explicit decoration.
 - Added `selected` as a Feature attribute, with selected feature rendering support.
 - Added configurable map element borders: `showBorder`, `borderColor`, and `borderThickness`.
 - Added backbone `showBorder` and `showShading` overrides.
