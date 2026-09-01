@@ -32,6 +32,36 @@ describe('LegendItem', () => {
 
   });
 
+  describe('decoration', () => {
+
+    test('inherits and omits the legend default from JSON', () => {
+      const item = cgv.legend.addItems({name: 'CDS'})[0];
+
+      expect(item.decoration).toBe('auto');
+      expect(item.usingDefaultDecoration).toBe(true);
+      expect(item.toJSON()).not.toHaveProperty('decoration');
+      expect(item.toJSON({includeDefaults: true}).decoration).toBe('auto');
+    });
+
+    test('accepts and serializes auto', () => {
+      const item = cgv.legend.addItems({name: 'CDS', decoration: 'arc'})[0];
+
+      item.update({decoration: 'auto'});
+
+      expect(item.decoration).toBe('auto');
+      expect(item.toJSON().decoration).toBe('auto');
+    });
+
+    test('can clear an explicit decoration to restore inheritance', () => {
+      const item = cgv.legend.addItems({name: 'CDS', decoration: 'arc'})[0];
+
+      item.update({decoration: undefined});
+
+      expect(item.decoration).toBe('auto');
+      expect(item.usingDefaultDecoration).toBe(true);
+      expect(item.toJSON()).not.toHaveProperty('decoration');
+    });
+
+  });
+
 });
-
-

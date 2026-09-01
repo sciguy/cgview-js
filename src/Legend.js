@@ -47,6 +47,7 @@ import * as d3 from 'd3';
  * [anchor](#anchor)                  | String\|Object | Where to anchor the legend box to the position [Default: 'auto']. See {@link Anchor} for details.
  * [defaultFont](#defaultFont)        | String    | A string describing the default font [Default: 'SansSerif, plain, 8']. See {@link Font} for details.
  * [defaultFontColor](#defaultFontColor) | String    | A string describing the default font color [Default: 'black']. See {@link Color} for details.
+ * [defaultDecoration](#defaultDecoration) | String | Default decoration for legend items that do not define their own. Choices: 'arc', 'arrow', 'auto', 'score', 'none' [Default: 'auto']
  * [defaultMinArcLength](#defaultMinArcLength) | Number    | Default minimum length in pixels to use when drawing arcs. From 0 to 2 pixels [Default: 1]
  * [textAlignment](#textAlignment)    | String    | Alignment of legend text: *left*, or *right* [Default: 'left']
  * [backgroundColor](#font)           | String    | A string describing the background color of the legend [Default: 'white']. See {@link Color} for details.
@@ -76,6 +77,7 @@ class Legend extends CGObject {
     this.backgroundColor = options.backgroundColor;
     // FIXME: start using defaultFontColor, etc from JSON
     this.defaultFontColor = utils.defaultFor(options.defaultFontColor, 'black');
+    this.defaultDecoration = utils.defaultFor(options.defaultDecoration, 'auto');
     this.textAlignment = utils.defaultFor(options.textAlignment, 'left');
     this.box = new Box(viewer, {
       position: utils.defaultFor(options.position, 'top-right'),
@@ -244,6 +246,28 @@ class Legend extends CGObject {
   }
 
   /**
+   * @member {String} - Get or set the default decoration for legend items that do not define their own.
+   * Choices are *arc*, *arrow*, *auto* [Default], *score*, *none*.
+   */
+  get defaultDecoration() {
+    return this._defaultDecoration;
+  }
+
+  set defaultDecoration(value) {
+    if (!utils.validate(value, ['arc', 'arrow', 'auto', 'score', 'none'])) { return; }
+
+    this._defaultDecoration = value;
+
+    // Trigger update events for items using the default decoration
+    for (let i = 0, len = this._items.length; i < len; i++) {
+      const item = this._items[i];
+      if (item.usingDefaultDecoration) {
+        item.update({decoration: undefined});
+      }
+    }
+  }
+
+  /**
    * @member {String} - Get or set the text alignment. Possible values are *left*, or *right*.
    */
   get textAlignment() {
@@ -311,7 +335,7 @@ class Legend extends CGObject {
   update(attributes) {
     this.viewer.updateRecords(this, attributes, {
       recordClass: 'Legend',
-      validKeys: ['on', 'position', 'anchor', 'defaultFont', 'defaultFontColor', 'defaultMinArcLength', 'textAlignment',  'backgroundColor', 'visible']
+      validKeys: ['on', 'position', 'anchor', 'defaultFont', 'defaultFontColor', 'defaultDecoration', 'defaultMinArcLength', 'textAlignment',  'backgroundColor', 'visible']
     });
     this.viewer.trigger('legend-update', { attributes });
   }
@@ -514,11 +538,11 @@ class Legend extends CGObject {
    * Find the legendItem with the provided name or create a new legendItem.
    * @param {String} name - Name of legendItem
    * @param {Color} color - Use this color if creating a new legendItem
-   * @param {String} decoration - Use this decoration if creating a new legendItem
+   * @param {String} [decoration] - Use this decoration if creating a new legendItem. The legend default is used when omitted.
    * @return {LegendItem}
    *
    */
-  findLegendItemOrCreate(name = 'Unknown', color = null, decoration = 'arc') {
+  findLegendItemOrCreate(name = 'Unknown', color = null, decoration) {
     let item = this.findLegendItemByName(name);
     if (!item) {
       const obj = this.viewer.objects(name);
@@ -654,6 +678,7 @@ class Legend extends CGObject {
       textAlignment: this.textAlignment,
       defaultFont: this.defaultFont.string,
       defaultFontColor: this.defaultFontColor.rgbaString,
+      defaultDecoration: this.defaultDecoration,
       defaultMinArcLength: this.defaultMinArcLength,
       backgroundColor: this.backgroundColor.rgbaString,
       items: []
@@ -674,5 +699,4 @@ class Legend extends CGObject {
 }
 
 export default Legend;
-
 

@@ -1,5 +1,19 @@
 maps = {
 
+  // GENERATED WITH CGPARSE
+  cgparse_mito: {
+    name: 'Mitochondrion: NC_001823 [69,034 bp]',
+    type: 'generated',
+    format: 'genbank',
+    url: '../data/seq/NC_001823.gbk',
+  },
+  cgparse_pa2: {
+    name: 'Contigs: E. coli PA2 [5,246,924 bp]',
+    type: 'generated',
+    format: 'genbank',
+    url: '../data/seq/GCF_000335355.gbk',
+  },
+
   // BASIC
   small: {
     name: 'Mitochondia [69,034 bp]',

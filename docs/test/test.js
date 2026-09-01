@@ -113,8 +113,8 @@ loadMapFromID(initialMap);
 // Add maps from maps.js to Select
 // Using global variable 'maps' from maps.js
 const mapSelect = document.getElementById('map-select');
-const groups = { labels: 'Labels', test: 'Tests', basic: 'Basic', large: 'Large', contigs: 'Contigs', version: 'Versions', bad: 'Bad' };
-const order = ['basic', 'contigs', 'large', 'test', 'labels', 'version', 'bad'];
+const groups = { generated: 'Generated with CGParse', labels: 'Labels', test: 'Tests', basic: 'Basic', large: 'Large', contigs: 'Contigs', version: 'Versions', bad: 'Bad' };
+const order = ['generated', 'basic', 'contigs', 'large', 'test', 'labels', 'version', 'bad'];
 const optionsByGroup = {};
 for (const inputKey of Object.keys(maps)) {
   const input = maps[inputKey];
@@ -193,32 +193,53 @@ fileInput.addEventListener('change', (event) => {
 function loadMapFromID(id) {
   if (id === 'file') { return; }
   if (!maps[id]) { return; }
-  const url = maps[id].url
+  const map = maps[id];
+  const url = map.url;
   console.log(`Loading Map: ${url}`);
   var request = new XMLHttpRequest();
   request.open('GET', url, true);
   request.onload = function() {
-    const json = JSON.parse(request.responseText);
-    cgv.io.loadJSON(json);
-    cgv.name = maps[id].name;
-
-    // Default label placement
-    cgv.annotation.labelPlacement = labelPlacement;
-
-    // Testing annotation (default is 50)
-    // cgv.annotation.priorityMax = 200;
-
-    // Label stuff (Below)
-    const distance = cgv.sequence.length / 100;
-    labelDistance.value = Math.floor(distance);
-    labelFontSize.value = cgv.annotation.font.size;
-
-    cgv.draw();
-    setTimeout( () => {
-      cgv.resize();
-    },1);
+    if (map.format === 'genbank') {
+      const logDiv = document.getElementById('log-text');
+      logDiv.innerHTML = 'Parsing GenBank file with CGParse.js...';
+      showLog();
+      setTimeout(() => {
+        try {
+          const builder = createCGParseBuilder(request.responseText);
+          const json = builder.toJSON();
+          window.parse = {input: request.responseText, cgvJSON: json};
+          logDiv.innerHTML = builder.logger.history({showIcons: true});
+          loadMapJSON(json, map.name);
+        } catch (error) {
+          logDiv.innerHTML = `Error loading file.\n${error.message}`;
+        }
+      }, 100);
+    } else {
+      loadMapJSON(JSON.parse(request.responseText), map.name);
+    }
   };
   request.send();
+}
+
+function loadMapJSON(json, name) {
+  cgv.io.loadJSON(json);
+  cgv.name = name;
+
+  // Default label placement
+  cgv.annotation.labelPlacement = labelPlacement;
+
+  // Testing annotation (default is 50)
+  // cgv.annotation.priorityMax = 200;
+
+  // Label stuff (Below)
+  const distance = cgv.sequence.length / 100;
+  labelDistance.value = Math.floor(distance);
+  labelFontSize.value = cgv.annotation.font.size;
+
+  cgv.draw();
+  setTimeout( () => {
+    cgv.resize();
+  },1);
 }
 
 
@@ -524,12 +545,7 @@ function parseFile(fileText) {
   } else {
     // Load Sequence File using CGParse.js
     // const parseStartTime = new Date().getTime();
-    const builder = new CGParse.CGViewBuilder(fileText, {
-      config: exampleConfig,
-      excludeFeatures: ['source', 'gene', 'exon'],
-      excludeQualifiers: ['translation'],
-      maxLogCount: 2
-    });
+    const builder = createCGParseBuilder(fileText);
     cgvJSON = builder.toJSON();
     window.parse.cgvJSON = cgvJSON; // For debugging
 
@@ -547,6 +563,17 @@ function parseFile(fileText) {
     cgv.draw();
     resizeAction(fullSize);
   }
+}
+
+function createCGParseBuilder(fileText) {
+  // CGParse removes unused legend items, so each parse needs its own config copy.
+  const config = JSON.parse(JSON.stringify(exampleConfig));
+  return new CGParse.CGViewBuilder(fileText, {
+    config: config,
+    excludeFeatures: ['source', 'gene', 'exon'],
+    excludeQualifiers: ['translation'],
+    maxLogCount: 2
+  });
 }
 
 

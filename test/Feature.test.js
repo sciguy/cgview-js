@@ -129,6 +129,50 @@ describe('Feature', () => {
 
   });
 
-});
+  describe('auto decoration', () => {
 
+    test('passes auto rendering with the feature strand direction', () => {
+      cgv.legend.addItems({name: 'Auto', decoration: 'auto'});
+      const directFeature = cgv.addFeatures([
+        {name: 'direct', start: 10, stop: 20, strand: 1, legend: 'Auto'},
+      ])[0];
+      const reverseFeature = cgv.addFeatures([
+        {name: 'reverse', start: 30, stop: 40, strand: -1, legend: 'Auto'},
+      ])[0];
+      const drawElement = jest.spyOn(cgv.canvas, 'drawElement').mockImplementation(() => {});
+
+      directFeature.drawRange(directFeature.mapRange, 'map', 100, 20, directFeature.mapRange);
+      reverseFeature.drawRange(reverseFeature.mapRange, 'map', 100, 20, reverseFeature.mapRange);
+
+      expect(drawElement).toHaveBeenNthCalledWith(1, expect.objectContaining({
+        decoration: 'clockwise-arrow',
+        autoArrow: true,
+      }));
+      expect(drawElement).toHaveBeenNthCalledWith(2, expect.objectContaining({
+        decoration: 'counterclockwise-arrow',
+        autoArrow: true,
+      }));
+    });
+
+    test('keeps auto arrows on the terminal location', () => {
+      cgv.legend.addItems({name: 'Auto', decoration: 'auto'});
+      const feature = cgv.addFeatures([{
+        name: 'joined', locations: [[10, 20], [30, 40]], strand: 1, legend: 'Auto',
+      }])[0];
+      const drawElement = jest.spyOn(cgv.canvas, 'drawElement').mockImplementation(() => {});
+
+      feature.draw('map', 100, 20, feature.mapRange);
+
+      expect(drawElement.mock.calls.slice(0, 2).map(([options]) => ({
+        decoration: options.decoration,
+        autoArrow: options.autoArrow,
+      }))).toEqual([
+        {decoration: 'arc', autoArrow: true},
+        {decoration: 'clockwise-arrow', autoArrow: true},
+      ]);
+    });
+
+  });
+
+});
 

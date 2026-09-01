@@ -11,11 +11,11 @@ var exampleConfig = {
   "legend": {
     "position": "top-right",
     "defaultFont": "sans-serif, plain, 14",
+    "defaultDecoration": "auto",
     "items": [
       {
         "name": "CDS",
-        "swatchColor": "rgba(0,0,153,0.5)",
-        "decoration": "arrow"
+        "swatchColor": "rgba(0,0,153,0.5)"
       },
       {
         "name": "tRNA",

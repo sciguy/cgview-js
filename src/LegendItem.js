@@ -47,7 +47,7 @@ import utils from './Utils';
  * [name](#name)                    | String    | Name to diplay for legendItem 
  * [font](#font)                    | String    | A string describing the font [Default: 'SansSerif, plain, 8']. See {@link Font} for details.
  * [fontColor](#fontColor)          | String    | A string describing the font color [Default: 'black']. See {@link Color} for details.
- * [decoration](#decoration)        | String    | How the features should be drawn. Choices: 'arc' [Default], 'arrow', 'score', 'none' [Default: 'arc']
+ * [decoration](#decoration)        | String    | How the features should be drawn. Choices: 'arc', 'arrow', 'auto', 'score', 'none'. Auto uses an arc at or below 5 pixels, then grows an arrowhead while retaining a 5-pixel body. Defaults to [Legend.defaultDecoration](Legend.html#defaultDecoration) ('auto').
  * [swatchColor](#swatchColor)      | String    | A string describing the legendItem display color [Default: 'black']. See {@link Color} for details.
  * [minArcLength](#minArcLength)    | Number    | Minimum length in pixels to use when drawing arcs. From 0 to 2 pixels [Default: 1]
  * [drawSwatch](#drawSwatch)        | Boolean   | Draw the swatch beside the legendItem name [Default: true]
@@ -62,7 +62,8 @@ import utils from './Utils';
 class LegendItem extends CGObject {
 
   /**
-   * Create a new legendItem. By default a legendItem will use its parent legend defaultFont, and defaultFontColor.
+   * Create a new legendItem. By default a legendItem will use its parent legend defaultFont,
+   * defaultFontColor, defaultDecoration, and defaultMinArcLength.
    * @param {Viewer} viewer - The viewer
    * @param {Object} options - [Attributes](#attributes) used to create the legendItem
    * @param {Object} [meta] - User-defined [Meta data](../tutorials/details-meta-data.html) to add to the legendItem.
@@ -75,9 +76,9 @@ class LegendItem extends CGObject {
     this.font = options.font;
     this.fontColor = options.fontColor;
     this.minArcLength = options.minArcLength;
+    this.decoration = options.decoration;
     this._drawSwatch = utils.defaultFor(options.drawSwatch, true);
     this._swatchColor = new Color( utils.defaultFor(options.swatchColor, 'black') );
-    this._decoration = utils.defaultFor(options.decoration, 'arc');
     this._initializationComplete = true;
     this.refresh();
   }
@@ -293,16 +294,28 @@ class LegendItem extends CGObject {
   }
 
   /**
-   * @member {String} - Get or set the decoration. Choices are *arc* [Default], *arrow*, *score*, *none*.
+   * @member {String} - Get or set the decoration. Choices are *arc*, *arrow*, *auto*, *score*, *none*.
+   * When unset, the parent legend's defaultDecoration is used.
+   * Auto uses an arc at or below 5 pixels, then grows an arrowhead while retaining
+   * a 5-pixel body until the configured head length is reached.
    */
   get decoration() {
-    return this._decoration || 'arc';
+    return (this._decoration === undefined) ? this.legend.defaultDecoration : this._decoration;
   }
 
   set decoration(value) {
-    if ( utils.validate(value, ['arc', 'arrow', 'none', 'score']) ) {
+    if (value === undefined) {
+      this._decoration = undefined;
+    } else if ( utils.validate(value, ['arc', 'arrow', 'auto', 'score', 'none']) ) {
       this._decoration = value;
     }
+  }
+
+  /**
+   * @member {Boolean} - Returns true if using the parent legend's default decoration.
+   */
+  get usingDefaultDecoration() {
+    return this._decoration === undefined;
   }
 
   /**
@@ -546,11 +559,13 @@ class LegendItem extends CGObject {
       name: this.name,
       // font: this.font.string,
       // fontColor: this.fontColor.rgbaString,
-      swatchColor: this.swatchColor.rgbaString,
-      decoration: this.decoration
+      swatchColor: this.swatchColor.rgbaString
       // visible: this.visible
     };
     // Optionally add default values
+    if (!this.usingDefaultDecoration || options.includeDefaults) {
+      json.decoration = this.decoration;
+    }
     if (!this.visible || options.includeDefaults) {
       json.visible = this.visible;
     }
@@ -573,5 +588,3 @@ class LegendItem extends CGObject {
 }
 
 export default LegendItem;
-
-

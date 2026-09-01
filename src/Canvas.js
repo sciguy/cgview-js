@@ -23,6 +23,8 @@ import Color from './Color';
 import utils from './Utils';
 import * as d3 from 'd3';
 
+const AUTO_ARROW_MIN_LENGTH_PIXELS = 5;
+
 
 /**
  * The canvas object controls the map layers and has methods for drawing and erasing on the layers.
@@ -255,6 +257,8 @@ class Canvas {
    * @param {Number} [options.width=1] - Width of element
    * @param {String} [options.decoration='arc'] - How the element should be drawn.
    *   Values: 'arc', 'clockwise-arrow', 'counterclockwise-arrow', 'none'
+   * @param {Boolean} [options.autoArrow=false] - Draw a short directional element as an
+   *   arc, then grow its arrowhead while preserving the minimum arc length
    * @param {Boolean} [options.showShading] - Should the element be drawn with shading
    *   [Default: value from settings {@link Settings#showShading}]
    * @param {Boolean} [options.showBorder] - Should the element be drawn with a border
@@ -305,6 +309,7 @@ class Canvas {
       color = '#000000',
       width = 1,
       decoration = 'arc',
+      autoArrow = false,
       showShading = settings.showShading,
       showBorder = settings.showBorder,
       fast = false,
@@ -343,6 +348,26 @@ class Canvas {
     // 9.5 to 10.5.
     start -= 0.5;
     stop += 0.5;
+
+    let autoArrowHeadLengthPixels;
+    const isDirectionalArrow = decoration === 'clockwise-arrow' ||
+      decoration === 'counterclockwise-arrow';
+    if (autoArrow && isDirectionalArrow) {
+      const pixelsPerBp = this.pixelsPerBp(centerOffset);
+      const featureLengthBp = this.sequence.lengthOfRange(start, stop);
+      const featureLengthPixels = featureLengthBp * pixelsPerBp;
+      if (featureLengthPixels <= AUTO_ARROW_MIN_LENGTH_PIXELS) {
+        decoration = 'arc';
+      } else {
+        const configuredArrowHeadLengthPixels = width * settings.arrowHeadLength;
+        const availableArrowHeadLengthPixels = featureLengthPixels -
+          AUTO_ARROW_MIN_LENGTH_PIXELS;
+        autoArrowHeadLengthPixels = Math.min(
+          configuredArrowHeadLengthPixels,
+          availableArrowHeadLengthPixels
+        );
+      }
+    }
 
     if (decoration === 'arc') {
       // Adjust feature start and stop based on minimum arc length.
@@ -435,7 +460,7 @@ class Canvas {
     if (decoration === 'clockwise-arrow' || decoration === 'counterclockwise-arrow') {
       // Determine Arrowhead length
       // Using width which changes according zoom factor upto a point
-      const arrowHeadLengthPixels = width * settings.arrowHeadLength;
+      const arrowHeadLengthPixels = autoArrowHeadLengthPixels ?? (width * settings.arrowHeadLength);
       const arrowHeadLengthBp = arrowHeadLengthPixels / this.pixelsPerBp(centerOffset);
 
       // If arrow head length is longer than feature length, adjust start and stop
@@ -739,4 +764,3 @@ class Canvas {
 }
 
 export default Canvas;
-
