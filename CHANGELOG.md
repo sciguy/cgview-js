@@ -15,6 +15,7 @@
 - Kept hover highlights below legends and captions.
 - Cleared transient hover state when the pointer leaves the viewer.
 - Resumed progressive Canvas drawing after SVG and PNG exports.
+- Added browser-based performance benchmarks with local revision comparisons and automated GitHub Actions runs for pull requests and main pushes.
 
 
 ## 1.8.2 - 2026-05-04 - Paper Release
