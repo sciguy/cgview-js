@@ -12,6 +12,7 @@ const execFileAsync = promisify(execFile);
 const scriptDirectory = path.dirname(fileURLToPath(import.meta.url));
 const repositoryRoot = path.resolve(scriptDirectory, '..');
 const regressionThreshold = {percent: 15, milliseconds: 2};
+const supportedLegendDecorations = ['arc', 'arrow', 'auto'];
 
 const scenarios = [
   {
@@ -74,6 +75,7 @@ function parseArguments(argv) {
   const options = {
     baselineRoot: undefined,
     iterations: 20,
+    legendDecorations: [],
     output: path.join(repositoryRoot, '.benchmark-results', 'benchmark-results.json'),
     warmupIterations: 5
   };
@@ -87,6 +89,9 @@ function parseArguments(argv) {
       index++;
     } else if (argument === '--iterations') {
       options.iterations = positiveInteger(value, argument);
+      index++;
+    } else if (argument === '--legend-decorations') {
+      options.legendDecorations = parseLegendDecorations(value, argument);
       index++;
     } else if (argument === '--output') {
       options.output = path.resolve(process.cwd(), value);
@@ -121,15 +126,63 @@ function nonNegativeInteger(value, argument) {
   return number;
 }
 
+/**
+ * Parse and validate a comma-separated list of feature decorations.
+ *
+ * @param {String} value - Comma-separated decoration names.
+ * @param {String} argument - Option name used in validation errors.
+ * @return {String[]} Unique decorations in input order.
+ */
+function parseLegendDecorations(value, argument) {
+  const values = (value || '').split(',').map((item) => item.trim()).filter(Boolean);
+  const decorations = [...new Set(values)];
+  const invalid = decorations.filter((decoration) => {
+    return !supportedLegendDecorations.includes(decoration);
+  });
+
+  if (decorations.length === 0 || invalid.length > 0) {
+    throw new Error(`${argument} must contain only: ${supportedLegendDecorations.join(', ')}`);
+  }
+
+  return decorations;
+}
+
+/**
+ * Expand map scenarios into one isolated run per requested decoration.
+ *
+ * @param {Object[]} baseScenarios - Standard benchmark scenarios.
+ * @param {String[]} decorations - Decorations to compare.
+ * @return {Object[]} Scenarios ready to load and benchmark.
+ */
+function scenariosWithLegendDecorations(baseScenarios, decorations) {
+  if (decorations.length === 0) return baseScenarios;
+
+  return baseScenarios.flatMap((scenario) => decorations.map((decoration) => ({
+    ...scenario,
+    id: `${scenario.id}-${decoration}`,
+    mapId: scenario.id,
+    name: `${scenario.name} (${decoration})`,
+    legendDecoration: decoration
+  })));
+}
+
 function printHelp() {
   console.log(`Usage: yarn benchmark:ci [options]
 
 Options:
   --baseline-root PATH  Compare against a built checkout at PATH
   --iterations NUMBER   Recorded iterations per zoom level (default: 20)
+  --legend-decorations LIST
+                        Compare comma-separated arc, arrow, and auto variants
   --warmups NUMBER      Unrecorded warm-up iterations (default: 5)
   --output PATH         JSON result path
-  --help                Show this help`);
+  --help                Show this help
+
+Decoration comparison:
+  yarn benchmark --legend-decorations arc,arrow,auto
+
+When investigating small differences, repeat the comparison with cyclic list
+orders to reduce execution-order bias.`);
 }
 
 /**
@@ -207,7 +260,13 @@ async function runScenario(browser, target, scenario, options) {
     await page.addScriptTag({path: path.join(target.root, 'docs/dist/cgview.js')});
     await page.addScriptTag({path: path.join(repositoryRoot, 'docs/test/performance.js')});
 
-    const result = await page.evaluate(async ({fixture, iterations, name, warmupIterations}) => {
+    const result = await page.evaluate(async ({
+      fixture,
+      iterations,
+      legendDecoration,
+      name,
+      warmupIterations
+    }) => {
       const viewer = new CGView.Viewer('#my-viewer', {
         height: 600,
         width: 600,
@@ -216,12 +275,20 @@ async function runScenario(browser, target, scenario, options) {
       viewer.io.loadJSON(fixture);
       viewer.name = name;
 
+      if (legendDecoration) {
+        viewer.legend.defaultDecoration = legendDecoration;
+        viewer.legend.items().forEach((item) => {
+          item.decoration = legendDecoration;
+        });
+      }
+
       const benchmark = new CGVPerformance(viewer, name, iterations, {warmupIterations});
       await benchmark.ready;
       return benchmark.toJSON();
     }, {
       fixture: scenario.data,
       iterations: options.iterations,
+      legendDecoration: scenario.legendDecoration,
       name: scenario.name,
       warmupIterations: options.warmupIterations
     });
@@ -233,6 +300,7 @@ async function runScenario(browser, target, scenario, options) {
     return {
       ...result,
       fixture: scenario.fixture,
+      legendDecoration: scenario.legendDecoration,
       mapOverrides: scenario.mapOverrides
     };
   } finally {
@@ -244,15 +312,16 @@ async function runScenario(browser, target, scenario, options) {
  * Flatten base-versus-head medians into comparison rows.
  *
  * @param {Object[]} targets - Completed target results.
+ * @param {Object[]} benchmarkScenarios - Scenarios included in the report.
  * @return {Object[]} One row per scenario, zoom level, and metric.
  */
-function comparisonsFor(targets) {
+function comparisonsFor(targets, benchmarkScenarios) {
   const baseline = targets.find((target) => target.label === 'base');
   const candidate = targets.find((target) => target.label === 'head');
   if (!baseline || !candidate) return [];
 
   const rows = [];
-  for (const scenario of scenarios) {
+  for (const scenario of benchmarkScenarios) {
     const baseResult = baseline.scenarios[scenario.id];
     const headResult = candidate.scenarios[scenario.id];
 
@@ -271,7 +340,8 @@ function comparisonsFor(targets) {
         );
 
         rows.push({
-          scenario: scenario.id,
+          scenario: scenario.mapId || scenario.id,
+          legendDecoration: scenario.legendDecoration,
           zoomLevel: headSummary.zoomLevel,
           metric,
           baseMedian,
@@ -311,21 +381,29 @@ function markdownReport(report) {
   ];
 
   if (report.comparisons.length > 0) {
-    lines.push('| Map | Zoom | Metric | Base median | Head median | Change | Status |');
-    lines.push('| --- | ---: | --- | ---: | ---: | ---: | --- |');
+    const comparesDecorations = report.options.legendDecorations.length > 0;
+    const decorationHeader = comparesDecorations ? ' Decoration |' : '';
+    const decorationSeparator = comparesDecorations ? ' --- |' : '';
+    lines.push(`| Map |${decorationHeader} Zoom | Metric | Base median | Head median | Change | Status |`);
+    lines.push(`| --- |${decorationSeparator} ---: | --- | ---: | ---: | ---: | --- |`);
     for (const row of report.comparisons) {
       const status = row.regression ? '⚠ review' : 'ok';
-      lines.push(`| ${row.scenario} | ${row.zoomLevel}× | ${row.metric} | ${formatMilliseconds(row.baseMedian)} | ${formatMilliseconds(row.headMedian)} | ${formatPercent(row.deltaPercent)} | ${status} |`);
+      const decoration = comparesDecorations ? ` ${row.legendDecoration} |` : '';
+      lines.push(`| ${row.scenario} |${decoration} ${row.zoomLevel}× | ${row.metric} | ${formatMilliseconds(row.baseMedian)} | ${formatMilliseconds(row.headMedian)} | ${formatPercent(row.deltaPercent)} | ${status} |`);
     }
     lines.push('');
     lines.push(`Regression flags are informational and use both >${regressionThreshold.percent}% and >${regressionThreshold.milliseconds} ms thresholds.`);
   } else {
-    lines.push('| Map | Zoom | Fast median | Fast p90 | Full median | Full p90 |');
-    lines.push('| --- | ---: | ---: | ---: | ---: | ---: |');
+    const comparesDecorations = report.options.legendDecorations.length > 0;
+    const decorationHeader = comparesDecorations ? ' Decoration |' : '';
+    const decorationSeparator = comparesDecorations ? ' --- |' : '';
+    lines.push(`| Map |${decorationHeader} Zoom | Fast median | Fast p90 | Full median | Full p90 |`);
+    lines.push(`| --- |${decorationSeparator} ---: | ---: | ---: | ---: | ---: |`);
     const current = report.targets[0];
-    for (const scenario of scenarios) {
+    for (const scenario of report.scenarios) {
       for (const summary of current.scenarios[scenario.id].summary) {
-        lines.push(`| ${scenario.id} | ${summary.zoomLevel}× | ${formatMilliseconds(summary.drawFast.median)} | ${formatMilliseconds(summary.drawFast.p90)} | ${formatMilliseconds(summary.drawFull.median)} | ${formatMilliseconds(summary.drawFull.p90)} |`);
+        const decoration = comparesDecorations ? ` ${scenario.legendDecoration} |` : '';
+        lines.push(`| ${scenario.mapId || scenario.id} |${decoration} ${summary.zoomLevel}× | ${formatMilliseconds(summary.drawFast.median)} | ${formatMilliseconds(summary.drawFast.p90)} | ${formatMilliseconds(summary.drawFull.median)} | ${formatMilliseconds(summary.drawFull.p90)} |`);
       }
     }
   }
@@ -335,6 +413,7 @@ function markdownReport(report) {
 
 async function main() {
   const options = parseArguments(process.argv.slice(2));
+  const benchmarkScenarios = scenariosWithLegendDecorations(scenarios, options.legendDecorations);
   const targetDefinitions = options.baselineRoot ? [
     {label: 'base', root: options.baselineRoot},
     {label: 'head', root: repositoryRoot}
@@ -346,7 +425,7 @@ async function main() {
     await verifyTarget(target.root);
   }
 
-  const loadedScenarios = await Promise.all(scenarios.map(async (scenario) => {
+  const loadedScenarios = await Promise.all(benchmarkScenarios.map(async (scenario) => {
     const fixturePath = path.join(repositoryRoot, scenario.fixture);
     const data = JSON.parse(await readFile(fixturePath, 'utf8'));
     applyMapOverrides(data.cgview, scenario.mapOverrides);
@@ -381,15 +460,22 @@ async function main() {
       },
       options: {
         iterations: options.iterations,
+        legendDecorations: options.legendDecorations,
         warmupIterations: options.warmupIterations
       },
+      scenarios: benchmarkScenarios.map((scenario) => ({
+        id: scenario.id,
+        legendDecoration: scenario.legendDecoration,
+        mapId: scenario.mapId,
+        name: scenario.name
+      })),
       targets: targets.map(({label, revision, root, scenarios: targetScenarios}) => ({
         label,
         revision,
         root,
         scenarios: targetScenarios
       })),
-      comparisons: comparisonsFor(targets)
+      comparisons: comparisonsFor(targets, benchmarkScenarios)
     };
 
     await mkdir(path.dirname(options.output), {recursive: true});
