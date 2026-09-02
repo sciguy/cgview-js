@@ -280,51 +280,6 @@ class TrackLabelRenderer {
     return new Color(blackContrast >= whiteContrast ? 'black' : 'white');
   }
 
-  _textIsFlipped(bp) {
-    let angle = this.viewer.scale.bp(bp) + (Math.PI / 2);
-    while (angle > Math.PI) { angle -= Math.PI * 2; }
-    while (angle <= -Math.PI) { angle += Math.PI * 2; }
-    return angle > Math.PI / 2 || angle < -Math.PI / 2;
-  }
-
-  _drawCircular(ctx, plan, textColor, haloColor) {
-    const pixelsPerBp = this.canvas.pixelsPerBp(plan.centerOffset);
-    if (!Number.isFinite(pixelsPerBp) || pixelsPerBp <= 0) { return; }
-
-    const flipped = this._textIsFlipped(plan.bp);
-    const textDirection = flipped ? -1 : 1;
-    const drawGlyphPass = (method) => {
-      let cursor = -plan.totalWidth / 2;
-      for (let index = 0; index < plan.characters.length; index += 1) {
-        const width = plan.widths[index];
-        const pixelOffset = cursor + (width / 2);
-        const glyphBp = plan.bp + (textDirection * pixelOffset / pixelsPerBp);
-        const point = this.canvas.pointForBp(glyphBp, plan.centerOffset);
-        const angle = this.viewer.scale.bp(glyphBp) + (Math.PI / 2) + (flipped ? Math.PI : 0);
-        ctx.save();
-        ctx.translate(point.x, point.y);
-        ctx.rotate(angle);
-        ctx[method](plan.characters[index], 0, 0);
-        ctx.restore();
-        cursor += width;
-      }
-    };
-
-    ctx.save();
-    ctx.font = this.font.css;
-    ctx.fillStyle = textColor;
-    ctx.strokeStyle = haloColor;
-    ctx.lineWidth = 3.5;
-    ctx.lineJoin = 'round';
-    ctx.lineCap = 'round';
-    ctx.miterLimit = 2;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    drawGlyphPass('strokeText');
-    drawGlyphPass('fillText');
-    ctx.restore();
-  }
-
   _drawLinear(ctx, plan, textColor, haloColor) {
     const point = this.canvas.pointForBp(plan.bp, plan.centerOffset);
     const text = plan.characters.join('');
@@ -356,7 +311,18 @@ class TrackLabelRenderer {
 
     for (const plan of plans) {
       if (this.viewer.format === 'circular') {
-        this._drawCircular(ctx, plan, textColor.rgbaString, haloColor.rgbaString);
+        this.canvas.drawTextAlongArc({
+          layer: 'foreground',
+          bp: plan.bp,
+          centerOffset: plan.centerOffset,
+          characters: plan.characters,
+          widths: plan.widths,
+          totalWidth: plan.totalWidth,
+          font: this.font.css,
+          color: textColor.rgbaString,
+          haloColor: haloColor.rgbaString,
+          haloWidth: 3.5,
+        });
       } else {
         this._drawLinear(ctx, plan, textColor.rgbaString, haloColor.rgbaString);
       }

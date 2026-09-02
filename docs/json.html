@@ -94,6 +94,11 @@ only present when they have non-default values (see the first [feature](#lines.1
 - _visible_ [Default: true]
 - _meta_ [Default: {}].  The _meta_ key is a place to store [user/app-defined meta data](tutorials/details-meta-data.html).
 
+Ruler labels can be placed `inside`, `outside`, on `both` sides, or hidden with
+`none` while retaining the ruler ticks. Their orientation can be `horizontal`
+or `curved`; curved labels follow circular maps and fall back to horizontal text
+in linear maps.
+
 ```json
 {
     "cgview": {
@@ -122,7 +127,9 @@ only present when they have non-default values (see the first [feature](#lines.1
         },
         "ruler": {
             "font": "sans-serif,plain,10",
-            "color": "rgba(0,0,0,1)"
+            "color": "rgba(0,0,0,1)",
+            "labelPosition": "inside",
+            "labelOrientation": "horizontal"
         },
         "annotation": {
             "font": "sans-serif,plain,12"

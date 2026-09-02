@@ -12,9 +12,15 @@ describe('Canvas', () => {
       beginPath: jest.fn(),
       closePath: jest.fn(),
       fill: jest.fn(),
+      fillText: jest.fn(),
       lineTo: jest.fn(),
+      restore: jest.fn(),
+      rotate: jest.fn(),
+      save: jest.fn(),
       setLineDash: jest.fn(),
       stroke: jest.fn(),
+      strokeText: jest.fn(),
+      translate: jest.fn(),
     };
     canvas = Object.create(Canvas.prototype);
     canvas._viewer = {
@@ -32,6 +38,7 @@ describe('Canvas', () => {
         showBorder: false,
         showShading: false,
       },
+      scale: {bp: jest.fn(bp => bp / 100)},
       zoomFactor: 1,
     };
     canvas._layerNames = ['map'];
@@ -117,6 +124,63 @@ describe('Canvas', () => {
     });
 
     expect(canvas.pointForBp).toHaveBeenCalledWith(14.55, 100);
+  });
+
+  test('draws measured text along an arc with the complete halo pass first', () => {
+    canvas.pixelsPerBp.mockReturnValue(2);
+
+    const drawn = canvas.drawTextAlongArc({
+      bp: 50,
+      centerOffset: 100,
+      characters: ['A', 'B'],
+      widths: [10, 10],
+      totalWidth: 20,
+      font: 'normal 10px sans-serif',
+      color: 'black',
+      haloColor: 'white',
+      haloWidth: 4,
+    });
+
+    expect(drawn).toBe(true);
+    expect(context.strokeText.mock.calls.map(call => call[0])).toEqual(['A', 'B']);
+    expect(context.fillText.mock.calls.map(call => call[0])).toEqual(['A', 'B']);
+    expect(Math.max(...context.strokeText.mock.invocationCallOrder))
+      .toBeLessThan(Math.min(...context.fillText.mock.invocationCallOrder));
+    expect(context.rotate).toHaveBeenCalledTimes(4);
+  });
+
+  test('reverses the glyph path when curved text is on the lower semicircle', () => {
+    canvas.pixelsPerBp.mockReturnValue(2);
+    canvas._viewer.scale.bp.mockReturnValue(3 * Math.PI / 4);
+
+    canvas.drawTextAlongArc({
+      bp: 50,
+      centerOffset: 100,
+      characters: ['A', 'B'],
+      widths: [10, 10],
+      totalWidth: 20,
+      font: 'normal 10px sans-serif',
+      color: 'black',
+    });
+
+    expect(canvas.pointForBp.mock.calls.map(call => call[0])).toEqual([52.5, 47.5]);
+  });
+
+  test('skips curved text when its measurements are incomplete', () => {
+    canvas.pixelsPerBp.mockReturnValue(2);
+
+    const drawn = canvas.drawTextAlongArc({
+      bp: 50,
+      centerOffset: 100,
+      characters: ['A', 'B'],
+      widths: [10],
+      totalWidth: 10,
+      font: 'normal 10px sans-serif',
+      color: 'black',
+    });
+
+    expect(drawn).toBe(false);
+    expect(context.fillText).not.toHaveBeenCalled();
   });
 
 });

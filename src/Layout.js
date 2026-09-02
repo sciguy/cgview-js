@@ -876,9 +876,6 @@ class Layout {
 
     // Divider rings
     viewer.dividers.draw();
-    // Ruler
-    const rulerOffsetAdjustment = viewer.dividers.track.adjustedThickness;
-    viewer.ruler.draw(this.centerInsideOffset - rulerOffsetAdjustment, this.centerOutsideOffset + rulerOffsetAdjustment);
     // Labels
     if (viewer.annotation.visible) {
       viewer.annotation.draw(this.centerInsideOffset, this.centerOutsideOffset, fast);
@@ -951,6 +948,13 @@ class Layout {
     viewer.clear('foreground');
     // Track identifiers sit above map data but below established overlays.
     this._trackLabelRenderer.draw();
+    // Keep ruler labels and their protective halo above feature and plot data.
+    const rulerOffsetAdjustment = viewer.dividers.track.adjustedThickness;
+    viewer.ruler.draw(
+      this.centerInsideOffset - rulerOffsetAdjustment,
+      this.centerOutsideOffset + rulerOffsetAdjustment,
+      'foreground'
+    );
     // Draw center line for current bp
     viewer.centerLine.draw();
     // Captions positioned on the Map

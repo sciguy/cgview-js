@@ -13,6 +13,7 @@
 - Added click selection: click selects one feature, shift-click adds to the selection, Escape clears selected features.
 - Added marquee selection with shift-drag.
 - Added a Selection checkbox to the test page options.
+- Added configurable ruler label positions and horizontal or curved presentations.
 - Added `showTrackLabels` for compact feature and plot track identification at close zoom in circular and linear maps. Feature slots include strand, reading-frame, type, or legend details, based on work by @paulstothard.
 - Fixed unnamed feature popovers showing `undefined`.
 - Kept hover highlights below legends and captions.

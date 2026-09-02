@@ -31,6 +31,7 @@ const selection = false;
 const showTrackLabels = true;
 const showPerformanceTest = false;
 const showLabelsTest = false;
+const showRulerTest = false;
 const showSVGTest = false; // fullSize must be turned off for this to be true
 
 // Other Options
@@ -102,9 +103,44 @@ function setTrackLabelsEnabled(enabled) {
   trackLabelsCheckbox.checked = enabled;
   cgv.settings.showTrackLabels = enabled;
 }
+// Ruler Labels
+const rulerLabelPositionRadios = document.querySelectorAll('input[name="ruler-label-position"]');
+const rulerLabelOrientationRadios = document.querySelectorAll('input[name="ruler-label-orientation"]');
+function syncRadioGroup(radios, value) {
+  radios.forEach((radio) => {
+    radio.checked = radio.value === value;
+  });
+}
+function syncRulerLabelOptions() {
+  syncRadioGroup(rulerLabelPositionRadios, cgv.ruler.labelPosition);
+  syncRadioGroup(rulerLabelOrientationRadios, cgv.ruler.labelOrientation);
+}
+function updateRulerLabelOption(attribute, value) {
+  cgv.ruler.update({[attribute]: value});
+  cgv.draw();
+}
+rulerLabelPositionRadios.forEach((radio) => {
+  radio.addEventListener('change', (e) => {
+    if (e.target.checked) {
+      updateRulerLabelOption('labelPosition', e.target.value);
+    }
+  });
+});
+rulerLabelOrientationRadios.forEach((radio) => {
+  radio.addEventListener('change', (e) => {
+    if (e.target.checked) {
+      updateRulerLabelOption('labelOrientation', e.target.value);
+    }
+  });
+});
+cgv.on('ruler-update.ruler-label-options', syncRulerLabelOptions);
+syncRulerLabelOptions();
 // Toggle Label Test
 const labelsCheckbox = document.getElementById('option-show-labels');
 labelsCheckbox.checked = showLabelsTest;
+// Toggle Ruler Test
+const rulerCheckbox = document.getElementById('option-show-ruler');
+rulerCheckbox.checked = showRulerTest;
 // Toggle Performance Test
 const performanceCheckbox = document.getElementById('option-show-performance');
 performanceCheckbox.checked = showPerformanceTest;
@@ -236,6 +272,7 @@ function loadMapJSON(json, name) {
   cgv.io.loadJSON(json);
   cgv.name = name;
   setTrackLabelsEnabled(trackLabelsCheckbox.checked);
+  syncRulerLabelOptions();
 
   // Default label placement
   cgv.annotation.labelPlacement = labelPlacement;
@@ -262,6 +299,9 @@ function loadMapJSON(json, name) {
 labelsCheckbox.addEventListener('click', (e) => {
   updatePageLayout();
 });
+rulerCheckbox.addEventListener('click', (e) => {
+  updatePageLayout();
+});
 performanceCheckbox.addEventListener('click', (e) => {
   updatePageLayout();
 });
@@ -270,6 +310,9 @@ function updatePageLayout() {
   // Labels
   const labelsDiv = document.querySelector('.section-labels');
   labelsDiv.style.display = labelsCheckbox.checked ? 'block' : 'none';
+  // Ruler
+  const rulerDiv = document.querySelector('.section-ruler');
+  rulerDiv.style.display = rulerCheckbox.checked ? 'block' : 'none';
   // Performance
   const performanceDiv = document.querySelector('.section-performance');
   performanceDiv.style.display = performanceCheckbox.checked ? 'block' : 'none';

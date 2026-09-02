@@ -75,6 +75,32 @@ hr {
   overflow: auto;
 }
 
+.ruler-options {
+  display: flex;
+  justify-content: space-around;
+  font-size: 14px;
+}
+
+.ruler-options fieldset {
+  min-width: 120px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.ruler-options legend {
+  float: none;
+  width: auto;
+  margin: 0 0 3px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.ruler-options label {
+  display: block;
+  margin-bottom: 2px;
+}
+
 #open-proksee-div {
   text-align: center;
   margin-top: 7px;

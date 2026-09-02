@@ -28,7 +28,7 @@
     <script src="../scripts/svgcanvas.iife.js"></script>
     <!-- CGView -->
     <!-- <script src='../dist/cgview.min.js'></script> -->
-    <script src='../dist/cgview.js?v=track-labels-slots'></script>
+    <script src='../dist/cgview.js?v=ruler-label-presentations'></script>
 
     <link rel="stylesheet" href="../dist/cgview.css" />
     <link rel="stylesheet" href="../styles/controls.css" />
@@ -38,7 +38,7 @@
 
     <!-- Dev Page -->
     <script src='performance.js'></script>
-    <link rel="stylesheet" href="test.css" />
+    <link rel="stylesheet" href="test.css?v=ruler-testing-controls" />
     <!-- Test Map Data -->
     <script src='maps.js'></script>
 
@@ -133,6 +133,7 @@
             </div>
             <div>
               <div><input id='option-show-labels' type='checkbox' /> Labels Testing</div>
+              <div><input id='option-show-ruler' type='checkbox' /> Ruler Testing</div>
               <div><input id='option-show-performance' type='checkbox' /> Performance Testing</div>
               <div><input id='option-show-svg' type='checkbox' /> SVG Testing</div>
             </div>
@@ -141,6 +142,24 @@
           <div id='open-proksee-div'><a href="#" id='open-in-proksee-btn'>Open in Proksee</a></div> 
 
         <hr />
+        </div>
+        <div class='section-ruler'>
+          <div class='test-heading'>Ruler Testing</div>
+          <div class='ruler-options'>
+            <fieldset>
+              <legend>Label Position</legend>
+              <label><input type='radio' name='ruler-label-position' value='inside' /> Inside</label>
+              <label><input type='radio' name='ruler-label-position' value='outside' /> Outside</label>
+              <label><input type='radio' name='ruler-label-position' value='both' /> Both</label>
+              <label><input type='radio' name='ruler-label-position' value='none' /> None</label>
+            </fieldset>
+            <fieldset>
+              <legend>Label Orientation</legend>
+              <label><input type='radio' name='ruler-label-orientation' value='horizontal' /> Horizontal</label>
+              <label><input type='radio' name='ruler-label-orientation' value='curved' /> Curved</label>
+            </fieldset>
+          </div>
+          <hr />
         </div>
         <div class='section-labels'>
           <div class='test-heading'>Label Testing</div>
@@ -206,7 +225,7 @@
     <!-- Bootstrap JavaScript -->
     <script src="../scripts/bootstrap.min.js"></script>
 
-    <script src='test.js?v=track-labels-option'></script>
+    <script src='test.js?v=ruler-testing-controls'></script>
     <script src='../scripts/controls.js'></script>
 
   </body>

@@ -622,6 +622,112 @@ class Canvas {
     ctx.stroke();
   }
 
+  /**
+   * Return a readable tangential orientation for text at a circular-map
+   * position. The flipped flag lets multi-glyph callers preserve reading
+   * order when the tangent reverses.
+   * @param {Number} bp - Base-pair position.
+   * @return {Object} Tangential angle in radians and whether it was flipped.
+   * @private
+   */
+  tangentialTextOrientationForBp(bp) {
+    let angle = this.viewer.scale.bp(bp) + (Math.PI / 2);
+    while (angle > Math.PI) { angle -= Math.PI * 2; }
+    while (angle <= -Math.PI) { angle += Math.PI * 2; }
+
+    let flipped = false;
+    if (angle > Math.PI / 2) {
+      angle -= Math.PI;
+      flipped = true;
+    } else if (angle < -Math.PI / 2) {
+      angle += Math.PI;
+      flipped = true;
+    }
+    return {angle, flipped};
+  }
+
+  /**
+   * Draw measured glyphs along the exact circular map path. Callers retain
+   * responsibility for text measurement and caching.
+   * @param {Object} options - Curved-text drawing options.
+   * @param {String} [options.layer='map'] - Layer on which to draw.
+   * @param {Number} options.bp - Base-pair position at the center of the text.
+   * @param {Number} options.centerOffset - Radius at which to draw the text.
+   * @param {String[]} options.characters - Characters to draw.
+   * @param {Number[]} options.widths - Measured character widths in pixels.
+   * @param {Number} options.totalWidth - Total measured text width in pixels.
+   * @param {String} options.font - CSS font string.
+   * @param {String} options.color - Text fill color.
+   * @param {String} [options.haloColor] - Optional text halo color.
+   * @param {Number} [options.haloWidth=0] - Text halo width in pixels.
+   * @return {Boolean} Whether the text was drawn.
+   * @private
+   */
+  drawTextAlongArc(options = {}) {
+    const {
+      layer = 'map',
+      bp,
+      centerOffset,
+      characters = [],
+      widths = [],
+      totalWidth,
+      font,
+      color,
+      haloColor,
+      haloWidth = 0,
+    } = options;
+    const pixelsPerBp = this.pixelsPerBp(centerOffset);
+    const validMeasurement = characters.length > 0 &&
+      widths.length === characters.length &&
+      Number.isFinite(totalWidth);
+    if (!validMeasurement || !Number.isFinite(pixelsPerBp) || pixelsPerBp <= 0) {
+      return false;
+    }
+
+    const {flipped} = this.tangentialTextOrientationForBp(bp);
+    const textDirection = flipped ? -1 : 1;
+    const ctx = this.context(layer);
+    const drawGlyphPass = (method) => {
+      let cursor = -totalWidth / 2;
+      for (let index = 0; index < characters.length; index += 1) {
+        const width = widths[index];
+        const pixelOffset = cursor + (width / 2);
+        const glyphBp = bp + (textDirection * pixelOffset / pixelsPerBp);
+        const point = this.pointForBp(glyphBp, centerOffset);
+        // Use the center glyph's direction for the complete label so text
+        // crossing a vertical tangent cannot reverse partway through a word.
+        const angle = this.viewer.scale.bp(glyphBp) + (Math.PI / 2) + (flipped ? Math.PI : 0);
+        ctx.save();
+        ctx.translate(point.x, point.y);
+        ctx.rotate(angle);
+        ctx[method](characters[index], 0, 0);
+        ctx.restore();
+        cursor += width;
+      }
+    };
+
+    ctx.save();
+    ctx.font = font;
+    ctx.fillStyle = color;
+    if (haloColor && haloWidth > 0) {
+      ctx.strokeStyle = haloColor;
+      ctx.lineWidth = haloWidth;
+      ctx.lineJoin = 'round';
+      ctx.lineCap = 'round';
+      ctx.miterLimit = 2;
+    }
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    // Paint every halo glyph before any fill glyph. Interleaving the passes
+    // lets a later halo wash over an earlier glyph.
+    if (haloColor && haloWidth > 0) {
+      drawGlyphPass('strokeText');
+    }
+    drawGlyphPass('fillText');
+    ctx.restore();
+    return true;
+  }
+
 
   /**
    * Alias for Layout [pointForBp](Layout.html#pointForBp)

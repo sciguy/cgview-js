@@ -25,6 +25,11 @@ import Font from './Font';
 import utils from './Utils';
 import * as d3 from 'd3';
 
+const LABEL_POSITIONS = ['inside', 'outside', 'both', 'none'];
+const LABEL_ORIENTATIONS = ['horizontal', 'curved'];
+const LABEL_HALO_WIDTH = 5;
+const CURVED_LABEL_CACHE_LIMIT = 64;
+
 /**
  * The Ruler controls and draws the sequence ruler in bp.
  *
@@ -42,10 +47,19 @@ import * as d3 from 'd3';
  * ---------------------------------|-----------|------------
  * [font](#font)                    | String    | A string describing the font [Default: 'sans-serif, plain, 10']. See {@link Font} for details.
  * [color](#color)                  | String    | A string describing the color [Default: 'black']. See {@link Color} for details.
+ * [labelPosition](#labelPosition)  | String    | Side on which labels are drawn: 'inside', 'outside', 'both', or 'none' [Default: 'inside']
+ * [labelOrientation](#labelOrientation) | String | Label presentation: 'horizontal' or 'curved' [Default: 'horizontal']
  * [visible](CGObject.html#visible) | Boolean   | Rulers are visible [Default: true]
  * [meta](CGObject.html#meta)       | Object    | [Meta data](../tutorials/details-meta-data.html) for ruler
  *
  * ### Examples
+ * ```js
+ * // Draw curved labels outside the map while retaining ruler ticks on both sides.
+ * cgv.ruler.update({
+ *   labelPosition: 'outside',
+ *   labelOrientation: 'curved'
+ * });
+ * ```
  *
  * @extends CGObject
  */
@@ -59,6 +73,9 @@ class Ruler extends CGObject {
    */
   constructor(viewer, options = {}, meta = {}) {
     super(viewer, options, meta);
+    this._curvedLabelMeasurementCache = new Map();
+    this._labelPosition = 'inside';
+    this._labelOrientation = 'horizontal';
     this.tickCount = utils.defaultFor(options.tickCount, 10);
     this.tickWidth = utils.defaultFor(options.tickWidth, 1);
     this.tickLength = utils.defaultFor(options.tickLength, 4);
@@ -66,6 +83,8 @@ class Ruler extends CGObject {
     this.spacing = utils.defaultFor(options.spacing, 2);
     this.font = utils.defaultFor(options.font, 'sans-serif, plain, 10');
     this.color = new Color( utils.defaultFor(options.color, 'black') );
+    this.labelPosition = utils.defaultFor(options.labelPosition, 'inside');
+    this.labelOrientation = utils.defaultFor(options.labelOrientation, 'horizontal');
     this.lineCap = 'round';
 
     this.viewer.trigger('ruler-update', { attributes: this.toJSON({includeDefaults: true}) });
@@ -92,6 +111,7 @@ class Ruler extends CGObject {
     } else {
       this._font = new Font(value);
     }
+    this._curvedLabelMeasurementCache?.clear();
   }
 
   /**
@@ -148,6 +168,34 @@ class Ruler extends CGObject {
 
   set spacing(value) {
     this._spacing = value;
+  }
+
+  /**
+   * @member {String} - Side on which labels are drawn: 'inside', 'outside',
+   * 'both', or 'none'. Tick marks remain visible on both sides.
+   */
+  get labelPosition() {
+    return this._labelPosition;
+  }
+
+  set labelPosition(value) {
+    if (utils.validate(value, LABEL_POSITIONS)) {
+      this._labelPosition = value;
+    }
+  }
+
+  /**
+   * @member {String} - Label presentation: 'horizontal' or 'curved'. Curved
+   * labels fall back to horizontal text for linear maps.
+   */
+  get labelOrientation() {
+    return this._labelOrientation;
+  }
+
+  set labelOrientation(value) {
+    if (utils.validate(value, LABEL_ORIENTATIONS)) {
+      this._labelOrientation = value;
+    }
   }
 
   /**
@@ -309,20 +357,22 @@ class Ruler extends CGObject {
     this._tickFormater = this._createTickFormatter(majorTickStep);
   }
 
-  draw(innerCenterOffset, outerCenterOffset) {
+  draw(innerCenterOffset, outerCenterOffset, layer = 'map') {
     // console.log(innerCenterOffset, outerCenterOffset);
     if (this.visible) {
       innerCenterOffset -= this.spacing;
       outerCenterOffset += this.spacing;
       this._updateTicks(innerCenterOffset, outerCenterOffset);
-      this.drawForCenterOffset(innerCenterOffset, 'inner');
-      this.drawForCenterOffset(outerCenterOffset, 'outer', false);
+      const insideLabels = ['inside', 'both'].includes(this.labelPosition);
+      const outsideLabels = ['outside', 'both'].includes(this.labelPosition);
+      this.drawForCenterOffset(innerCenterOffset, 'inner', insideLabels, layer);
+      this.drawForCenterOffset(outerCenterOffset, 'outer', outsideLabels, layer);
     }
   }
 
 
-  drawForCenterOffset(centerOffset, position = 'inner', drawLabels = true) {
-    const ctx = this.canvas.context('map');
+  drawForCenterOffset(centerOffset, position = 'inner', drawLabels = true, layer = 'map') {
+    const ctx = this.canvas.context(layer);
     const tickLength = (position === 'inner') ? -this.tickLength : this.tickLength;
     // ctx.fillStyle = 'black'; // Label Color
     ctx.fillStyle = this.color.rgbaString; // Label Color
@@ -331,33 +381,89 @@ class Ruler extends CGObject {
     // ctx.textBaseline = 'top';
     ctx.textBaseline = 'alphabetic'; // The default baseline works best across canvas and svg
     // Draw Tick for first bp (Origin)
-    this.canvas.radiantLine('map', 1, centerOffset, tickLength, this.tickWidth * 2, this.color.rgbaString, this.lineCap);
+    this.canvas.radiantLine(layer, 1, centerOffset, tickLength, this.tickWidth * 2, this.color.rgbaString, this.lineCap);
     // Draw Major ticks
     this.majorTicks.forEach( (bp) => {
-      this.canvas.radiantLine('map', bp, centerOffset, tickLength, this.tickWidth, this.color.rgbaString, this.lineCap);
+      this.canvas.radiantLine(layer, bp, centerOffset, tickLength, this.tickWidth, this.color.rgbaString, this.lineCap);
       if (drawLabels) {
         const label = this.tickFormater(bp);
-        this.drawLabel(bp, label, centerOffset, position);
+        this.drawLabel(bp, label, centerOffset, position, layer);
       }
     });
     // Draw Minor ticks
     for (const bp of this.minorTicks) {
       if (bp > this.sequence.length) { break; }
-      this.canvas.radiantLine('map', bp, centerOffset, tickLength / 2, this.tickWidth, this.color.rgbaString, this.lineCap);
+      this.canvas.radiantLine(layer, bp, centerOffset, tickLength / 2, this.tickWidth, this.color.rgbaString, this.lineCap);
     }
   }
 
-  drawLabel(bp, label, centerOffset, position = 'inner') {
-    const ctx = this.canvas.context('map');
+  drawLabel(bp, label, centerOffset, position = 'inner', layer = 'map') {
+    const ctx = this.canvas.context(layer);
     // Put space between number and units
     label = label.replace(/([kM])?$/, ' $1bp');
-    // INNER
-    const innerPt = this.canvas.pointForBp(bp, centerOffset - this.rulerPadding);
-    const attachmentPosition = this.layout.clockPositionForBp(bp);
+    if (this.labelOrientation === 'curved' && this.viewer.format === 'circular') {
+      this.drawCurvedLabel(bp, label, centerOffset, position, layer);
+      return;
+    }
+
+    const direction = position === 'inner' ? -1 : 1;
+    const labelAnchor = this.canvas.pointForBp(bp, centerOffset + (direction * this.rulerPadding));
+    const attachmentPosition = this.layout.clockPositionForBp(bp, position === 'outer');
     const labelWidth = this.font.width(ctx, label);
-    const labelPt = utils.rectOriginForAttachementPoint(innerPt, attachmentPosition, labelWidth, this.font.height);
-    // ctx.fillText(label, labelPt.x, labelPt.y);
-    ctx.fillText(label, labelPt.x, labelPt.y + this.font.height);
+    const labelPt = utils.rectOriginForAttachementPoint(labelAnchor, attachmentPosition, labelWidth, this.font.height);
+    this._drawHorizontalLabel(ctx, label, labelPt.x, labelPt.y + this.font.height);
+  }
+
+  _drawHorizontalLabel(ctx, label, x, y) {
+    ctx.save();
+    ctx.strokeStyle = this.viewer.settings.backgroundColor.rgbaString;
+    ctx.lineWidth = LABEL_HALO_WIDTH;
+    ctx.lineJoin = 'round';
+    ctx.lineCap = 'round';
+    ctx.miterLimit = 2;
+    ctx.strokeText(label, x, y);
+    ctx.restore();
+    ctx.fillText(label, x, y);
+  }
+
+  _curvedLabelMeasurement(ctx, label) {
+    const key = `${this.font.css}\n${label}`;
+    let measurement = this._curvedLabelMeasurementCache.get(key);
+    if (!measurement) {
+      ctx.font = this.font.css;
+      const characters = Array.from(label);
+      const widths = characters.map(character => Math.max(1, ctx.measureText(character).width));
+      measurement = {
+        characters,
+        widths,
+        totalWidth: widths.reduce((sum, width) => sum + width, 0),
+      };
+      if (this._curvedLabelMeasurementCache.size >= CURVED_LABEL_CACHE_LIMIT) {
+        this._curvedLabelMeasurementCache.clear();
+      }
+      this._curvedLabelMeasurementCache.set(key, measurement);
+    }
+    return measurement;
+  }
+
+  drawCurvedLabel(bp, label, centerOffset, position, layer = 'map') {
+    const ctx = this.canvas.context(layer);
+    const radialDirection = position === 'inner' ? -1 : 1;
+    const labelCenterOffset = centerOffset +
+      radialDirection * (this.rulerPadding + (this.font.height / 2));
+    const measurement = this._curvedLabelMeasurement(ctx, label);
+    this.canvas.drawTextAlongArc({
+      layer,
+      bp,
+      centerOffset: labelCenterOffset,
+      characters: measurement.characters,
+      widths: measurement.widths,
+      totalWidth: measurement.totalWidth,
+      font: this.font.css,
+      color: this.color.rgbaString,
+      haloColor: this.viewer.settings.backgroundColor.rgbaString,
+      haloWidth: LABEL_HALO_WIDTH,
+    });
   }
 
   invertColors() {
@@ -374,7 +480,7 @@ class Ruler extends CGObject {
   update(attributes) {
     this.viewer.updateRecords(this, attributes, {
       recordClass: 'Ruler',
-      validKeys: ['color', 'font', 'visible']
+      validKeys: ['color', 'font', 'labelPosition', 'labelOrientation', 'visible']
     });
     this.viewer.trigger('ruler-update', { attributes });
   }
@@ -386,6 +492,8 @@ class Ruler extends CGObject {
     const json = {
       font: this.font.string,
       color: this.color.rgbaString,
+      labelPosition: this.labelPosition,
+      labelOrientation: this.labelOrientation,
       // visible: this.visible
     };
     // Optionally add default values
@@ -398,5 +506,3 @@ class Ruler extends CGObject {
 }
 
 export default Ruler;
-
-
