@@ -157,7 +157,7 @@ class FeatureLabelRenderer {
   }
 
   _backgroundColor(feature, slot, bp) {
-    if (!this._isOnBackbone(slot)) {
+    if (!this.viewer.backbone.visible || !this._isOnBackbone(slot)) {
       return this.viewer.settings.backgroundColor;
     }
     const sequence = this.viewer.sequence;
@@ -562,9 +562,10 @@ class FeatureLabelRenderer {
     ctx.restore();
   }
 
-  _drawCurvedLabel(feature, metrics) {
+  _drawCurvedLabel(feature, metrics, layer = 'map') {
     const font = feature.label.font;
     this.canvas.drawTextAlongArc({
+      layer,
       bp: metrics.bp,
       centerOffset: metrics.centerOffset,
       characters: metrics.characters,
@@ -583,11 +584,12 @@ class FeatureLabelRenderer {
    * @param {Number} slotThickness - Slot thickness.
    * @param {CGRange} visibleRange - Visible slot range.
    * @param {Slot} slot - Slot being drawn.
+   * @param {String} [layer='map'] - Canvas layer on which to draw the labels.
    * @private
    */
-  draw(features, centerOffset, slotThickness, visibleRange, slot) {
+  draw(features, centerOffset, slotThickness, visibleRange, slot, layer = 'map') {
     if (!['inline', 'auto'].includes(this.annotation.labelPosition) || !visibleRange) { return; }
-    const ctx = this.canvas.context('map');
+    const ctx = this.canvas.context(layer);
     const placements = slot ?
       this._placementsForSlot(slot, visibleRange) :
       this._nonOverlappingPlacements(features, centerOffset, slotThickness, visibleRange);
@@ -596,7 +598,7 @@ class FeatureLabelRenderer {
       const metrics = placements.get(feature);
       if (!metrics) { continue; }
       if (this.viewer.format === 'circular') {
-        this._drawCurvedLabel(feature, metrics);
+        this._drawCurvedLabel(feature, metrics, layer);
       } else {
         this._drawStraightLabel(ctx, feature, metrics);
       }

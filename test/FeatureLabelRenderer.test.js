@@ -163,10 +163,11 @@ describe('Inline feature labels', () => {
       widthScale: 0.75,
       textWidth: 36,
       color: feature.color.contrastColor(),
-    });
+    }, 'ui');
 
     expect(drawTextAlongArc).toHaveBeenCalledWith(expect.objectContaining({
       font: feature.label.font.css,
+      layer: 'ui',
       widthScale: 0.75,
     }));
   });
@@ -415,6 +416,49 @@ describe('Inline feature labels', () => {
       .toBeLessThan(drawLabels.mock.invocationCallOrder[0]);
   });
 
+  test('redraws a highlighted inline label on ui after the feature body', () => {
+    const cgv = viewerWithFeatures({
+      annotation: {labelPosition: 'inline'},
+      features: [{name: 'feature', source: 'test', start: 100, stop: 500, legend: 'Feature'}],
+      format: 'linear',
+      track: {},
+    });
+    const feature = cgv.features(1);
+    const renderer = cgv.annotation._featureLabelRenderer;
+    const slot = cgv.tracks(1).slots(1);
+    const visibleRange = fullRange(cgv);
+    const mapContext = cgv.canvas.context('map');
+    const uiContext = cgv.canvas.context('ui');
+    slot._visibleRange = visibleRange;
+    jest.spyOn(renderer, '_placementsForSlot').mockReturnValue(new Map([[feature, {
+      bp: 300,
+      centerOffset: slot.centerOffset,
+      characters: Array.from(feature.name),
+      widths: Array.from(feature.name, () => 8),
+      widthScale: 1,
+      textWidth: 56,
+      text: feature.name,
+      color: feature.color.contrastColor(),
+    }]]));
+    const drawFeature = jest.spyOn(feature, 'draw').mockImplementation(() => {});
+    mapContext.fillText.mockClear();
+    uiContext.fillText.mockClear();
+
+    feature.highlight(slot);
+
+    expect(drawFeature).toHaveBeenCalledWith(
+      'ui',
+      slot.centerOffset,
+      slot.thickness,
+      visibleRange,
+      {color: expect.anything()}
+    );
+    expect(uiContext.fillText).toHaveBeenCalledWith(feature.name, 0, 0);
+    expect(mapContext.fillText).not.toHaveBeenCalled();
+    expect(drawFeature.mock.invocationCallOrder[0])
+      .toBeLessThan(uiContext.fillText.mock.invocationCallOrder[0]);
+  });
+
   test('uses the complete visible set for stable collision choices during fast draws', () => {
     const cgv = viewerWithFeatures({
       annotation: {labelPosition: 'inline'},
@@ -625,6 +669,10 @@ describe('Inline feature labels', () => {
     expect(renderer._labelColor(cgv.features(1), slot, 300).rgbaString)
       .toBe('rgba(255,255,255,1)');
     expect(renderer._labelColor(cgv.features(1), undefined, 300).rgbaString)
+      .toBe('rgba(0,0,0,1)');
+
+    cgv.backbone.visible = false;
+    expect(renderer._labelColor(cgv.features(1), slot, 300).rgbaString)
       .toBe('rgba(0,0,0,1)');
   });
 

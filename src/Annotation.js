@@ -254,11 +254,12 @@ class Annotation extends CGObject {
    * @param {Number} slotThickness - Slot thickness.
    * @param {CGRange} visibleRange - Visible slot range.
    * @param {Slot} slot - Slot being drawn.
+   * @param {String} [layer='map'] - Canvas layer on which to draw the labels.
    * @private
    */
-  drawFeatureLabels(features, centerOffset, slotThickness, visibleRange, slot) {
+  drawFeatureLabels(features, centerOffset, slotThickness, visibleRange, slot, layer = 'map') {
     if (!this.visible || !['inline', 'auto'].includes(this.labelPosition)) { return; }
-    this._featureLabelRenderer.draw(features, centerOffset, slotThickness, visibleRange, slot);
+    this._featureLabelRenderer.draw(features, centerOffset, slotThickness, visibleRange, slot, layer);
   }
 
   /**
