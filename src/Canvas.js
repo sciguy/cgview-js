@@ -246,6 +246,34 @@ class Canvas {
   }
 
   /**
+   * Return the screen-space arrowhead length used by {@link Canvas#drawElement}.
+   * Auto arrows preserve a short body and collapse to an arc when the whole
+   * feature is below that threshold.
+   * @param {Object} options - Arrow geometry.
+   * @param {Boolean} [options.autoArrow=false] - Apply automatic arrow sizing.
+   * @param {Number} options.centerOffset - Distance from the map center.
+   * @param {Number} options.featureLengthBp - Drawn feature length in bp.
+   * @param {Number} options.width - Drawn feature thickness in pixels.
+   * @return {Number} Arrowhead length in pixels, or 0 for an auto arc.
+   * @private
+   */
+  arrowHeadLengthPixels(options = {}) {
+    const {
+      autoArrow = false,
+      centerOffset,
+      featureLengthBp,
+      width = 1,
+    } = options;
+    const configuredLength = width * this.viewer.settings.arrowHeadLength;
+    if (!autoArrow) { return configuredLength; }
+
+    const pixelsPerBp = this.pixelsPerBp(centerOffset);
+    if (!Number.isFinite(pixelsPerBp) || pixelsPerBp <= 0) { return 0; }
+    const availableLength = (featureLengthBp * pixelsPerBp) - AUTO_ARROW_MIN_LENGTH_PIXELS;
+    return Math.max(0, Math.min(configuredLength, availableLength));
+  }
+
+  /**
    * Draws an arc or arrow on the map.
    *
    * @param {Object} options - Drawing options
@@ -353,19 +381,17 @@ class Canvas {
     const isDirectionalArrow = decoration === 'clockwise-arrow' ||
       decoration === 'counterclockwise-arrow';
     if (autoArrow && isDirectionalArrow) {
-      const pixelsPerBp = this.pixelsPerBp(centerOffset);
       const featureLengthBp = this.sequence.lengthOfRange(start, stop);
-      const featureLengthPixels = featureLengthBp * pixelsPerBp;
+      const featureLengthPixels = featureLengthBp * this.pixelsPerBp(centerOffset);
       if (featureLengthPixels <= AUTO_ARROW_MIN_LENGTH_PIXELS) {
         decoration = 'arc';
       } else {
-        const configuredArrowHeadLengthPixels = width * settings.arrowHeadLength;
-        const availableArrowHeadLengthPixels = featureLengthPixels -
-          AUTO_ARROW_MIN_LENGTH_PIXELS;
-        autoArrowHeadLengthPixels = Math.min(
-          configuredArrowHeadLengthPixels,
-          availableArrowHeadLengthPixels
-        );
+        autoArrowHeadLengthPixels = this.arrowHeadLengthPixels({
+          autoArrow,
+          centerOffset,
+          featureLengthBp,
+          width,
+        });
       }
     }
 
@@ -460,7 +486,8 @@ class Canvas {
     if (decoration === 'clockwise-arrow' || decoration === 'counterclockwise-arrow') {
       // Determine Arrowhead length
       // Using width which changes according zoom factor upto a point
-      const arrowHeadLengthPixels = autoArrowHeadLengthPixels ?? (width * settings.arrowHeadLength);
+      const arrowHeadLengthPixels = autoArrowHeadLengthPixels ??
+        this.arrowHeadLengthPixels({centerOffset, featureLengthBp: this.sequence.lengthOfRange(start, stop), width});
       const arrowHeadLengthBp = arrowHeadLengthPixels / this.pixelsPerBp(centerOffset);
 
       // If arrow head length is longer than feature length, adjust start and stop
@@ -623,9 +650,16 @@ class Canvas {
   }
 
   /**
-   * Return a readable tangential orientation for text at a circular-map
-   * position. The flipped flag lets multi-glyph callers preserve reading
-   * order when the tangent reverses.
+   * Alias for Layout [pointForBp](Layout.html#pointForBp)
+   * @private
+   */
+  pointForBp(bp, centerOffset) {
+    return this.layout.pointForBp(bp, centerOffset);
+  }
+
+  /**
+   * Return a readable tangential orientation for circular-map text. The angle
+   * stays within a quarter turn of horizontal so glyphs are never upside down.
    * @param {Number} bp - Base-pair position.
    * @return {Object} Tangential angle in radians and whether it was flipped.
    * @private
@@ -647,20 +681,21 @@ class Canvas {
   }
 
   /**
-   * Draw measured glyphs along the exact circular map path. Callers retain
+   * Draw measured glyphs along the circular map path. Callers retain
    * responsibility for text measurement and caching.
    * @param {Object} options - Curved-text drawing options.
-   * @param {String} [options.layer='map'] - Layer on which to draw.
-   * @param {Number} options.bp - Base-pair position at the center of the text.
-   * @param {Number} options.centerOffset - Radius at which to draw the text.
-   * @param {String[]} options.characters - Characters to draw.
-   * @param {Number[]} options.widths - Measured character widths in pixels.
-   * @param {Number} options.totalWidth - Total measured text width in pixels.
-   * @param {String} options.font - CSS font string.
-   * @param {String} options.color - Text fill color.
-   * @param {String} [options.haloColor] - Optional text halo color.
-   * @param {Number} [options.haloWidth=0] - Text halo width in pixels.
-   * @return {Boolean} Whether the text was drawn.
+   * @param {String} [options.layer='map'] - Canvas layer.
+   * @param {Number} options.bp - Center base-pair position.
+   * @param {Number} options.centerOffset - Distance from the map center.
+   * @param {String[]} options.characters - Measured glyphs.
+   * @param {Number[]} options.widths - Natural glyph widths in pixels.
+   * @param {Number} [options.widthScale=1] - Scale applied to glyph widths and rendering.
+   * @param {Number} options.totalWidth - Scaled total width in pixels.
+   * @param {String} options.font - CSS font used to draw the glyphs.
+   * @param {String} options.color - Fill color.
+   * @param {String} [options.haloColor] - Optional stroke color.
+   * @param {Number} [options.haloWidth=5] - Protective stroke width.
+   * @return {Boolean} Whether text was drawn.
    * @private
    */
   drawTextAlongArc(options = {}) {
@@ -670,41 +705,22 @@ class Canvas {
       centerOffset,
       characters = [],
       widths = [],
+      widthScale = 1,
       totalWidth,
       font,
       color,
       haloColor,
-      haloWidth = 0,
+      haloWidth = 5,
     } = options;
     const pixelsPerBp = this.pixelsPerBp(centerOffset);
-    const validMeasurement = characters.length > 0 &&
-      widths.length === characters.length &&
-      Number.isFinite(totalWidth);
-    if (!validMeasurement || !Number.isFinite(pixelsPerBp) || pixelsPerBp <= 0) {
+    if (!Number.isFinite(pixelsPerBp) || pixelsPerBp <= 0 ||
+      !Number.isFinite(totalWidth) || characters.length === 0 || widths.length < characters.length) {
       return false;
     }
 
     const {flipped} = this.tangentialTextOrientationForBp(bp);
     const textDirection = flipped ? -1 : 1;
     const ctx = this.context(layer);
-    const drawGlyphPass = (method) => {
-      let cursor = -totalWidth / 2;
-      for (let index = 0; index < characters.length; index += 1) {
-        const width = widths[index];
-        const pixelOffset = cursor + (width / 2);
-        const glyphBp = bp + (textDirection * pixelOffset / pixelsPerBp);
-        const point = this.pointForBp(glyphBp, centerOffset);
-        // Use the center glyph's direction for the complete label so text
-        // crossing a vertical tangent cannot reverse partway through a word.
-        const angle = this.viewer.scale.bp(glyphBp) + (Math.PI / 2) + (flipped ? Math.PI : 0);
-        ctx.save();
-        ctx.translate(point.x, point.y);
-        ctx.rotate(angle);
-        ctx[method](characters[index], 0, 0);
-        ctx.restore();
-        cursor += width;
-      }
-    };
 
     ctx.save();
     ctx.font = font;
@@ -718,23 +734,36 @@ class Canvas {
     }
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    // Paint every halo glyph before any fill glyph. Interleaving the passes
-    // lets a later halo wash over an earlier glyph.
+    const drawGlyphPass = (method) => {
+      let cursor = -totalWidth / 2;
+      for (let index = 0; index < characters.length; index += 1) {
+        const width = widths[index] * widthScale;
+        const pixelOffset = cursor + (width / 2);
+        const glyphBp = bp + (textDirection * pixelOffset / pixelsPerBp);
+        const point = this.pointForBp(glyphBp, centerOffset);
+        const angle = this.viewer.scale.bp(glyphBp) + (Math.PI / 2) + (flipped ? Math.PI : 0);
+        ctx.save();
+        ctx.translate(point.x, point.y);
+        ctx.rotate(angle);
+        if (widthScale !== 1) {
+          // Scale around the fixed glyph center instead of selecting a new
+          // fractional CSS font size, whose baseline can move as it is hinted.
+          ctx.scale(widthScale, widthScale);
+        }
+        ctx[method](characters[index], 0, 0);
+        ctx.restore();
+        cursor += width;
+      }
+    };
+
+    // Finish every halo stroke before any fill so later glyph strokes cannot
+    // wash over already-painted text.
     if (haloColor && haloWidth > 0) {
       drawGlyphPass('strokeText');
     }
     drawGlyphPass('fillText');
     ctx.restore();
     return true;
-  }
-
-
-  /**
-   * Alias for Layout [pointForBp](Layout.html#pointForBp)
-   * @private
-   */
-  pointForBp(bp, centerOffset) {
-    return this.layout.pointForBp(bp, centerOffset);
   }
 
   /**

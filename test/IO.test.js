@@ -30,6 +30,45 @@ describe('IO', () => {
       expect( () => cgv.io.loadJSON(json) ).toThrow("No 'cgview' property found in JSON.");;
     });
 
+    test('loads annotation JSON with automatic labels by default', () => {
+      const json = {
+        cgview: {
+          version: '1.8.0',
+          sequence: {length: 1234},
+          annotation: {font: 'sans-serif,plain,12'},
+        },
+      };
+
+      cgv.io.loadJSON(json);
+
+      expect(cgv.annotation.labelPosition).toBe('auto');
+      expect(cgv.annotation.inlineLabelAllowShrinking).toBe(true);
+      expect(cgv.annotation.inlineLabelAllowTruncation).toBe(false);
+    });
+
+    test('round trips inline annotation settings through CGView JSON', () => {
+      document.body.innerHTML = '<div id="map"></div><div id="second-map"></div>';
+      const firstViewer = new Viewer('#map', {
+        annotation: {
+          labelPosition: 'auto',
+          inlineLabelAllowShrinking: false,
+          inlineLabelAllowTruncation: true,
+          inlineLabelColor: 'navy',
+        },
+      });
+      const secondViewer = new Viewer('#second-map');
+
+      secondViewer.io.loadJSON(firstViewer.io.toJSON());
+
+      expect(secondViewer.annotation.toJSON()).toEqual(firstViewer.annotation.toJSON());
+      expect(secondViewer.annotation.labelPosition).toBe('auto');
+      expect(secondViewer.annotation.inlineLabelAllowShrinking).toBe(false);
+      expect(secondViewer.annotation.inlineLabelAllowTruncation).toBe(true);
+      expect(secondViewer.annotation.inlineLabelColor.rgbaString).toBe('rgba(0,0,128,1)');
+      expect(secondViewer.annotation.toJSON()).not.toHaveProperty('inlineLabelMinFontSize');
+      expect(secondViewer.annotation.toJSON()).not.toHaveProperty('inlineLabelPadding');
+    });
+
   });
 
   describe('exports', () => {
@@ -100,6 +139,27 @@ describe('IO', () => {
 
       expect(() => cgv.io.getSVG()).toThrow('Export rendering failed');
       expect(cgv.canvas._layers).toBe(originalLayers);
+    });
+
+    test('renders inline feature labels through the SVG canvas context', () => {
+      let svgContext;
+      cgv.externals.SVGContext = function() {
+        svgContext = document.createElement('canvas').getContext('2d');
+        svgContext.getSerializedSvg = () => '<svg></svg>';
+        return svgContext;
+      };
+      cgv.annotation.update({labelPosition: 'inline'});
+      cgv.addFeatures([{name: 'svg label', source: 'test', start: 100, stop: 900, legend: 'Feature'}]);
+      cgv.addTracks({
+        dataType: 'feature',
+        dataMethod: 'source',
+        dataKeys: 'test',
+        position: 'outside',
+      });
+
+      expect(cgv.io.getSVG()).toBe('<svg></svg>');
+      expect(svgContext.fillText.mock.calls.map(call => call[0]))
+        .toEqual(expect.arrayContaining(Array.from('svg label')));
     });
 
   });

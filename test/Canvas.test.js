@@ -17,6 +17,7 @@ describe('Canvas', () => {
       restore: jest.fn(),
       rotate: jest.fn(),
       save: jest.fn(),
+      scale: jest.fn(),
       setLineDash: jest.fn(),
       stroke: jest.fn(),
       strokeText: jest.fn(),
@@ -31,6 +32,7 @@ describe('Canvas', () => {
           return stop >= start ? stop - start : this.length + (stop - start);
         },
       },
+      scale: {bp: jest.fn(bp => bp / 100)},
       settings: {
         arrowHeadLength: 0.3,
         borderColor: {rgbaString: 'rgba(0,0,0,1)'},
@@ -38,7 +40,6 @@ describe('Canvas', () => {
         showBorder: false,
         showShading: false,
       },
-      scale: {bp: jest.fn(bp => bp / 100)},
       zoomFactor: 1,
     };
     canvas._layerNames = ['map'];
@@ -126,22 +127,30 @@ describe('Canvas', () => {
     expect(canvas.pointForBp).toHaveBeenCalledWith(14.55, 100);
   });
 
-  test('draws measured text along an arc with the complete halo pass first', () => {
+  test('reports the same configured and automatic arrowhead lengths used for drawing', () => {
+    canvas.pixelsPerBp.mockReturnValue(1);
+
+    expect(canvas.arrowHeadLengthPixels({centerOffset: 100, featureLengthBp: 20, width: 20})).toBe(6);
+    expect(canvas.arrowHeadLengthPixels({autoArrow: true, centerOffset: 100, featureLengthBp: 5, width: 20})).toBe(0);
+    expect(canvas.arrowHeadLengthPixels({autoArrow: true, centerOffset: 100, featureLengthBp: 8, width: 20})).toBe(3);
+    expect(canvas.arrowHeadLengthPixels({autoArrow: true, centerOffset: 100, featureLengthBp: 20, width: 20})).toBe(6);
+  });
+
+  test('draws curved text with a complete halo pass before glyph fills', () => {
     canvas.pixelsPerBp.mockReturnValue(2);
 
-    const drawn = canvas.drawTextAlongArc({
+    expect(canvas.drawTextAlongArc({
       bp: 50,
       centerOffset: 100,
       characters: ['A', 'B'],
-      widths: [10, 10],
-      totalWidth: 20,
-      font: 'normal 10px sans-serif',
+      widths: [4, 6],
+      totalWidth: 10,
+      font: 'normal 12px sans-serif',
       color: 'black',
       haloColor: 'white',
-      haloWidth: 4,
-    });
+      haloWidth: 3,
+    })).toBe(true);
 
-    expect(drawn).toBe(true);
     expect(context.strokeText.mock.calls.map(call => call[0])).toEqual(['A', 'B']);
     expect(context.fillText.mock.calls.map(call => call[0])).toEqual(['A', 'B']);
     expect(Math.max(...context.strokeText.mock.invocationCallOrder))
@@ -181,6 +190,26 @@ describe('Canvas', () => {
 
     expect(drawn).toBe(false);
     expect(context.fillText).not.toHaveBeenCalled();
+  });
+
+  test('scales curved glyphs around their fixed centers', () => {
+    canvas.pixelsPerBp.mockReturnValue(2);
+
+    expect(canvas.drawTextAlongArc({
+      bp: 50,
+      centerOffset: 100,
+      characters: ['A', 'B'],
+      widths: [4, 6],
+      widthScale: 0.75,
+      totalWidth: 7.5,
+      font: 'normal 12px sans-serif',
+      color: 'black',
+    })).toBe(true);
+
+    expect(context.scale.mock.calls).toEqual([
+      [0.75, 0.75],
+      [0.75, 0.75],
+    ]);
   });
 
 });

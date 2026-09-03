@@ -299,6 +299,9 @@ class Slot extends CGObject {
       const start = range.start;
       const stop = range.stop;
       if (this.hasFeatures) {
+        const annotation = this.viewer.annotation;
+        const drawInlineLabels = annotation.visible && ['inline', 'auto'].includes(annotation.labelPosition);
+        const drawnFeatures = drawInlineLabels ? [] : undefined;
         let featureCount = this._features.length;
         if (!range.isMapLength()) {
           featureCount = this._featureNCList.count(start, stop);
@@ -324,12 +327,18 @@ class Slot extends CGObject {
           const sortedFeatures = this._featureNCList.find(start, stop, step).sort((a, b) => (a.score - b.score) || (a.length - b.length) );
           for (const feature of sortedFeatures) {
             feature.draw('map', slotCenterOffset, slotThickness, range, {showShading: showShading});
+            drawnFeatures?.push(feature);
           }
         } else {
           // Draw by position (more efficient)
           this._featureNCList.run(start, stop, step, (feature) => {
             feature.draw('map', slotCenterOffset, slotThickness, range, {showShading: showShading});
+            drawnFeatures?.push(feature);
           });
+        }
+
+        if (drawInlineLabels) {
+          annotation.drawFeatureLabels(drawnFeatures, slotCenterOffset, slotThickness, range, this);
         }
 
         // Debug
@@ -379,5 +388,3 @@ class Slot extends CGObject {
 }
 
 export default Slot;
-
-

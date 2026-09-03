@@ -133,6 +133,18 @@ class Backbone extends CGObject {
   }
 
   /**
+   * Return the backbone color rendered beneath a contig.
+   * @param {Contig} contig - Contig whose backbone color is required.
+   * @return {Color} The contig override or configured backbone color.
+   * @private
+   */
+  colorForContig(contig) {
+    if (!this.sequence.hasMultipleContigs) { return this.color; }
+    if (contig?.color) { return contig.color; }
+    return contig?.index % 2 === 0 ? this.color : this.colorAlternate;
+  }
+
+  /**
    * @member {String} - Get or set the decoration for the backbone contigs: 'arrow' or 'arc'
    */
   get decoration() {
@@ -323,10 +335,7 @@ class Backbone extends CGObject {
           if (stop > this.visibleRange.stop && !this.visibleRange.isWrapped()) {
             stop = this.visibleRange.stop;
           }
-          let color = (contig.index % 2 === 0) ? this.color : this.colorAlternate;
-          if (contig.color) {
-            color = contig.color;
-          }
+          const color = this.colorForContig(contig);
           this.viewer.canvas.drawElement({layer: 'map', start, stop, centerOffset: this.adjustedCenterOffset, color: color.rgbaString, width: this.adjustedThickness, decoration: this.directionalDecorationForContig(contig), showShading: this.showShading, showBorder: this.showBorder});
         }
       } else {
@@ -402,4 +411,3 @@ class Backbone extends CGObject {
 }
 
 export default Backbone;
-

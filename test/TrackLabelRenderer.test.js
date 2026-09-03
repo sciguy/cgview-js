@@ -291,6 +291,21 @@ describe('Track labels', () => {
       .toBeLessThan(Math.min(...ctx.fillText.mock.invocationCallOrder));
   });
 
+  test('exposes padded map-space bounds for inline-label collision checks', () => {
+    const cgv = viewerWithTrack();
+    zoomForLabels(cgv);
+    const renderer = cgv.layout._trackLabelRenderer;
+    const [plan] = renderer.plans();
+    const [bounds] = renderer.exclusionBounds();
+    const pixelsPerBp = cgv.canvas.pixelsPerBp(plan.centerOffset);
+
+    expect(bounds.slot).toBe(plan.slot);
+    expect(bounds.bp).toBe(plan.bp);
+    expect(bounds.halfBp).toBeGreaterThan(plan.totalWidth / (2 * pixelsPerBp));
+    expect(bounds.innerOffset).toBeLessThan(plan.centerOffset - (renderer.font.height / 2));
+    expect(bounds.outerOffset).toBeGreaterThan(plan.centerOffset + (renderer.font.height / 2));
+  });
+
   test('draws foreground track labels after map data and before overlays', () => {
     const cgv = viewerWithTrack();
     const drawSlots = jest.spyOn(cgv.layout, 'drawAllSlots').mockImplementation(() => {});

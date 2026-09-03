@@ -794,19 +794,31 @@ class Feature extends CGObject {
   highlight(slot) {
     if (!this.visible) { return; }
     this.canvas.clear('ui');
+    const annotation = this.viewer.annotation;
 
-    if (this.viewer.annotation.visible) {
+    if (annotation.visible) {
       this.label._highlight();
     }
 
     const color = this.color.copy();
     color.highlight();
-    if (slot && slot.features().includes(this)) {
+    const drawHighlight = (slot) => {
       this.draw('ui', slot.centerOffset, slot.thickness, slot.visibleRange, {color: color});
+      annotation.drawFeatureLabels(
+        [this],
+        slot.centerOffset,
+        slot.thickness,
+        slot.visibleRange,
+        slot,
+        'ui'
+      );
+    };
+    if (slot && slot.features().includes(this)) {
+      drawHighlight(slot);
     } else {
       this.viewer.slots().each( (i, slot) => {
         if (slot.features().includes(this)) {
-          this.draw('ui', slot.centerOffset, slot.thickness, slot.visibleRange, {color: color});
+          drawHighlight(slot);
         }
       });
     }
@@ -1045,4 +1057,3 @@ class Feature extends CGObject {
 }
 
 export default Feature;
-

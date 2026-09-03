@@ -284,6 +284,7 @@ function loadMapJSON(json, name) {
   const distance = cgv.sequence.length / 100;
   labelDistance.value = Math.floor(distance);
   labelFontSize.value = cgv.annotation.font.size;
+  syncLabelOptions();
 
   cgv.draw();
   setTimeout( () => {
@@ -536,6 +537,47 @@ function newPostion(bp, change, length) {
 
 const labelDistance = document.getElementById('labels-move-distance');
 const labelFontSize = document.getElementById('labels-font-size');
+const labelPositionRadios = document.querySelectorAll('input[name="labels-position"]');
+const labelInlineShrink = document.getElementById('labels-inline-shrink');
+const labelInlineTruncate = document.getElementById('labels-inline-truncate');
+
+function syncLabelOptions() {
+  labelPositionRadios.forEach((radio) => {
+    radio.checked = radio.value === cgv.annotation.labelPosition;
+  });
+  const inlineEnabled = ['inline', 'auto'].includes(cgv.annotation.labelPosition);
+  labelInlineShrink.checked = cgv.annotation.inlineLabelAllowShrinking;
+  labelInlineTruncate.checked = cgv.annotation.inlineLabelAllowTruncation;
+  labelInlineShrink.disabled = !inlineEnabled;
+  labelInlineTruncate.disabled = !inlineEnabled;
+}
+
+labelPositionRadios.forEach((radio) => {
+  radio.addEventListener('change', (e) => {
+    if (!e.target.checked) { return; }
+    cgv.annotation.update({labelPosition: e.target.value});
+    cgv.draw();
+  });
+});
+
+cgv.on('annotation-update.label-position-options', () => {
+  if (!cgv.loading) {
+    syncLabelOptions();
+  }
+});
+
+syncLabelOptions();
+
+labelInlineShrink.addEventListener('change', (e) => {
+  cgv.annotation.update({inlineLabelAllowShrinking: e.target.checked});
+  cgv.draw();
+});
+
+labelInlineTruncate.addEventListener('change', (e) => {
+  cgv.annotation.update({inlineLabelAllowTruncation: e.target.checked});
+  cgv.draw();
+});
+
 labelFontSize.addEventListener('change', (e) => {
   cgv.annotation.update({font: `monospace, plain, ${labelFontSize.value}`});
   cgv.draw();

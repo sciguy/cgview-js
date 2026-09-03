@@ -216,12 +216,7 @@ class TrackLabelRenderer {
   }
 
   _sequenceDetailIsReadable() {
-    const sequence = this.viewer.sequence;
-    const pixelsPerBp = this.viewer.backbone.pixelsPerBp();
-    const naturalBaseWidth = sequence.bpSpacing - sequence.bpMargin;
-    if (!sequence.visible || !Number.isFinite(pixelsPerBp) || naturalBaseWidth <= 0) { return false; }
-    const scaleFactor = Math.min(1, pixelsPerBp / naturalBaseWidth);
-    return pixelsPerBp >= 1 && scaleFactor >= 0.5;
+    return this.viewer.sequence.isDetailReadable();
   }
 
   _planForSlot(track, slot, detail, ctx) {
@@ -278,6 +273,26 @@ class TrackLabelRenderer {
     const blackContrast = (luminance + 0.05) / 0.05;
     const whiteContrast = 1.05 / (luminance + 0.05);
     return new Color(blackContrast >= whiteContrast ? 'black' : 'white');
+  }
+
+  /**
+   * Return the map-space bounds reserved for visible track labels. Inline
+   * feature labels use these bounds before either label type is painted.
+   * @private
+   */
+  exclusionBounds(ctx = this.canvas.context('foreground')) {
+    const padding = 2;
+    return this.plans(ctx).flatMap((plan) => {
+      const pixelsPerBp = this.canvas.pixelsPerBp(plan.centerOffset);
+      if (!Number.isFinite(pixelsPerBp) || pixelsPerBp <= 0) { return []; }
+      return [{
+        slot: plan.slot,
+        bp: plan.bp,
+        halfBp: ((plan.totalWidth / 2) + padding) / pixelsPerBp,
+        innerOffset: plan.centerOffset - (this.font.height / 2) - padding,
+        outerOffset: plan.centerOffset + (this.font.height / 2) + padding,
+      }];
+    });
   }
 
   _drawLinear(ctx, plan, textColor, haloColor) {

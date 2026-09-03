@@ -28,7 +28,7 @@
     <script src="../scripts/svgcanvas.iife.js"></script>
     <!-- CGView -->
     <!-- <script src='../dist/cgview.min.js'></script> -->
-    <script src='../dist/cgview.js?v=ruler-label-presentations'></script>
+    <script src='../dist/cgview.js?v=inline-labels-ruler-labels'></script>
 
     <link rel="stylesheet" href="../dist/cgview.css" />
     <link rel="stylesheet" href="../styles/controls.css" />
@@ -38,7 +38,7 @@
 
     <!-- Dev Page -->
     <script src='performance.js'></script>
-    <link rel="stylesheet" href="test.css?v=ruler-testing-controls" />
+    <link rel="stylesheet" href="test.css?v=inline-labels-ruler-labels" />
     <!-- Test Map Data -->
     <script src='maps.js'></script>
 
@@ -163,6 +163,17 @@
         </div>
         <div class='section-labels'>
           <div class='test-heading'>Label Testing</div>
+          <div class='label-row labels-position' role='radiogroup' aria-labelledby='labels-position-title'>
+            <span id='labels-position-title'>Position:</span>
+            <label><input type='radio' name='labels-position' value='outside' /> Outside</label>
+            <label><input type='radio' name='labels-position' value='inline' /> Inline</label>
+            <label><input type='radio' name='labels-position' value='auto' /> Auto</label>
+          </div>
+          <div class='label-row labels-inline-options'>
+            <span>Inline:</span>
+            <label><input id='labels-inline-shrink' type='checkbox' /> Shrink</label>
+            <label><input id='labels-inline-truncate' type='checkbox' /> Truncate</label>
+          </div>
           <div class='label-row'>
             <button id='labels-default' type="button" class="btn btn-sm btn-outline-secondary">Default</button>
             <button id='labels-angled' type="button" class="btn btn-sm btn-outline-secondary">Angled</button>
@@ -225,7 +236,7 @@
     <!-- Bootstrap JavaScript -->
     <script src="../scripts/bootstrap.min.js"></script>
 
-    <script src='test.js?v=ruler-testing-controls'></script>
+    <script src='test.js?v=inline-labels-ruler-labels'></script>
     <script src='../scripts/controls.js'></script>
 
   </body>

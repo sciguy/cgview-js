@@ -19,25 +19,56 @@ const scenarios = [
     id: 'small',
     name: 'Mitochondria, no plots',
     fixture: 'docs/test/maps/basic_mito_no_plots.json',
-    mapOverrides: {settings: {format: 'circular'}}
+    mapOverrides: {
+      annotation: {labelPosition: 'outside'},
+      settings: {format: 'circular'}
+    }
+  },
+  {
+    id: 'small-inline-labels',
+    name: 'Mitochondria, automatic labels',
+    fixture: 'docs/test/maps/basic_mito_no_plots.json',
+    mapOverrides: {
+      annotation: {labelPosition: 'auto'},
+      settings: {format: 'circular'}
+    }
   },
   {
     id: 'medium-contigs-circular',
     name: 'E. coli PA2 contigs (circular)',
     fixture: 'docs/test/maps/contigs_ecoli_pa2.json',
-    mapOverrides: {settings: {format: 'circular'}}
+    mapOverrides: {
+      annotation: {labelPosition: 'outside'},
+      settings: {format: 'circular'}
+    }
   },
   {
     id: 'medium-contigs-linear',
     name: 'E. coli PA2 contigs (linear)',
     fixture: 'docs/test/maps/contigs_ecoli_pa2.json',
-    mapOverrides: {settings: {format: 'linear'}}
+    mapOverrides: {
+      annotation: {labelPosition: 'outside'},
+      settings: {format: 'linear'}
+    }
   },
   {
     id: 'large',
     name: 'L. guizhouensis, no plots',
     fixture: 'docs/test/maps/large_lentzea_no_plots.json',
-    mapOverrides: {settings: {format: 'circular'}}
+    mapOverrides: {
+      annotation: {labelPosition: 'outside'},
+      settings: {format: 'circular'}
+    }
+  },
+  {
+    id: 'large-inline-labels',
+    name: 'L. guizhouensis, automatic labels',
+    fixture: 'docs/test/maps/large_lentzea_no_plots.json',
+    mapOverrides: {
+      annotation: {labelPosition: 'auto'},
+      settings: {format: 'circular'}
+    },
+    zoomLevels: [1, 5, 10, 750, 1000]
   }
 ];
 
@@ -265,7 +296,8 @@ async function runScenario(browser, target, scenario, options) {
       iterations,
       legendDecoration,
       name,
-      warmupIterations
+      warmupIterations,
+      zoomLevels
     }) => {
       const viewer = new CGView.Viewer('#my-viewer', {
         height: 600,
@@ -282,7 +314,7 @@ async function runScenario(browser, target, scenario, options) {
         });
       }
 
-      const benchmark = new CGVPerformance(viewer, name, iterations, {warmupIterations});
+      const benchmark = new CGVPerformance(viewer, name, iterations, {warmupIterations, zoomLevels});
       await benchmark.ready;
       return benchmark.toJSON();
     }, {
@@ -290,7 +322,8 @@ async function runScenario(browser, target, scenario, options) {
       iterations: options.iterations,
       legendDecoration: scenario.legendDecoration,
       name: scenario.name,
-      warmupIterations: options.warmupIterations
+      warmupIterations: options.warmupIterations,
+      zoomLevels: scenario.zoomLevels
     });
 
     if (pageErrors.length > 0) {
