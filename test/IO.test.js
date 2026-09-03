@@ -30,7 +30,7 @@ describe('IO', () => {
       expect( () => cgv.io.loadJSON(json) ).toThrow("No 'cgview' property found in JSON.");;
     });
 
-    test('loads legacy annotation JSON with external labels by default', () => {
+    test('loads annotation JSON with automatic labels by default', () => {
       const json = {
         cgview: {
           version: '1.8.0',
@@ -41,18 +41,18 @@ describe('IO', () => {
 
       cgv.io.loadJSON(json);
 
-      expect(cgv.annotation.labelPosition).toBe('external');
-      expect(cgv.annotation.inlineLabelMinFontSize).toBe(8);
-      expect(cgv.annotation.inlineLabelPadding).toBe(2);
+      expect(cgv.annotation.labelPosition).toBe('auto');
+      expect(cgv.annotation.inlineLabelAllowShrinking).toBe(true);
+      expect(cgv.annotation.inlineLabelAllowTruncation).toBe(false);
     });
 
     test('round trips inline annotation settings through CGView JSON', () => {
       document.body.innerHTML = '<div id="map"></div><div id="second-map"></div>';
       const firstViewer = new Viewer('#map', {
         annotation: {
-          labelPosition: 'both',
-          inlineLabelMinFontSize: 7,
-          inlineLabelPadding: 4,
+          labelPosition: 'auto',
+          inlineLabelAllowShrinking: false,
+          inlineLabelAllowTruncation: true,
           inlineLabelColor: 'navy',
         },
       });
@@ -61,8 +61,12 @@ describe('IO', () => {
       secondViewer.io.loadJSON(firstViewer.io.toJSON());
 
       expect(secondViewer.annotation.toJSON()).toEqual(firstViewer.annotation.toJSON());
-      expect(secondViewer.annotation.labelPosition).toBe('both');
+      expect(secondViewer.annotation.labelPosition).toBe('auto');
+      expect(secondViewer.annotation.inlineLabelAllowShrinking).toBe(false);
+      expect(secondViewer.annotation.inlineLabelAllowTruncation).toBe(true);
       expect(secondViewer.annotation.inlineLabelColor.rgbaString).toBe('rgba(0,0,128,1)');
+      expect(secondViewer.annotation.toJSON()).not.toHaveProperty('inlineLabelMinFontSize');
+      expect(secondViewer.annotation.toJSON()).not.toHaveProperty('inlineLabelPadding');
     });
 
   });

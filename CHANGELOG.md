@@ -14,7 +14,9 @@
 - Added marquee selection with shift-drag.
 - Added a Selection checkbox to the test page options.
 - Added `showTrackLabels` for compact feature and plot track identification at close zoom in circular and linear maps. Feature slots include strand, reading-frame, type, or legend details, based on work by @paulstothard.
-- Added `Annotation.labelPosition` modes for inline feature labels and external fallbacks, with bounded font shrinking, padding, contrast-aware colors, collision handling, and circular or linear text rendering, based on work by @paulstothard.
+- Added `Annotation.labelPosition` modes for outside, inline, and automatic feature labels, with automatic placement as the default. Inline labels include smooth bounded font shrinking, optional ellipsis truncation, internal padding, contrast-aware colors, collision handling, and circular or linear text rendering, based on work by @paulstothard.
+- Fixed inline labels moving in whole-base jumps while panning at high zoom.
+- Fixed shrunken inline-label text jitter by scaling glyphs around stable baseline origins.
 - Fixed unnamed feature popovers showing `undefined`.
 - Kept hover highlights below legends and captions.
 - Cleared transient hover state when the pointer leaves the viewer.

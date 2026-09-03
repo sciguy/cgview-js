@@ -24,8 +24,19 @@
 
 import Color from './Color';
 
+const ELLIPSIS = '…';
+const MIN_TRUNCATED_CHARACTERS = 3;
+const FONT_SIZE_STEPS_PER_PIXEL = 10;
+const FIT_TOLERANCE = 0.01;
+const INLINE_LABEL_MIN_FONT_SIZE = 8;
+const INLINE_LABEL_PADDING = 2;
 const OPAQUE_WHITE = new Color('white');
 const MAX_COLOR_CACHE_SIZE = 128;
+
+function fontSizeThatDoesNotExceed(size) {
+  return Math.floor((size + 1e-9) * FONT_SIZE_STEPS_PER_PIXEL) /
+    FONT_SIZE_STEPS_PER_PIXEL;
+}
 
 /**
  * Fit and draw feature names inside their rendered feature bodies. Public
@@ -89,7 +100,18 @@ class FeatureLabelRenderer {
         const start = Math.max(featureStart, visibleStart);
         const stop = Math.min(featureStop, visibleStop);
         if (start <= stop) {
-          segments.push({start, stop, length: stop - start + 1});
+          const startClipped = start > featureStart;
+          const stopClipped = stop < featureStop;
+          const startEdge = startClipped ? start : start - 0.5;
+          const stopEdge = stopClipped ? stop : stop + 0.5;
+          segments.push({
+            start,
+            stop,
+            startEdge,
+            length: stopEdge - startEdge,
+            startClipped,
+            stopClipped,
+          });
         }
       }
     }
@@ -103,8 +125,11 @@ class FeatureLabelRenderer {
         const mergedSegment = {
           start: lastSegment.start,
           stop: firstSegment.stop,
+          startEdge: lastSegment.startEdge,
           length: lastSegment.length + firstSegment.length,
           wrapped: true,
+          startClipped: lastSegment.startClipped,
+          stopClipped: firstSegment.stopClipped,
         };
         return segments
           .filter(segment => segment !== firstSegment && segment !== lastSegment)
@@ -181,6 +206,21 @@ class FeatureLabelRenderer {
       };
       this._glyphWidthCache.set(label, measurement);
     }
+    if (this.annotation.inlineLabelAllowTruncation &&
+      measurement.characters.length > MIN_TRUNCATED_CHARACTERS) {
+      if (!measurement.prefixWidths) {
+        measurement.prefixWidths = [0];
+        for (const width of measurement.widths) {
+          measurement.prefixWidths.push(
+            measurement.prefixWidths[measurement.prefixWidths.length - 1] + width
+          );
+        }
+      }
+      if (measurement.ellipsisWidth === undefined) {
+        ctx.font = font.css;
+        measurement.ellipsisWidth = Math.max(1, ctx.measureText(ELLIPSIS).width);
+      }
+    }
     return measurement;
   }
 
@@ -188,28 +228,87 @@ class FeatureLabelRenderer {
     return this.viewer.format === 'circular' ? measurement.curvedWidth : measurement.linearWidth;
   }
 
+  _minimumBaseTextWidth(measurement) {
+    const fullWidth = this._baseTextWidth(measurement);
+    if (!this.annotation.inlineLabelAllowTruncation ||
+      measurement.characters.length <= MIN_TRUNCATED_CHARACTERS) {
+      return fullWidth;
+    }
+    const truncatedWidth = measurement.prefixWidths[MIN_TRUNCATED_CHARACTERS] +
+      measurement.ellipsisWidth;
+    return Math.min(fullWidth, truncatedWidth);
+  }
+
   _textPlan(feature, availableWidth, availableHeight, measurement) {
+    const annotation = this.annotation;
     const font = feature.label.font;
+    const allowShrinking = annotation.inlineLabelAllowShrinking;
     const naturalSize = font.size;
-    const minimumSize = Math.min(naturalSize, this.annotation.inlineLabelMinFontSize);
-    const maximumSize = Math.min(naturalSize, Math.floor(availableHeight));
-    const baseTextWidth = this._baseTextWidth(measurement);
-    if (maximumSize < minimumSize || baseTextWidth <= 0) { return; }
+    const minimumSize = allowShrinking ?
+      Math.min(naturalSize, INLINE_LABEL_MIN_FONT_SIZE) :
+      naturalSize;
+    const maximumSize = allowShrinking ?
+      Math.min(naturalSize, fontSizeThatDoesNotExceed(availableHeight)) :
+      naturalSize;
+    const fullBaseWidth = this._baseTextWidth(measurement);
+    if (maximumSize < minimumSize || fullBaseWidth <= 0 ||
+      (!allowShrinking && availableHeight < naturalSize)) { return; }
 
-    const fittedSize = Math.min(
-      maximumSize,
-      Math.floor(naturalSize * availableWidth / baseTextWidth)
-    );
-    if (fittedSize < minimumSize) { return; }
+    const maximumScale = maximumSize / naturalSize;
+    if ((fullBaseWidth * maximumScale) <= (availableWidth + FIT_TOLERANCE)) {
+      return {
+        text: String(feature.name),
+        fontSize: maximumSize,
+        characters: measurement.characters,
+        widths: measurement.widths,
+        textWidth: fullBaseWidth * maximumScale,
+        widthScale: maximumScale,
+      };
+    }
 
-    const scale = fittedSize / naturalSize;
+    if (allowShrinking) {
+      const fittedSize = Math.min(
+        maximumSize,
+        fontSizeThatDoesNotExceed(naturalSize * availableWidth / fullBaseWidth)
+      );
+      if (fittedSize >= minimumSize) {
+        const scale = fittedSize / naturalSize;
+        return {
+          text: String(feature.name),
+          fontSize: fittedSize,
+          characters: measurement.characters,
+          widths: measurement.widths,
+          textWidth: fullBaseWidth * scale,
+          widthScale: scale,
+        };
+      }
+    }
+
+    if (!annotation.inlineLabelAllowTruncation ||
+      measurement.characters.length <= MIN_TRUNCATED_CHARACTERS) { return; }
+
+    const fontSize = allowShrinking ? minimumSize : naturalSize;
+    const maximumBaseWidth = availableWidth * naturalSize / fontSize;
+    let characterCount = measurement.characters.length - 1;
+    while (characterCount >= MIN_TRUNCATED_CHARACTERS &&
+      (measurement.prefixWidths[characterCount] + measurement.ellipsisWidth) >
+        (maximumBaseWidth + FIT_TOLERANCE)) {
+      characterCount -= 1;
+    }
+    if (characterCount < MIN_TRUNCATED_CHARACTERS) { return; }
+
+    const characters = measurement.characters.slice(0, characterCount).concat(ELLIPSIS);
+    const widths = measurement.widths.slice(0, characterCount).concat(measurement.ellipsisWidth);
+    const scale = fontSize / naturalSize;
+    const baseTextWidth = measurement.prefixWidths[characterCount] + measurement.ellipsisWidth;
     return {
-      text: String(feature.name),
-      fontSize: fittedSize,
-      characters: measurement.characters,
-      widths: measurement.widths,
+      text: characters.join(''),
+      fontSize,
+      characters,
+      widths,
       textWidth: baseTextWidth * scale,
       widthScale: scale,
+      truncated: true,
     };
   }
 
@@ -232,7 +331,7 @@ class FeatureLabelRenderer {
   }
 
   _usableSegment(feature, segment, centerOffset, width, pixelsPerBp) {
-    let start = segment.start - 0.5;
+    let start = segment.startEdge ?? segment.start - 0.5;
     let stop = start + segment.length;
     const arrow = this._terminalArrow(feature);
     if (!arrow || !this._segmentContains(segment, arrow.tip)) { return {start, stop}; }
@@ -260,23 +359,38 @@ class FeatureLabelRenderer {
 
     const adjustedCenterOffset = feature.adjustedCenterOffset(centerOffset, slotThickness);
     const adjustedWidth = feature.adjustedWidth(slotThickness);
-    const padding = this.annotation.inlineLabelPadding;
+    const padding = INLINE_LABEL_PADDING;
     const availableHeight = adjustedWidth - (padding * 2);
     const font = feature.label.font;
-    const minimumSize = Math.min(font.size, this.annotation.inlineLabelMinFontSize);
+    const minimumSize = this.annotation.inlineLabelAllowShrinking ?
+      Math.min(font.size, INLINE_LABEL_MIN_FONT_SIZE) :
+      font.size;
     if (availableHeight < minimumSize) { return; }
 
     const pixelsPerBp = this.canvas.pixelsPerBp(adjustedCenterOffset);
     if (!Number.isFinite(pixelsPerBp) || pixelsPerBp <= 0) { return; }
 
     // Reject labels that cannot fit even before clipping or arrowhead space is
-    // considered. Label widths are maintained by Annotation, so this avoids
-    // glyph measurement and segment allocation for obviously narrow features.
-    const minimumTextWidth = feature.label.width * minimumSize / font.size;
+    // considered. The common non-truncating path uses Annotation's maintained
+    // label width and avoids individual glyph measurements for narrow features.
     const maximumFeatureWidth = (feature.length * pixelsPerBp) - (padding * 2);
+    const canTruncate = this.annotation.inlineLabelAllowTruncation &&
+      name.length > MIN_TRUNCATED_CHARACTERS;
+    let measurement;
+    let minimumBaseTextWidth = feature.label.width;
+    if (canTruncate) {
+      // Every measured glyph is clamped to at least one pixel. This cheap
+      // lower bound retains the overview-scale rejection path even when
+      // truncation is enabled.
+      const absoluteMinimumWidth = (MIN_TRUNCATED_CHARACTERS + 1) * minimumSize / font.size;
+      if (maximumFeatureWidth < absoluteMinimumWidth) { return; }
+      measurement = this._measurementFor(feature);
+      minimumBaseTextWidth = this._minimumBaseTextWidth(measurement);
+    }
+    const minimumTextWidth = minimumBaseTextWidth * minimumSize / font.size;
     if (maximumFeatureWidth < minimumTextWidth) { return; }
 
-    const measurement = this._measurementFor(feature);
+    measurement ||= this._measurementFor(feature);
     const segments = this._visibleSegments(feature, visibleRange)
       .sort((first, second) => (second.length - first.length) || (first.start - second.start));
 
@@ -293,7 +407,16 @@ class FeatureLabelRenderer {
       const textPlan = this._textPlan(feature, availableWidth, availableHeight, measurement);
       if (!textPlan) { continue; }
 
-      const bp = this._normalizeBp((usableSegment.start + usableSegment.stop) / 2);
+      // When a feature spans the viewport, keep its label on the exact map
+      // center instead of an integer base-pair approximation. The float
+      // visible range handles one-sided clipping continuously as well.
+      let bp = this._normalizeBp((usableSegment.start + usableSegment.stop) / 2);
+      if (segment.startClipped && segment.stopClipped) {
+        const viewportBp = this._normalizeBp(this.viewer.bpFloat);
+        if (Number.isFinite(viewportBp) && this._segmentContains(segment, viewportBp)) {
+          bp = viewportBp;
+        }
+      }
       return {
         bp,
         centerOffset: adjustedCenterOffset,
@@ -306,7 +429,7 @@ class FeatureLabelRenderer {
   }
 
   _labelBounds(metrics) {
-    const padding = this.annotation.inlineLabelPadding;
+    const padding = INLINE_LABEL_PADDING;
     return {
       bp: metrics.bp,
       halfBp: ((metrics.textWidth / 2) + padding) / metrics.pixelsPerBp,
@@ -350,7 +473,7 @@ class FeatureLabelRenderer {
       }
     }
 
-    // Match external-label priorities and remain deterministic regardless of
+    // Match outside-label priorities and remain deterministic regardless of
     // the order used to paint feature bodies.
     candidates.sort((first, second) => {
       if (first.feature.favorite !== second.feature.favorite) {
@@ -375,6 +498,17 @@ class FeatureLabelRenderer {
     if (placements) { return placements; }
     if (!visibleRange) { return new Map(); }
 
+    // Slot drawing intentionally uses an integer-expanded range. Refine only
+    // label placement to a floating-point range so panning at more than one
+    // pixel per base pair does not move text in whole-base jumps.
+    const needsFloatRange = !visibleRange.isMapLength() &&
+      this.canvas.pixelsPerBp(slot.centerOffset) > 1;
+    const placementRange = !needsFloatRange ? visibleRange :
+      (this.canvas.visibleRangeForCenterOffset(slot.centerOffset, {
+        margin: slot.thickness,
+        float: true,
+      }) || visibleRange);
+
     // Placement always considers the complete visible set. A fast draw may
     // paint a sample, but its collision decisions must match the following
     // full draw.
@@ -383,7 +517,7 @@ class FeatureLabelRenderer {
       visibleFeatures,
       slot.centerOffset,
       slot.thickness,
-      visibleRange,
+      placementRange,
       slot
     );
     this._slotPlacements.set(slot, placements);
@@ -416,10 +550,14 @@ class FeatureLabelRenderer {
     const font = feature.label.font;
     ctx.save();
     ctx.translate(point.x, point.y);
-    ctx.font = font.cssScaled(metrics.widthScale);
+    ctx.font = font.css;
     ctx.fillStyle = metrics.color.rgbaString;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
+    if (metrics.widthScale !== 1) {
+      // Keep the baseline origin stable while the label changes size.
+      ctx.scale(metrics.widthScale, metrics.widthScale);
+    }
     ctx.fillText(metrics.text, 0, 0);
     ctx.restore();
   }
@@ -433,7 +571,7 @@ class FeatureLabelRenderer {
       widths: metrics.widths,
       widthScale: metrics.widthScale,
       totalWidth: metrics.textWidth,
-      font: font.cssScaled(metrics.widthScale),
+      font: font.css,
       color: metrics.color.rgbaString,
     });
   }
@@ -448,7 +586,7 @@ class FeatureLabelRenderer {
    * @private
    */
   draw(features, centerOffset, slotThickness, visibleRange, slot) {
-    if (!['inline', 'both'].includes(this.annotation.labelPosition) || !visibleRange) { return; }
+    if (!['inline', 'auto'].includes(this.annotation.labelPosition) || !visibleRange) { return; }
     const ctx = this.canvas.context('map');
     const placements = slot ?
       this._placementsForSlot(slot, visibleRange) :

@@ -46,12 +46,12 @@ import FeatureLabelRenderer from './FeatureLabelRenderer';
  * Attribute                        | Type      | Description
  * ---------------------------------|-----------|------------
  * [font](#font)                    | String    | A string describing the font [Default: 'monospace, plain, 12']. See {@link Font} for details.
- * [color](#color)                  | String   | A string describing the color of all labels [Default: undefined]. When undefined, external labels use the feature legend color and inline labels choose black or white for contrast. See {@link Color} for details.
+ * [color](#color)                  | String   | A string describing the color of all labels [Default: undefined]. When undefined, outside labels use the feature legend color and inline labels choose black or white for contrast. See {@link Color} for details.
  * [onlyDrawFavorites](#onlyDrawFavorites) | Boolean   | Only draw labels for features that are favorited [Default: false]
  * [labelPlacement](#labelPlacement) | String   | The label placement method for positioning labels. Choices: 'default', 'angled' [Default: 'default']
- * [labelPosition](#labelPosition) | String | Where feature labels are drawn. Choices: 'external', 'inline', 'both'. With 'both', external labels are fallbacks for labels that do not fit inline [Default: 'external']
- * [inlineLabelMinFontSize](#inlineLabelMinFontSize) | Number | Smallest permitted inline-label font in pixels [Default: 8]
- * [inlineLabelPadding](#inlineLabelPadding) | Number | Padding around inline labels in pixels [Default: 2]
+ * [labelPosition](#labelPosition) | String | Where feature labels are drawn. Choices: 'outside', 'inline', 'auto'. With 'auto', outside labels are fallbacks for labels that do not fit inline [Default: 'auto']
+ * [inlineLabelAllowShrinking](#inlineLabelAllowShrinking) | Boolean | Shrink inline labels down to the renderer's minimum font size [Default: true]
+ * [inlineLabelAllowTruncation](#inlineLabelAllowTruncation) | Boolean | Truncate inline labels with an ellipsis when the full name cannot fit [Default: false]
  * [inlineLabelColor](#inlineLabelColor) | String | Optional inline-label color override. When omitted, `color` is used if defined; otherwise black or white is selected for contrast against the rendered feature color.
  * [visible](CGObject.html#visible) | Boolean   | Labels are visible [Default: true]
  * [meta](CGObject.html#meta)       | Object    | [Meta data](tutorial-meta.html) for Annotation
@@ -70,11 +70,11 @@ import FeatureLabelRenderer from './FeatureLabelRenderer';
  * cgv.annotation.labelPlacementFast = 'default'
  * cgv.annotation.labelPlacementFull = 'angled'
  *
- * // Use inline labels where possible and external labels as fallbacks.
+ * // Use inline labels where possible and outside labels as fallbacks.
  * cgv.annotation.update({
- *   labelPosition: 'both',
- *   inlineLabelMinFontSize: 8,
- *   inlineLabelPadding: 2
+ *   labelPosition: 'auto',
+ *   inlineLabelAllowShrinking: true,
+ *   inlineLabelAllowTruncation: true
  * });
  * ```
  *
@@ -103,9 +103,9 @@ class Annotation extends CGObject {
     this.lineCap = 'round';
     // this.lineCap = 'butt';
     this.onlyDrawFavorites = utils.defaultFor(options.onlyDrawFavorites, false);
-    this.labelPosition = utils.defaultFor(options.labelPosition, 'external');
-    this.inlineLabelMinFontSize = utils.defaultFor(options.inlineLabelMinFontSize, 8);
-    this.inlineLabelPadding = utils.defaultFor(options.inlineLabelPadding, 2);
+    this.labelPosition = utils.defaultFor(options.labelPosition, 'auto');
+    this.inlineLabelAllowShrinking = utils.defaultFor(options.inlineLabelAllowShrinking, true);
+    this.inlineLabelAllowTruncation = utils.defaultFor(options.inlineLabelAllowTruncation, false);
     this.inlineLabelColor = options.inlineLabelColor;
     this._featureLabelRenderer = new FeatureLabelRenderer(this);
 
@@ -198,8 +198,8 @@ class Annotation extends CGObject {
   }
 
   /**
-   * @member {String} - Where feature labels are drawn: 'external', 'inline',
-   * or 'both'. In 'both' mode, external labels are only used when inline
+   * @member {String} - Where feature labels are drawn: 'outside', 'inline',
+   * or 'auto'. In 'auto' mode, outside labels are only used when inline
    * placement is unavailable.
    */
   get labelPosition() {
@@ -207,29 +207,29 @@ class Annotation extends CGObject {
   }
 
   set labelPosition(value) {
-    this._labelPosition = ['external', 'inline', 'both'].includes(value) ? value : 'external';
+    this._labelPosition = ['outside', 'inline', 'auto'].includes(value) ? value : 'auto';
   }
 
   /**
-   * @member {Number} - Smallest inline-label font size in pixels.
+   * @member {Boolean} - Whether inline labels may shrink to fit their feature.
    */
-  get inlineLabelMinFontSize() {
-    return this._inlineLabelMinFontSize;
+  get inlineLabelAllowShrinking() {
+    return this._inlineLabelAllowShrinking;
   }
 
-  set inlineLabelMinFontSize(value) {
-    this._inlineLabelMinFontSize = Math.max(1, Number(value) || 1);
+  set inlineLabelAllowShrinking(value) {
+    this._inlineLabelAllowShrinking = Boolean(value);
   }
 
   /**
-   * @member {Number} - Padding around inline labels in pixels.
+   * @member {Boolean} - Whether inline labels may be shortened with an ellipsis.
    */
-  get inlineLabelPadding() {
-    return this._inlineLabelPadding;
+  get inlineLabelAllowTruncation() {
+    return this._inlineLabelAllowTruncation;
   }
 
-  set inlineLabelPadding(value) {
-    this._inlineLabelPadding = Math.max(0, Number(value) || 0);
+  set inlineLabelAllowTruncation(value) {
+    this._inlineLabelAllowTruncation = Boolean(value);
   }
 
   /**
@@ -257,7 +257,7 @@ class Annotation extends CGObject {
    * @private
    */
   drawFeatureLabels(features, centerOffset, slotThickness, visibleRange, slot) {
-    if (!this.visible || !['inline', 'both'].includes(this.labelPosition)) { return; }
+    if (!this.visible || !['inline', 'auto'].includes(this.labelPosition)) { return; }
     this._featureLabelRenderer.draw(features, centerOffset, slotThickness, visibleRange, slot);
   }
 
@@ -543,7 +543,7 @@ class Annotation extends CGObject {
 
   draw(innerCenterOffset, outerCenterOffset, fast) {
     this._featureLabelRenderer.beginDraw();
-    if (!['external', 'both'].includes(this.labelPosition)) {
+    if (!['outside', 'auto'].includes(this.labelPosition)) {
       this._visibleLabels = new CGArray();
       return;
     }
@@ -562,9 +562,9 @@ class Annotation extends CGObject {
     // Find Labels that are within the visible range and calculate bounds
     let possibleLabels = this.visibleLabels(outerCenterOffset);
 
-    // Inline labels take precedence in combined mode. Features rejected by
-    // fitting or collision checks remain available as external fallbacks.
-    if (this.labelPosition === 'both') {
+    // Inline labels take precedence in auto mode. Features rejected by
+    // fitting or collision checks remain available as outside fallbacks.
+    if (this.labelPosition === 'auto') {
       const inlineFeatures = this._featureLabelRenderer.visibleInlineFeatures();
       if (inlineFeatures.size > 0) {
         possibleLabels = possibleLabels.filter(label => !inlineFeatures.has(label.feature));
@@ -647,7 +647,7 @@ class Annotation extends CGObject {
   update(attributes) {
     this.viewer.updateRecords(this, attributes, {
       recordClass: 'Annotation',
-      validKeys: ['color', 'font', 'onlyDrawFavorites', 'visible', 'labelPlacement', 'labelPosition', 'inlineLabelMinFontSize', 'inlineLabelPadding', 'inlineLabelColor']
+      validKeys: ['color', 'font', 'onlyDrawFavorites', 'visible', 'labelPlacement', 'labelPosition', 'inlineLabelAllowShrinking', 'inlineLabelAllowTruncation', 'inlineLabelColor']
     });
     this.viewer.trigger('annotation-update', { attributes });
   }
@@ -661,8 +661,8 @@ class Annotation extends CGObject {
       color: this.color && this.color.rgbaString,
       onlyDrawFavorites: this.onlyDrawFavorites,
       labelPosition: this.labelPosition,
-      inlineLabelMinFontSize: this.inlineLabelMinFontSize,
-      inlineLabelPadding: this.inlineLabelPadding,
+      inlineLabelAllowShrinking: this.inlineLabelAllowShrinking,
+      inlineLabelAllowTruncation: this.inlineLabelAllowTruncation,
       inlineLabelColor: this.inlineLabelColor && this.inlineLabelColor.rgbaString,
       // In most cases the full and fast method will be the same.
       // We could export both but for now we will only use the 'full' and it will be for both fast and full.

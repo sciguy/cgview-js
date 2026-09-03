@@ -158,7 +158,8 @@ hr {
   gap: 6px;
   margin-bottom: 6px;
 }
-.section-labels .labels-position label {
+.section-labels .labels-position label,
+.section-labels .labels-inline-options label {
   display: inline-flex;
   align-items: center;
   gap: 3px;

@@ -48,36 +48,39 @@ describe('Inline feature labels', () => {
     return new CGRange(cgv.sequence.mapContig, 1, cgv.sequence.length);
   }
 
-  test('defaults to external labels and serializes inline configuration', () => {
+  test('defaults to automatic labels and serializes inline configuration', () => {
     const cgv = viewerWithFeatures();
 
-    expect(cgv.annotation.labelPosition).toBe('external');
-    expect(cgv.annotation.inlineLabelMinFontSize).toBe(8);
-    expect(cgv.annotation.inlineLabelPadding).toBe(2);
+    expect(cgv.annotation.labelPosition).toBe('auto');
+    expect(cgv.annotation.inlineLabelAllowShrinking).toBe(true);
+    expect(cgv.annotation.inlineLabelAllowTruncation).toBe(false);
 
     cgv.annotation.update({
-      labelPosition: 'both',
-      inlineLabelMinFontSize: 7,
-      inlineLabelPadding: 3,
+      labelPosition: 'inline',
+      inlineLabelAllowShrinking: false,
+      inlineLabelAllowTruncation: true,
       inlineLabelColor: 'white',
     });
     expect(cgv.annotation.toJSON()).toMatchObject({
-      labelPosition: 'both',
-      inlineLabelMinFontSize: 7,
-      inlineLabelPadding: 3,
+      labelPosition: 'inline',
+      inlineLabelAllowShrinking: false,
+      inlineLabelAllowTruncation: true,
       inlineLabelColor: 'rgba(255,255,255,1)',
     });
+    expect(cgv.annotation.toJSON()).not.toHaveProperty('inlineLabelMinFontSize');
+    expect(cgv.annotation.toJSON()).not.toHaveProperty('inlineLabelPadding');
 
+    cgv.annotation.labelPosition = 'outside';
+    expect(cgv.annotation.labelPosition).toBe('outside');
     cgv.annotation.labelPosition = 'unsupported';
-    expect(cgv.annotation.labelPosition).toBe('external');
+    expect(cgv.annotation.labelPosition).toBe('auto');
   });
 
-  test('shrinks fitting labels to a configured floor and rejects smaller space', () => {
+  test('shrinks fitting labels to the internal floor and rejects smaller space', () => {
     const cgv = viewerWithFeatures({
       annotation: {
         font: 'sans-serif, plain, 16',
         labelPosition: 'inline',
-        inlineLabelMinFontSize: 8,
       },
       features: [{name: 'shrink me', start: 100, stop: 200, legend: 'Feature'}],
     });
@@ -95,6 +98,171 @@ describe('Inline feature labels', () => {
     expect(renderer.metricsFor(feature, 100, 20, fullRange(cgv))).toBeUndefined();
   });
 
+  test('fits shrinking labels in tenth-pixel increments', () => {
+    const cgv = viewerWithFeatures({
+      annotation: {
+        font: 'sans-serif, plain, 16',
+        labelPosition: 'inline',
+      },
+      features: [{name: 'smooth', start: 100, stop: 300, legend: 'Feature'}],
+    });
+    const feature = cgv.features(1);
+    const renderer = cgv.annotation._featureLabelRenderer;
+    const measurement = {
+      characters: Array.from(feature.name),
+      widths: Array.from(feature.name, () => 10),
+      prefixWidths: [0, 10, 20, 30, 40, 50, 60],
+      curvedWidth: 100,
+      linearWidth: 100,
+    };
+
+    const plan = renderer._textPlan(feature, 73.4, 15.75, measurement);
+
+    expect(plan.fontSize).toBe(11.7);
+    expect(plan.widthScale).toBeCloseTo(11.7 / 16);
+  });
+
+  test('scales straight text around a stable baseline origin', () => {
+    const cgv = viewerWithFeatures({
+      annotation: {font: 'sans-serif, plain, 16', labelPosition: 'inline'},
+      features: [{name: 'stable', start: 100, stop: 300, legend: 'Feature'}],
+      format: 'linear',
+    });
+    const feature = cgv.features(1);
+    const renderer = cgv.annotation._featureLabelRenderer;
+    const ctx = cgv.canvas.context('map');
+    ctx.scale.mockClear();
+    ctx.fillText.mockClear();
+
+    renderer._drawStraightLabel(ctx, feature, {
+      bp: 200,
+      centerOffset: 20,
+      color: feature.color.contrastColor(),
+      text: feature.name,
+      widthScale: 0.75,
+    });
+
+    expect(ctx.scale).toHaveBeenCalledWith(0.75, 0.75);
+    expect(ctx.fillText).toHaveBeenCalledWith('stable', 0, 0);
+  });
+
+  test('passes the natural font and render scale to curved text', () => {
+    const cgv = viewerWithFeatures({
+      annotation: {font: 'sans-serif, plain, 16', labelPosition: 'inline'},
+      features: [{name: 'stable', start: 100, stop: 300, legend: 'Feature'}],
+    });
+    const feature = cgv.features(1);
+    const renderer = cgv.annotation._featureLabelRenderer;
+    const drawTextAlongArc = jest.spyOn(cgv.canvas, 'drawTextAlongArc');
+
+    renderer._drawCurvedLabel(feature, {
+      bp: 200,
+      centerOffset: 100,
+      characters: Array.from(feature.name),
+      widths: Array.from(feature.name, () => 8),
+      widthScale: 0.75,
+      textWidth: 36,
+      color: feature.color.contrastColor(),
+    });
+
+    expect(drawTextAlongArc).toHaveBeenCalledWith(expect.objectContaining({
+      font: feature.label.font.css,
+      widthScale: 0.75,
+    }));
+  });
+
+  test('can disable shrinking independently of truncation', () => {
+    const cgv = viewerWithFeatures({
+      annotation: {
+        font: 'sans-serif, plain, 16',
+        labelPosition: 'inline',
+        inlineLabelAllowShrinking: false,
+      },
+      features: [{name: 'full size', start: 100, stop: 300, legend: 'Feature'}],
+    });
+    const feature = cgv.features(1);
+    const renderer = cgv.annotation._featureLabelRenderer;
+    cgv.canvas.context('map').measureText
+      .mockImplementation(text => ({width: Array.from(String(text)).length * 10}));
+    const measurement = renderer._measurementFor(feature);
+    const availableWidth = renderer._baseTextWidth(measurement) * 0.8;
+
+    expect(renderer._textPlan(feature, availableWidth, 20, measurement)).toBeUndefined();
+
+    cgv.annotation.update({inlineLabelAllowShrinking: true});
+    expect(renderer._textPlan(feature, availableWidth, 20, measurement).fontSize).toBe(12.8);
+  });
+
+  test('truncates labels with an ellipsis only when enabled', () => {
+    const cgv = viewerWithFeatures({
+      annotation: {
+        font: 'sans-serif, plain, 14',
+        labelPosition: 'inline',
+        inlineLabelAllowShrinking: false,
+        inlineLabelAllowTruncation: true,
+      },
+      legend: {items: [{name: 'Feature', decoration: 'arc'}]},
+      features: [{name: 'long descriptive label', start: 100, stop: 300, legend: 'Feature'}],
+    });
+    const feature = cgv.features(1);
+    const renderer = cgv.annotation._featureLabelRenderer;
+    const ctx = cgv.canvas.context('map');
+    ctx.measureText.mockImplementation(text => ({width: Array.from(String(text)).length * 10}));
+    const measurement = renderer._measurementFor(feature);
+    const targetWidth = measurement.prefixWidths[6] + measurement.ellipsisWidth;
+    jest.spyOn(cgv.canvas, 'pixelsPerBp')
+      .mockReturnValue((targetWidth + 4) / feature.length);
+    feature.label.width = 200;
+
+    const metrics = renderer.metricsFor(feature, 100, 20, fullRange(cgv));
+
+    expect(metrics.text).toBe('long d…');
+    expect(metrics.characters).toEqual(Array.from('long d…'));
+    expect(metrics.fontSize).toBe(14);
+    expect(metrics.textWidth).toBeLessThanOrEqual(metrics.availableWidth + 0.01);
+
+    cgv.annotation.update({inlineLabelAllowTruncation: false});
+    expect(renderer.metricsFor(feature, 100, 20, fullRange(cgv))).toBeUndefined();
+  });
+
+  test('uses bpFloat to move clipped labels continuously above one pixel per bp', () => {
+    const cgv = viewerWithFeatures({
+      annotation: {labelPosition: 'inline'},
+      features: [{name: 'spanning feature', source: 'test', start: 1, stop: 1000, legend: 'Feature'}],
+      format: 'linear',
+      track: {},
+    });
+    const renderer = cgv.annotation._featureLabelRenderer;
+    const slot = cgv.tracks(1).slots(1);
+    cgv.layout.zoom(5, 500);
+    cgv.layout.updateLayout();
+    const visibleRange = jest.spyOn(cgv.canvas, 'visibleRangeForCenterOffset');
+    const currentPlacement = () => {
+      renderer.beginDraw();
+      const drawingRange = cgv.canvas.visibleRangeForCenterOffset(slot.centerOffset, {
+        margin: slot.thickness,
+      });
+      return renderer._placementsForSlot(slot, drawingRange).get(cgv.features(1));
+    };
+
+    const beforePan = currentPlacement();
+    const beforePanBp = cgv.bpFloat;
+    cgv.layout.translate(0.25, 0);
+    const afterPan = currentPlacement();
+    const afterPanBp = cgv.bpFloat;
+    const panDelta = Math.abs(afterPan.bp - beforePan.bp);
+
+    expect(cgv.canvas.pixelsPerBp(slot.centerOffset)).toBeGreaterThan(1);
+    expect(visibleRange).toHaveBeenCalledWith(slot.centerOffset, {
+      margin: slot.thickness,
+      float: true,
+    });
+    expect(beforePan.bp).toBeCloseTo(beforePanBp, 10);
+    expect(afterPan.bp).toBeCloseTo(afterPanBp, 10);
+    expect(panDelta).toBeGreaterThan(0);
+    expect(panDelta).toBeLessThan(1);
+  });
+
   test('rejects labels that cannot fit before measuring individual glyphs', () => {
     const cgv = viewerWithFeatures({
       annotation: {font: 'sans-serif, plain, 12', labelPosition: 'inline'},
@@ -104,6 +272,20 @@ describe('Inline feature labels', () => {
     const renderer = cgv.annotation._featureLabelRenderer;
     feature.label.width = 80;
     jest.spyOn(cgv.canvas, 'pixelsPerBp').mockReturnValue(0.1);
+    const measure = jest.spyOn(renderer, '_measurementFor');
+
+    expect(renderer.metricsFor(feature, 100, 20, fullRange(cgv))).toBeUndefined();
+    expect(measure).not.toHaveBeenCalled();
+  });
+
+  test('retains the pre-measurement width guard when truncation is enabled', () => {
+    const cgv = viewerWithFeatures({
+      annotation: {labelPosition: 'inline', inlineLabelAllowTruncation: true},
+      features: [{name: 'far too wide to show', start: 100, stop: 200, legend: 'Feature'}],
+    });
+    const feature = cgv.features(1);
+    const renderer = cgv.annotation._featureLabelRenderer;
+    jest.spyOn(cgv.canvas, 'pixelsPerBp').mockReturnValue(0.01);
     const measure = jest.spyOn(renderer, '_measurementFor');
 
     expect(renderer.metricsFor(feature, 100, 20, fullRange(cgv))).toBeUndefined();
@@ -168,9 +350,9 @@ describe('Inline feature labels', () => {
     expect(linearContext.rotate).not.toHaveBeenCalled();
   });
 
-  test('uses external labels only when inline placement is unavailable', () => {
+  test('uses outside labels only when automatic inline placement is unavailable', () => {
     const cgv = viewerWithFeatures({
-      annotation: {labelPosition: 'both'},
+      annotation: {labelPosition: 'auto'},
       features: [
         {name: 'fits inline', source: 'test', start: 100, stop: 300, legend: 'Feature'},
         {name: 'needs fallback', source: 'test', start: 500, stop: 502, legend: 'Feature'},
@@ -183,14 +365,14 @@ describe('Inline feature labels', () => {
 
     cgv.annotation.draw(100, 150, false);
 
-    const externalNames = cgv.annotation._visibleLabels.map(label => label.feature.name);
-    expect(externalNames).toContain('needs fallback');
-    expect(externalNames).not.toContain('fits inline');
+    const outsideNames = cgv.annotation._visibleLabels.map(label => label.feature.name);
+    expect(outsideNames).toContain('needs fallback');
+    expect(outsideNames).not.toContain('fits inline');
   });
 
-  test('skips external-label membership checks when no inline labels fit', () => {
+  test('skips outside-label membership checks when no inline labels fit', () => {
     const cgv = viewerWithFeatures({
-      annotation: {labelPosition: 'both'},
+      annotation: {labelPosition: 'auto'},
       features: [
         {name: 'first fallback', source: 'test', start: 100, stop: 200, legend: 'Feature'},
         {name: 'second fallback', source: 'test', start: 300, stop: 400, legend: 'Feature'},

@@ -94,6 +94,12 @@ only present when they have non-default values (see the first [feature](#lines.1
 - _visible_ [Default: true]
 - _meta_ [Default: {}].  The _meta_ key is a place to store [user/app-defined meta data](tutorials/details-meta-data.html).
 
+Feature labels default to automatic placement, which puts fitting names inside
+features and uses outside labels as fallbacks. Set annotation `labelPosition`
+to `outside`, `inline`, or `auto`. Inline labels shrink by default and can optionally be
+shortened with an ellipsis by setting `inlineLabelAllowTruncation` to `true`.
+Shrinking and truncation can be controlled independently.
+
 ```json
 {
     "cgview": {
@@ -125,7 +131,10 @@ only present when they have non-default values (see the first [feature](#lines.1
             "color": "rgba(0,0,0,1)"
         },
         "annotation": {
-            "font": "sans-serif,plain,12"
+            "font": "sans-serif,plain,12",
+            "labelPosition": "auto",
+            "inlineLabelAllowShrinking": true,
+            "inlineLabelAllowTruncation": false
         },
         "dividers": {
             "track": {

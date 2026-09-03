@@ -17,6 +17,7 @@ describe('Canvas', () => {
       restore: jest.fn(),
       rotate: jest.fn(),
       save: jest.fn(),
+      scale: jest.fn(),
       setLineDash: jest.fn(),
       stroke: jest.fn(),
       strokeText: jest.fn(),
@@ -155,6 +156,26 @@ describe('Canvas', () => {
     expect(Math.max(...context.strokeText.mock.invocationCallOrder))
       .toBeLessThan(Math.min(...context.fillText.mock.invocationCallOrder));
     expect(context.rotate).toHaveBeenCalledTimes(4);
+  });
+
+  test('scales curved glyphs around their fixed centers', () => {
+    canvas.pixelsPerBp.mockReturnValue(2);
+
+    expect(canvas.drawTextAlongArc({
+      bp: 50,
+      centerOffset: 100,
+      characters: ['A', 'B'],
+      widths: [4, 6],
+      widthScale: 0.75,
+      totalWidth: 7.5,
+      font: 'normal 12px sans-serif',
+      color: 'black',
+    })).toBe(true);
+
+    expect(context.scale.mock.calls).toEqual([
+      [0.75, 0.75],
+      [0.75, 0.75],
+    ]);
   });
 
 });

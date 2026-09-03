@@ -300,7 +300,7 @@ class Slot extends CGObject {
       const stop = range.stop;
       if (this.hasFeatures) {
         const annotation = this.viewer.annotation;
-        const drawInlineLabels = annotation.visible && ['inline', 'both'].includes(annotation.labelPosition);
+        const drawInlineLabels = annotation.visible && ['inline', 'auto'].includes(annotation.labelPosition);
         const drawnFeatures = drawInlineLabels ? [] : undefined;
         let featureCount = this._features.length;
         if (!range.isMapLength()) {

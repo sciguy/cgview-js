@@ -690,7 +690,7 @@ class Canvas {
    * @param {Number} options.centerOffset - Distance from the map center.
    * @param {String[]} options.characters - Measured glyphs.
    * @param {Number[]} options.widths - Natural glyph widths in pixels.
-   * @param {Number} [options.widthScale=1] - Scale applied to glyph widths.
+   * @param {Number} [options.widthScale=1] - Scale applied to glyph widths and rendering.
    * @param {Number} options.totalWidth - Scaled total width in pixels.
    * @param {String} options.font - CSS font used to draw the glyphs.
    * @param {String} options.color - Fill color.
@@ -746,6 +746,11 @@ class Canvas {
         ctx.save();
         ctx.translate(point.x, point.y);
         ctx.rotate(angle);
+        if (widthScale !== 1) {
+          // Scale around the fixed glyph center instead of selecting a new
+          // fractional CSS font size, whose baseline can move as it is hinted.
+          ctx.scale(widthScale, widthScale);
+        }
         ctx[method](characters[index], 0, 0);
         ctx.restore();
         cursor += width;
