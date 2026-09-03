@@ -194,6 +194,72 @@ class Color {
   }
 
   /**
+   * Return the WCAG relative luminance of this color. Opacity is not included;
+   * use {@link Color#compositeOver} first when evaluating a translucent color.
+   * @return {Number} Relative luminance between 0 (black) and 1 (white).
+   */
+  get relativeLuminance() {
+    const rgb = this.rgb;
+    const linearChannel = value => {
+      const channel = value / 255;
+      return channel <= 0.04045 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4;
+    };
+    return (0.2126 * linearChannel(rgb.r)) +
+      (0.7152 * linearChannel(rgb.g)) +
+      (0.0722 * linearChannel(rgb.b));
+  }
+
+  /**
+   * Return the color produced by drawing this color over a background color.
+   * Neither input color is modified.
+   * @param {(Color|String|Object)} background - Background color.
+   * @return {Color} The alpha-composited color.
+   */
+  compositeOver(background) {
+    const backgroundColor = background?.toString() === 'Color' ? background : new Color(background);
+    const foregroundRgba = this.rgba;
+    const backgroundRgba = backgroundColor.rgba;
+    const alpha = foregroundRgba.a + (backgroundRgba.a * (1 - foregroundRgba.a));
+    if (alpha === 0) { return new Color('rgba(0,0,0,0)'); }
+    const component = name => Math.round(
+      ((foregroundRgba[name] * foregroundRgba.a) +
+       (backgroundRgba[name] * backgroundRgba.a * (1 - foregroundRgba.a))) / alpha
+    );
+    return new Color({
+      r: component('r'),
+      g: component('g'),
+      b: component('b'),
+      a: alpha,
+    });
+  }
+
+  /**
+   * Calculate the WCAG contrast ratio between this color and another color.
+   * @param {(Color|String|Object)} color - Color to compare.
+   * @return {Number} Contrast ratio between 1 and 21.
+   */
+  contrastRatio(color) {
+    const otherColor = color?.toString() === 'Color' ? color : new Color(color);
+    const lighter = Math.max(this.relativeLuminance, otherColor.relativeLuminance);
+    const darker = Math.min(this.relativeLuminance, otherColor.relativeLuminance);
+    return (lighter + 0.05) / (darker + 0.05);
+  }
+
+  /**
+   * Choose whichever of two text colors has greater contrast against this
+   * color. Black and white are used by default.
+   * @param {(Color|String|Object)} darkColor - Dark text candidate.
+   * @param {(Color|String|Object)} lightColor - Light text candidate.
+   * @return {Color} A copy of the higher-contrast candidate.
+   */
+  contrastColor(darkColor = 'black', lightColor = 'white') {
+    const dark = darkColor?.toString() === 'Color' ? darkColor : new Color(darkColor);
+    const light = lightColor?.toString() === 'Color' ? lightColor : new Color(lightColor);
+    const color = this.contrastRatio(dark) >= this.contrastRatio(light) ? dark : light;
+    return color.copy();
+  }
+
+  /**
    * Returns true if this color has the same value as the provided color
    * @param {Color} color - This color to compare with
    * @param {Boolean} ignoreAlpha - Should opacity be considered in the comparison
@@ -848,5 +914,4 @@ Color.names = function() {
 };
 
 export default Color;
-
 

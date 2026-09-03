@@ -22,7 +22,6 @@
  * limitations under the License.
  */
 
-import Color from './Color';
 import Font from './Font';
 
 // Feature flag for including plot tracks in close-zoom track identification.
@@ -216,12 +215,7 @@ class TrackLabelRenderer {
   }
 
   _sequenceDetailIsReadable() {
-    const sequence = this.viewer.sequence;
-    const pixelsPerBp = this.viewer.backbone.pixelsPerBp();
-    const naturalBaseWidth = sequence.bpSpacing - sequence.bpMargin;
-    if (!sequence.visible || !Number.isFinite(pixelsPerBp) || naturalBaseWidth <= 0) { return false; }
-    const scaleFactor = Math.min(1, pixelsPerBp / naturalBaseWidth);
-    return pixelsPerBp >= 1 && scaleFactor >= 0.5;
+    return this.viewer.sequence.isDetailReadable();
   }
 
   _planForSlot(track, slot, detail, ctx) {
@@ -266,63 +260,24 @@ class TrackLabelRenderer {
     return plans;
   }
 
-  _contrastColorFor(backgroundColor) {
-    const linearChannel = value => {
-      const channel = value / 255;
-      return channel <= 0.04045 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4;
-    };
-    const rgb = backgroundColor.rgb;
-    const luminance = (0.2126 * linearChannel(rgb.r)) +
-      (0.7152 * linearChannel(rgb.g)) +
-      (0.0722 * linearChannel(rgb.b));
-    const blackContrast = (luminance + 0.05) / 0.05;
-    const whiteContrast = 1.05 / (luminance + 0.05);
-    return new Color(blackContrast >= whiteContrast ? 'black' : 'white');
-  }
-
-  _textIsFlipped(bp) {
-    let angle = this.viewer.scale.bp(bp) + (Math.PI / 2);
-    while (angle > Math.PI) { angle -= Math.PI * 2; }
-    while (angle <= -Math.PI) { angle += Math.PI * 2; }
-    return angle > Math.PI / 2 || angle < -Math.PI / 2;
-  }
-
-  _drawCircular(ctx, plan, textColor, haloColor) {
-    const pixelsPerBp = this.canvas.pixelsPerBp(plan.centerOffset);
-    if (!Number.isFinite(pixelsPerBp) || pixelsPerBp <= 0) { return; }
-
-    const flipped = this._textIsFlipped(plan.bp);
-    const textDirection = flipped ? -1 : 1;
-    const drawGlyphPass = (method) => {
-      let cursor = -plan.totalWidth / 2;
-      for (let index = 0; index < plan.characters.length; index += 1) {
-        const width = plan.widths[index];
-        const pixelOffset = cursor + (width / 2);
-        const glyphBp = plan.bp + (textDirection * pixelOffset / pixelsPerBp);
-        const point = this.canvas.pointForBp(glyphBp, plan.centerOffset);
-        const angle = this.viewer.scale.bp(glyphBp) + (Math.PI / 2) + (flipped ? Math.PI : 0);
-        ctx.save();
-        ctx.translate(point.x, point.y);
-        ctx.rotate(angle);
-        ctx[method](plan.characters[index], 0, 0);
-        ctx.restore();
-        cursor += width;
-      }
-    };
-
-    ctx.save();
-    ctx.font = this.font.css;
-    ctx.fillStyle = textColor;
-    ctx.strokeStyle = haloColor;
-    ctx.lineWidth = 3.5;
-    ctx.lineJoin = 'round';
-    ctx.lineCap = 'round';
-    ctx.miterLimit = 2;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    drawGlyphPass('strokeText');
-    drawGlyphPass('fillText');
-    ctx.restore();
+  /**
+   * Return the map-space bounds reserved for visible track labels. Inline
+   * feature labels use these bounds before either label type is painted.
+   * @private
+   */
+  exclusionBounds(ctx = this.canvas.context('foreground')) {
+    const padding = 2;
+    return this.plans(ctx).flatMap((plan) => {
+      const pixelsPerBp = this.canvas.pixelsPerBp(plan.centerOffset);
+      if (!Number.isFinite(pixelsPerBp) || pixelsPerBp <= 0) { return []; }
+      return [{
+        slot: plan.slot,
+        bp: plan.bp,
+        halfBp: ((plan.totalWidth / 2) + padding) / pixelsPerBp,
+        innerOffset: plan.centerOffset - (this.font.height / 2) - padding,
+        outerOffset: plan.centerOffset + (this.font.height / 2) + padding,
+      }];
+    });
   }
 
   _drawLinear(ctx, plan, textColor, haloColor) {
@@ -349,14 +304,25 @@ class TrackLabelRenderer {
     if (plans.length === 0) { return; }
 
     const backgroundColor = this.viewer.settings.backgroundColor;
-    const textColor = this._contrastColorFor(backgroundColor);
+    const textColor = backgroundColor.contrastColor();
     textColor.opacity = 0.78;
     const haloColor = backgroundColor.copy();
     haloColor.opacity = Math.max(0.9, haloColor.opacity);
 
     for (const plan of plans) {
       if (this.viewer.format === 'circular') {
-        this._drawCircular(ctx, plan, textColor.rgbaString, haloColor.rgbaString);
+        this.canvas.drawTextAlongArc({
+          layer: 'foreground',
+          bp: plan.bp,
+          centerOffset: plan.centerOffset,
+          characters: plan.characters,
+          widths: plan.widths,
+          totalWidth: plan.totalWidth,
+          font: this.font.css,
+          color: textColor.rgbaString,
+          haloColor: haloColor.rgbaString,
+          haloWidth: 3.5,
+        });
       } else {
         this._drawLinear(ctx, plan, textColor.rgbaString, haloColor.rgbaString);
       }

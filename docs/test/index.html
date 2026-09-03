@@ -28,7 +28,7 @@
     <script src="../scripts/svgcanvas.iife.js"></script>
     <!-- CGView -->
     <!-- <script src='../dist/cgview.min.js'></script> -->
-    <script src='../dist/cgview.js?v=track-labels-slots'></script>
+    <script src='../dist/cgview.js?v=inline-feature-labels'></script>
 
     <link rel="stylesheet" href="../dist/cgview.css" />
     <link rel="stylesheet" href="../styles/controls.css" />
@@ -38,7 +38,7 @@
 
     <!-- Dev Page -->
     <script src='performance.js'></script>
-    <link rel="stylesheet" href="test.css" />
+    <link rel="stylesheet" href="test.css?v=inline-feature-labels" />
     <!-- Test Map Data -->
     <script src='maps.js'></script>
 
@@ -144,6 +144,12 @@
         </div>
         <div class='section-labels'>
           <div class='test-heading'>Label Testing</div>
+          <div class='label-row labels-position' role='radiogroup' aria-labelledby='labels-position-title'>
+            <span id='labels-position-title'>Position:</span>
+            <label><input type='radio' name='labels-position' value='external' /> External</label>
+            <label><input type='radio' name='labels-position' value='inline' /> Inline</label>
+            <label><input type='radio' name='labels-position' value='both' /> Both</label>
+          </div>
           <div class='label-row'>
             <button id='labels-default' type="button" class="btn btn-sm btn-outline-secondary">Default</button>
             <button id='labels-angled' type="button" class="btn btn-sm btn-outline-secondary">Angled</button>
@@ -206,7 +212,7 @@
     <!-- Bootstrap JavaScript -->
     <script src="../scripts/bootstrap.min.js"></script>
 
-    <script src='test.js?v=track-labels-option'></script>
+    <script src='test.js?v=inline-feature-labels'></script>
     <script src='../scripts/controls.js'></script>
 
   </body>

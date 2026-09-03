@@ -247,6 +247,7 @@ function loadMapJSON(json, name) {
   const distance = cgv.sequence.length / 100;
   labelDistance.value = Math.floor(distance);
   labelFontSize.value = cgv.annotation.font.size;
+  syncLabelPositionRadios();
 
   cgv.draw();
   setTimeout( () => {
@@ -493,6 +494,30 @@ function newPostion(bp, change, length) {
 
 const labelDistance = document.getElementById('labels-move-distance');
 const labelFontSize = document.getElementById('labels-font-size');
+const labelPositionRadios = document.querySelectorAll('input[name="labels-position"]');
+
+function syncLabelPositionRadios() {
+  labelPositionRadios.forEach((radio) => {
+    radio.checked = radio.value === cgv.annotation.labelPosition;
+  });
+}
+
+labelPositionRadios.forEach((radio) => {
+  radio.addEventListener('change', (e) => {
+    if (!e.target.checked) { return; }
+    cgv.annotation.update({labelPosition: e.target.value});
+    cgv.draw();
+  });
+});
+
+cgv.on('annotation-update.label-position-options', () => {
+  if (!cgv.loading) {
+    syncLabelPositionRadios();
+  }
+});
+
+syncLabelPositionRadios();
+
 labelFontSize.addEventListener('change', (e) => {
   cgv.annotation.update({font: `monospace, plain, ${labelFontSize.value}`});
   cgv.draw();

@@ -415,6 +415,20 @@ class Sequence extends CGObject {
     return (this.bpSpacing * 2) + (this.bpMargin * 8);
   }
 
+  /**
+   * Return true when nucleotide rows are large enough to reserve their shared
+   * backbone space from other text.
+   * @param {Number} [pixelsPerBp] - Backbone pixels per base pair.
+   * @return {Boolean} Whether nucleotide detail is meaningfully readable.
+   * @private
+   */
+  isDetailReadable(pixelsPerBp = this.viewer.backbone.pixelsPerBp()) {
+    const naturalBaseWidth = this.bpSpacing - this.bpMargin;
+    if (!this.visible || !Number.isFinite(pixelsPerBp) || naturalBaseWidth <= 0) { return false; }
+    const scaleFactor = Math.min(1, pixelsPerBp / naturalBaseWidth);
+    return pixelsPerBp >= 1 && scaleFactor >= 0.5;
+  }
+
   get isLinear() {
     return false;
   }

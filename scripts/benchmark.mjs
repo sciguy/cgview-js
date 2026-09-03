@@ -21,6 +21,15 @@ const scenarios = [
     mapOverrides: {settings: {format: 'circular'}}
   },
   {
+    id: 'small-inline-labels',
+    name: 'Mitochondria, inline + external labels',
+    fixture: 'docs/test/maps/basic_mito_no_plots.json',
+    mapOverrides: {
+      annotation: {labelPosition: 'both'},
+      settings: {format: 'circular'}
+    }
+  },
+  {
     id: 'medium-contigs-circular',
     name: 'E. coli PA2 contigs (circular)',
     fixture: 'docs/test/maps/contigs_ecoli_pa2.json',
@@ -37,6 +46,16 @@ const scenarios = [
     name: 'L. guizhouensis, no plots',
     fixture: 'docs/test/maps/large_lentzea_no_plots.json',
     mapOverrides: {settings: {format: 'circular'}}
+  },
+  {
+    id: 'large-inline-labels',
+    name: 'L. guizhouensis, inline + external labels',
+    fixture: 'docs/test/maps/large_lentzea_no_plots.json',
+    mapOverrides: {
+      annotation: {labelPosition: 'both'},
+      settings: {format: 'circular'}
+    },
+    zoomLevels: [1, 5, 10, 750, 1000]
   }
 ];
 
@@ -207,7 +226,7 @@ async function runScenario(browser, target, scenario, options) {
     await page.addScriptTag({path: path.join(target.root, 'docs/dist/cgview.js')});
     await page.addScriptTag({path: path.join(repositoryRoot, 'docs/test/performance.js')});
 
-    const result = await page.evaluate(async ({fixture, iterations, name, warmupIterations}) => {
+    const result = await page.evaluate(async ({fixture, iterations, name, warmupIterations, zoomLevels}) => {
       const viewer = new CGView.Viewer('#my-viewer', {
         height: 600,
         width: 600,
@@ -216,14 +235,15 @@ async function runScenario(browser, target, scenario, options) {
       viewer.io.loadJSON(fixture);
       viewer.name = name;
 
-      const benchmark = new CGVPerformance(viewer, name, iterations, {warmupIterations});
+      const benchmark = new CGVPerformance(viewer, name, iterations, {warmupIterations, zoomLevels});
       await benchmark.ready;
       return benchmark.toJSON();
     }, {
       fixture: scenario.data,
       iterations: options.iterations,
       name: scenario.name,
-      warmupIterations: options.warmupIterations
+      warmupIterations: options.warmupIterations,
+      zoomLevels: scenario.zoomLevels
     });
 
     if (pageErrors.length > 0) {

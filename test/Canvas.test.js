@@ -12,9 +12,15 @@ describe('Canvas', () => {
       beginPath: jest.fn(),
       closePath: jest.fn(),
       fill: jest.fn(),
+      fillText: jest.fn(),
       lineTo: jest.fn(),
+      restore: jest.fn(),
+      rotate: jest.fn(),
+      save: jest.fn(),
       setLineDash: jest.fn(),
       stroke: jest.fn(),
+      strokeText: jest.fn(),
+      translate: jest.fn(),
     };
     canvas = Object.create(Canvas.prototype);
     canvas._viewer = {
@@ -25,6 +31,7 @@ describe('Canvas', () => {
           return stop >= start ? stop - start : this.length + (stop - start);
         },
       },
+      scale: {bp: jest.fn(bp => bp / 100)},
       settings: {
         arrowHeadLength: 0.3,
         borderColor: {rgbaString: 'rgba(0,0,0,1)'},
@@ -117,6 +124,37 @@ describe('Canvas', () => {
     });
 
     expect(canvas.pointForBp).toHaveBeenCalledWith(14.55, 100);
+  });
+
+  test('reports the same configured and automatic arrowhead lengths used for drawing', () => {
+    canvas.pixelsPerBp.mockReturnValue(1);
+
+    expect(canvas.arrowHeadLengthPixels({centerOffset: 100, featureLengthBp: 20, width: 20})).toBe(6);
+    expect(canvas.arrowHeadLengthPixels({autoArrow: true, centerOffset: 100, featureLengthBp: 5, width: 20})).toBe(0);
+    expect(canvas.arrowHeadLengthPixels({autoArrow: true, centerOffset: 100, featureLengthBp: 8, width: 20})).toBe(3);
+    expect(canvas.arrowHeadLengthPixels({autoArrow: true, centerOffset: 100, featureLengthBp: 20, width: 20})).toBe(6);
+  });
+
+  test('draws curved text with a complete halo pass before glyph fills', () => {
+    canvas.pixelsPerBp.mockReturnValue(2);
+
+    expect(canvas.drawTextAlongArc({
+      bp: 50,
+      centerOffset: 100,
+      characters: ['A', 'B'],
+      widths: [4, 6],
+      totalWidth: 10,
+      font: 'normal 12px sans-serif',
+      color: 'black',
+      haloColor: 'white',
+      haloWidth: 3,
+    })).toBe(true);
+
+    expect(context.strokeText.mock.calls.map(call => call[0])).toEqual(['A', 'B']);
+    expect(context.fillText.mock.calls.map(call => call[0])).toEqual(['A', 'B']);
+    expect(Math.max(...context.strokeText.mock.invocationCallOrder))
+      .toBeLessThan(Math.min(...context.fillText.mock.invocationCallOrder));
+    expect(context.rotate).toHaveBeenCalledTimes(4);
   });
 
 });
