@@ -82,4 +82,46 @@ describe('LayoutCircular paths', () => {
     }
   });
 
+  test('forces the Safari arc workaround when requested', () => {
+    const safari = jest.spyOn(utils, 'isSafari').mockReturnValue(false);
+
+    try {
+      const cgv = new Viewer('#map', {
+        sequence: {length: 10000},
+        useSafariArcWorkaround: true
+      });
+      const context = cgv.canvas.context('map');
+      context.arc.mockClear();
+      context.moveTo.mockClear();
+      context.lineTo.mockClear();
+
+      cgv.layout.delegate.path('map', 10000, 1000, 2000);
+
+      expect(context.arc).not.toHaveBeenCalled();
+      expect(context.moveTo).toHaveBeenCalledTimes(1);
+      expect(context.lineTo.mock.calls.length).toBeGreaterThan(1);
+    } finally {
+      safari.mockRestore();
+    }
+  });
+
+  test('disables the Safari arc workaround when requested', () => {
+    const safari = jest.spyOn(utils, 'isSafari').mockReturnValue(true);
+
+    try {
+      const cgv = new Viewer('#map', {
+        sequence: {length: 10000},
+        useSafariArcWorkaround: false
+      });
+      const context = cgv.canvas.context('map');
+      context.arc.mockClear();
+
+      cgv.layout.delegate.path('map', 10000, 1000, 2000);
+
+      expect(context.arc).toHaveBeenCalledTimes(1);
+    } finally {
+      safari.mockRestore();
+    }
+  });
+
 });

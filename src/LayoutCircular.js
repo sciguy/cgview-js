@@ -206,7 +206,7 @@ class LayoutCircular {
       } else if (startType === 'noMoveTo') {
         ctx.lineTo(p2.x, p2.y);
       }
-    } else if (this.viewer._isSafari && !this._isSvgContext(ctx) &&
+    } else if (this.viewer._useSafariArcWorkaround && !this._isSvgContext(ctx) &&
                (rangeLength / canvas.sequence.length) <= 0.95) {
       this._pathAsAdaptivePolyline(ctx, centerOffset, startBp, rangeLength, anticlockwise, startType);
     } else {

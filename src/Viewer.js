@@ -126,12 +126,15 @@ class Viewer {
    * @param {Object} options - [Attributes](#attributes) used to create the viewer.
    *    Component options will be passed to the contructor of that component.
    * @param {Object|Array} [options.plugins] - Plugin or plugins installed after the standard plugins.
+   * @param {Boolean} [options.useSafariArcWorkaround] - Force-enable or disable the Safari canvas arc workaround.
+   *    When omitted, Safari is detected automatically.
    */
   constructor(containerId, options = {}) {
     this.containerId = containerId.replace('#', '');
     // Safari blurs large-radius canvas arcs. The bug remains in Safari 26.6.2
-    // and Safari Technology Preview 251, so detect once and cache the workaround flag.
-    this._isSafari = utils.isSafari();
+    // and Safari Technology Preview 251. Allow an explicit override while
+    // retaining automatic browser detection by default.
+    this._useSafariArcWorkaround = options.useSafariArcWorkaround ?? utils.isSafari();
     this._container = d3.select(`#${this.containerId}`);
     // Get options
     this._width = utils.defaultFor(options.width, 600);
