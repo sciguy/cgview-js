@@ -617,9 +617,28 @@ Attribute                           | Type      | Description
 [format](api/Settings.html#format)                   | String    | The layout format of the map: circular, linear [Default: circular]
 [backgroundColor](api/Settings.html#backgroundColor) | String    | A string describing the background color of the map [Default: 'white']. See <a href="api/Color.html"><code>Color</code></a> for details.
 [showShading](api/Settings.html#showShading)         | Boolean   | Should a shading effect be drawn on the features [Default: true]
+`showPlotOutline` | Boolean | Draw a thin edge on contour line plots during full-quality draws [Default: true]
+`plotRenderer` | String | Experimental testing switch: `contour` or `legacy` [Default: `contour`]
 [arrowHeadLength](api/Settings.html#arrowHeadLength) | Number    | Length of feature arrowheads as a proportion of the feature thickness. From 0 (no arrowhead) to 1 (arrowhead as long on the feature is thick) [Default: 0.3]
 [initialMapThicknessProportion](api/Settings.html#initialMapThicknessProportion) | Number  | Proportion of canvas size to use for drawing map tracks at a zoomFactor of 1 [Default: 0.1]
 [maxMapThicknessProportion](api/Settings.html#maxMapThicknessProportion) | Number  | Proportion of canvas size to use for drawing map tracks at max zoom level [Default: 0.5]
+
+`plotRenderer` is an **experimental testing setting**, retained for comparisons
+with the original plot renderer. It is not a stable API and may change or be
+removed at any time without notice. Applications should use the default renderer
+without depending on this selector. It is currently saved in settings JSON, but
+future versions are not guaranteed to honor it.
+
+```js
+// Experimental: temporarily compare with the original line-plot renderer.
+cgv.settings.update({plotRenderer: 'legacy'});
+cgv.settings.update({plotRenderer: 'contour'});
+```
+
+The `showPlotOutline` setting controls the contour's thin edge independently.
+Fast draws omit the outline, and bar plots retain stepped geometry with either
+renderer selection. See the [plot renderer comparison guide](test/plot-renderers.md)
+for the benchmark procedure.
 
 </section>
 <section id='s.Legend'>

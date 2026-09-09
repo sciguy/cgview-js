@@ -19,7 +19,7 @@ console.log('Available Maps (from map.js):', maps)
 // const defaultMap = 'pcET30c';
 // const defaultMap = 'pcDNA3';
 // const defaultMap = 'paper';
-const defaultMap = 'test_single_bases';
+const defaultMap = 'small';
 
 
 
@@ -103,6 +103,23 @@ function setTrackLabelsEnabled(enabled) {
   trackLabelsCheckbox.checked = enabled;
   cgv.settings.showTrackLabels = enabled;
 }
+// Plot rendering experiment
+const plotRendererSelect = document.getElementById('plot-renderer');
+const plotOutlineCheckbox = document.getElementById('plot-outline');
+function syncPlotOptions() {
+  plotRendererSelect.value = cgv.settings.plotRenderer;
+  plotOutlineCheckbox.checked = cgv.settings.showPlotOutline;
+  plotOutlineCheckbox.disabled = cgv.settings.plotRenderer === 'legacy';
+}
+plotRendererSelect.addEventListener('change', () => {
+  cgv.settings.update({plotRenderer: plotRendererSelect.value});
+});
+plotOutlineCheckbox.addEventListener('change', () => {
+  cgv.settings.update({showPlotOutline: plotOutlineCheckbox.checked});
+});
+cgv.on('settings-update.plot-options', syncPlotOptions);
+syncPlotOptions();
+
 // Ruler Labels
 const rulerLabelPositionRadios = document.querySelectorAll('input[name="ruler-label-position"]');
 const rulerLabelOrientationRadios = document.querySelectorAll('input[name="ruler-label-orientation"]');
@@ -271,6 +288,7 @@ function loadMapFromID(id) {
 function loadMapJSON(json, name) {
   cgv.io.loadJSON(json);
   cgv.name = name;
+  syncPlotOptions();
   setTrackLabelsEnabled(trackLabelsCheckbox.checked);
   syncRulerLabelOptions();
 
@@ -356,7 +374,7 @@ perfBtn.addEventListener('click', async () => {
   resultsDiv.textContent = 'Running benchmark...';
 
   try {
-    const performance = new CGVPerformance(cgv, cgv.name, iterations);
+    const performance = new CGVPerformance(cgv, `${cgv.name} [${cgv.settings.plotRenderer}, outline ${cgv.settings.showPlotOutline ? 'on' : 'off'}]`, iterations);
     await performance.ready;
     console.log(performance.toJSON());
     resultsDiv.innerHTML = performance.report();

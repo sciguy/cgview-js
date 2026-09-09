@@ -28,7 +28,7 @@
     <script src="../scripts/svgcanvas.iife.js"></script>
     <!-- CGView -->
     <!-- <script src='../dist/cgview.min.js'></script> -->
-    <script src='../dist/cgview.js?v=inline-labels-ruler-labels'></script>
+    <script src='../dist/cgview.js?v=plot-renderers'></script>
 
     <link rel="stylesheet" href="../dist/cgview.css" />
     <link rel="stylesheet" href="../styles/controls.css" />
@@ -137,6 +137,17 @@
               <div><input id='option-show-performance' type='checkbox' /> Performance Testing</div>
               <div><input id='option-show-svg' type='checkbox' /> SVG Testing</div>
             </div>
+          </div>
+
+          <div class='plot-options'>
+            <label for='plot-renderer'>Plot renderer (experimental)</label>
+            <select id='plot-renderer' title='Testing switch. May change or be removed without notice.'>
+              <option value='contour'>Contour (new)</option>
+              <option value='legacy'>Original</option>
+            </select>
+            <label title='Draw a thin line along the edge of contour line plots.'>
+              <input id='plot-outline' type='checkbox' /> Plot outline
+            </label>
           </div>
 
           <div id='open-proksee-div'><a href="#" id='open-in-proksee-btn'>Open in Proksee</a></div> 

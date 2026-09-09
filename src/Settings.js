@@ -39,6 +39,8 @@ import utils from './Utils';
  * ------------------------------------|-----------|------------
  * [format](#format)                   | String    | The layout format of the map: circular, linear [Default: circular]
  * [backgroundColor](#backgroundColor) | String    | A string describing the background color of the map [Default: 'white']. See {@link Color} for details.
+ * [plotRenderer](#plotRenderer)       | String    | Experimental testing switch: contour or legacy. May change or be removed without notice. [Default: contour]
+ * [showPlotOutline](#showPlotOutline) | Boolean   | Draw the contour edge on line plots during full draws [Default: true]
  * [showShading](#showShading)         | Boolean   | Should a shading effect be drawn on the features [Default: true]
  * [showTrackLabels](#showTrackLabels) | Boolean | Show compact track names when the map is zoomed in [Default: true]
  * [showBorder](#showBorder)           | Boolean   | Should a border be drawn on the features [Default: true]
@@ -67,6 +69,8 @@ class Settings {
     this._backgroundColor = new Color( utils.defaultFor(options.backgroundColor, 'white') );
     this._geneticCode = utils.defaultFor(options.geneticCode, 11);
     this.arrowHeadLength = utils.defaultFor(options.arrowHeadLength, 0.3);
+    this._plotRenderer = options.plotRenderer === 'legacy' ? 'legacy' : 'contour';
+    this._showPlotOutline = utils.defaultFor(options.showPlotOutline, true);
     this._showShading = utils.defaultFor(options.showShading, true);
     this._showTrackLabels = utils.defaultFor(options.showTrackLabels, true);
     this._showBorder = utils.defaultFor(options.showBorder, false);
@@ -136,6 +140,37 @@ class Settings {
 
   get arrowHeadLength() {
     return this._arrowHeadLength;
+  }
+
+  /**
+   * @member {String} - Experimental renderer selection: 'contour' (default)
+   * or 'legacy'. Changing it redraws the map for direct visual comparison.
+   * This testing switch is not a stable API and may change or be removed
+   * without notice. Applications should use the default renderer rather than
+   * depend on this setting. It is currently serialized with viewer settings.
+   */
+  get plotRenderer() {
+    return this._plotRenderer;
+  }
+
+  set plotRenderer(value) {
+    if (utils.validate(value, ['legacy', 'contour'])) {
+      this._plotRenderer = value;
+      this.viewer.drawFull();
+    }
+  }
+
+  /**
+   * @member {Boolean} - Draw a thin edge on contour line plots (default: true).
+   * Changing it redraws the map. Fast draws and legacy/bar plots omit the edge.
+   */
+  get showPlotOutline() {
+    return this._showPlotOutline;
+  }
+
+  set showPlotOutline(value) {
+    this._showPlotOutline = value;
+    this.viewer.drawFull();
   }
 
   /**
@@ -247,7 +282,7 @@ class Settings {
   update(attributes) {
     this.viewer.updateRecords(this, attributes, {
       recordClass: 'Settings',
-      validKeys: ['format', 'backgroundColor', 'showShading', 'showTrackLabels', 'showBorder', 'borderColor', 'borderThickness', 'arrowHeadLength', 'geneticCode', 'initialMapThicknessProportion', 'maxMapThicknessProportion']
+      validKeys: ['format', 'backgroundColor', 'plotRenderer', 'showPlotOutline', 'showShading', 'showTrackLabels', 'showBorder', 'borderColor', 'borderThickness', 'arrowHeadLength', 'geneticCode', 'initialMapThicknessProportion', 'maxMapThicknessProportion']
     });
     this.viewer.trigger('settings-update', { attributes });
   }
@@ -260,6 +295,8 @@ class Settings {
       format: this.format,
       geneticCode: this.geneticCode,
       backgroundColor: this.backgroundColor.rgbaString,
+      plotRenderer: this.plotRenderer,
+      showPlotOutline: this.showPlotOutline,
       showShading: this.showShading,
       showTrackLabels: this.showTrackLabels,
       showBorder: this.showBorder,

@@ -26,6 +26,7 @@
     "test": "jest --watch",
     "build": "rollup --config --watch",
     "benchmark": "yarn gh-pages && node scripts/benchmark.mjs",
+    "benchmark:plots": "node scripts/benchmark-plots.mjs",
     "benchmark:ci": "node scripts/benchmark.mjs",
     "benchmark:compare": "node scripts/benchmark-compare.mjs",
     "benchmark:install": "playwright install --with-deps chromium",

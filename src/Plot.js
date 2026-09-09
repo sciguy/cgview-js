@@ -21,11 +21,14 @@
 
 import CGObject from './CGObject';
 import CGArray from './CGArray';
+import PlotRenderer from './PlotRenderer';
 import utils from './Utils';
 import * as d3 from 'd3';
 
 /**
- * Plots are drawn as a series of arcs.
+ * Line plots use screen-aware filled contours by default. The experimental
+ * settings.plotRenderer switch retains the original arcs for comparison.
+ * Bar plots always retain the original stepped geometry.
  *
  * ### Action and Events
  *
@@ -78,6 +81,7 @@ class Plot extends CGObject {
     this.positions = utils.defaultFor(data.positions, []);
     this.scores = utils.defaultFor(data.scores, []);
     this.type = utils.defaultFor(data.type, 'line');
+    this._renderer = new PlotRenderer(this);
     this.source = utils.defaultFor(data.source, '');
     this.axisMin = utils.defaultFor(data.axisMin, d3.min([0, this.scoreMin]));
     this.axisMax = utils.defaultFor(data.axisMax, d3.max([0, this.scoreMax]));
@@ -407,7 +411,11 @@ class Plot extends CGObject {
 
   draw(canvas, slotRadius, slotThickness, fast, range) {
     // let startTime = new Date().getTime();
-    if (!this.visible) { return; }
+    if (!this.visible || !range || !this.positions.length || !this.scores.length) { return; }
+    if (this.type !== 'bar' && this.viewer.settings.plotRenderer === 'contour') {
+      this._renderer.draw(canvas, slotRadius, slotThickness, range, fast);
+      return;
+    }
     if (this.colorNegative.rgbaString === this.colorPositive.rgbaString) {
       this._drawPath(canvas, slotRadius, slotThickness, fast, range, this.colorPositive);
     } else {
