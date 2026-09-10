@@ -806,7 +806,7 @@ class Viewer {
     for (const track of tracksToRefresh) {
       track.refresh();
     }
-    this.trigger('tracks-update', { tracks, attributes, updates });
+    this.layout._triggerProportionEvent('tracks-update', { tracks, attributes, updates });
   }
 
   /**

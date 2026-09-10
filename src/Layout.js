@@ -61,6 +61,9 @@ class Layout {
     // Default values. These will be overridden by the values in Settings.
     this._maxMapThicknessProportion = 0.5;
     this._initialMapThicknessProportion = 0.1;
+    this._proportionUpdateDepth = 0;
+    this._proportionUpdatePending = false;
+    this._proportionEvents = [];
     this._trackLabelRenderer = new TrackLabelRenderer(this);
 
     // Setup scales
@@ -600,13 +603,22 @@ class Layout {
   /**
    * Calculate the backbone centerOffset and slot proportions based on the Viewer size and
    * the number of slots. Note, that since this will usually move the map
-   * backbone for circular maps, it also recenters the map backbone If the 
-   * zoomFactor is above 2.
+   * backbone for circular maps, it also recenters the map backbone above zoom
+   * 2. Immediate sizing updates preserve the focal base and offset above zoom 1.
    * @private
    */
-  _adjustProportions() {
+  _adjustProportions(options = {}) {
+    if (this._proportionUpdateDepth > 0) {
+      this._proportionUpdatePending = true;
+      return;
+    }
     const viewer = this.viewer;
     if (viewer.loading) { return; }
+    const duration = utils.defaultFor(options.duration, 500);
+    // Read the focal base and radial offset before the backbone radius changes.
+    const preserveFocus = viewer.zoomFactor > (duration === 0 ? 1 : 2);
+    const focalBp = preserveFocus ? viewer.bpFloat : undefined;
+    const focalOffset = preserveFocus ? viewer.bbOffset : undefined;
     const visibleSlots = this.visibleSlots();
     this._updateSlotThicknessRatioStats(visibleSlots);
     // The initial maximum amount of space for drawing slots, backbone, dividers, etc
@@ -653,8 +665,60 @@ class Layout {
 
     this.updateLayout(true);
     // Recenter map
-    if (viewer.zoomFactor > 2) {
-      viewer.moveTo(undefined, undefined, {duration: 500});
+    if (preserveFocus) {
+      if (duration > 0) {
+        viewer.moveTo(focalBp, undefined, {duration});
+      } else {
+        // A duration-zero D3 transition still schedules work. Apply domains
+        // synchronously and cancel any in-flight move during slider input.
+        d3.select(this.canvas.node('ui')).interrupt();
+        const domains = this.domainsFor(focalBp, viewer.zoomFactor, focalOffset);
+        viewer.scale.x.domain([domains[0], domains[1]]);
+        viewer.scale.y.domain([domains[2], domains[3]]);
+        viewer.trigger('zoom');
+      }
+    }
+  }
+
+  /**
+   * Batch synchronous ratio/settings changes into one layout calculation.
+   * Nested batches flush at the end of the outermost batch. Update events are
+   * delivered after geometry is consistent. Changes are not rolled back if the
+   * callback throws; applied changes are still flushed. Does not draw the map.
+   * @param {Function} callback - Synchronous updates to apply.
+   * @param {Object} [options] - Options for the final proportion adjustment.
+   * @param {Number} [options.duration=0] - Recentring duration in milliseconds.
+   * @return {*} The callback's return value.
+   * @example
+   * cgv.layout.batchProportionUpdates(() => {
+   *   cgv.settings.update({maxSlotThickness: 80});
+   *   cgv.tracks(1).update({thicknessRatio: 2});
+   * });
+   */
+  batchProportionUpdates(callback, options = {}) {
+    this._proportionUpdateDepth += 1;
+    try {
+      return callback();
+    } finally {
+      this._proportionUpdateDepth -= 1;
+      if (this._proportionUpdateDepth === 0) {
+        const events = this._proportionEvents;
+        this._proportionEvents = [];
+        if (this._proportionUpdatePending) {
+          this._proportionUpdatePending = false;
+          this._adjustProportions({duration: 0, ...options});
+        }
+        events.forEach(([event, payload]) => this.viewer.trigger(event, payload));
+      }
+    }
+  }
+
+  /** Queue update notifications until coordinated geometry is ready. @private */
+  _triggerProportionEvent(event, payload) {
+    if (this._proportionUpdateDepth > 0) {
+      this._proportionEvents.push([event, payload]);
+    } else {
+      this.viewer.trigger(event, payload);
     }
   }
   // NOTE:
@@ -678,54 +742,9 @@ class Layout {
   // FIXME: temp while i figure things out
   // - IF this is used, create slotSpace method
   _calculateMaxMapThickness() {
-    const viewer = this.viewer;
-    const savedZoomFactor = viewer.zoomFactor;
-    // Default Map Width
-    viewer._zoomFactor = 1;
-    this.updateLayout(true);
-    const defaultMapWidth =  this.bbOutsideOffset - this.bbInsideOffset;
-
-    let defaultSlotTotalThickness = 0;
-
-    const visibleTracks = this.tracks().filter( t =>  t.visible );
-    for (let i = 0, tracksLength = visibleTracks.length; i < tracksLength; i++) {
-      const track = visibleTracks[i];
-      const slots = track.slots().filter( s => s.visible );
-      if (slots.length > 0) {
-        for (let j = 0, slotsLength = slots.length; j < slotsLength; j++) {
-          const slot = slots[j];
-          defaultSlotTotalThickness += slot.thickness;
-        }
-      }
-    }
-
-    // Max Map Width
-    viewer._zoomFactor = viewer.maxZoomFactor;
-    this.updateLayout(true);
-    const computedMaxMapWidth =  this.bbOutsideOffset - this.bbInsideOffset;
-
-    let computedSlotTotalThickness = 0;
-
-    for (let i = 0, tracksLength = visibleTracks.length; i < tracksLength; i++) {
-      const track = visibleTracks[i];
-      const slots = track.slots().filter( s => s.visible );
-      if (slots.length > 0) {
-        for (let j = 0, slotsLength = slots.length; j < slotsLength; j++) {
-          const slot = slots[j];
-          computedSlotTotalThickness += slot.thickness;
-        }
-      }
-    }
-
-    // FIXME: temp
-    this._maxMapThicknessZoomFactor = computedSlotTotalThickness / defaultSlotTotalThickness;
-
-    // Restore
-    viewer._zoomFactor = savedZoomFactor;
-
-    // console.log(this._nonSlotSpace());
-    // console.log(defaultMapWidth, computedMaxMapWidth, computedMaxMapWidth / defaultMapWidth);
-    // console.log(defaultSlotTotalThickness, computedSlotTotalThickness, computedSlotTotalThickness / defaultSlotTotalThickness);
+    const totalAt = zoom => this._slotThicknessesAt(zoom).reduce((sum, entry) => sum + entry.thickness, 0);
+    const overviewTotal = totalAt(1);
+    this._maxMapThicknessZoomFactor = overviewTotal > 0 ? totalAt(this.viewer.maxZoomFactor) / overviewTotal : 1;
   }
 
   // FIXME: temp with above
@@ -804,8 +823,10 @@ class Layout {
   }
 
   set maxSlotThickness(value) {
-    this._maxSlotThickness = Number(value);
-    this._adjustProportions();
+    const thickness = Number(value);
+    if (!Number.isFinite(thickness) || thickness < this.minSlotThickness || thickness === this._maxSlotThickness) { return; }
+    this._maxSlotThickness = thickness;
+    this._adjustProportions({duration: 0});
   }
 
   /**
@@ -830,8 +851,10 @@ class Layout {
   }
 
   set initialMapThicknessProportion(value) {
-    this._initialMapThicknessProportion = Number(value);
-    this._adjustProportions();
+    const proportion = Number(value);
+    if (!Number.isFinite(proportion) || proportion <= 0 || proportion === this._initialMapThicknessProportion) { return; }
+    this._initialMapThicknessProportion = proportion;
+    this._adjustProportions({duration: 0});
   }
 
   /**
@@ -843,8 +866,10 @@ class Layout {
   }
 
   set maxMapThicknessProportion(value) {
-    this._maxMapThicknessProportion = Number(value);
-    this._adjustProportions();
+    const proportion = Number(value);
+    if (!Number.isFinite(proportion) || proportion <= 0 || proportion === this._maxMapThicknessProportion) { return; }
+    this._maxMapThicknessProportion = proportion;
+    this._adjustProportions({duration: 0});
   }
 
   // Draw everything but the slots and their features.
@@ -1084,21 +1109,16 @@ class Layout {
    *  - The slot thickness is greater than the maximum allowed slot thickness
    *  @private
    */
-  _calculateSlotThickness(proportionOfMap) {
-    const viewer = this.viewer;
+  _calculateSlotThickness(proportionOfMap, zoomFactor = this.viewer.zoomFactor) {
+    const mapThickness = Math.min(this.initialWorkingSpace() * zoomFactor, this.maxMapThickness());
+    return this._slotThicknessFor(proportionOfMap, mapThickness, this.slotProportionStats);
+  }
 
-    // FIXME: should not be based on adjustedCenterOffset
-    // const mapThickness = Math.min(viewer.backbone.adjustedCenterOffset, this.maxMapThickness());
-    // TEMP
-    // Maybe this should be based on slotSpace from adjust proportions.
-    // Should slot space be saved
-    // const minSize = this.maxMapThickness() / 6 * viewer.zoomFactor;
-    // const minSize = this.testSlotSpace * viewer.zoomFactor;
-    const minSize = this.initialWorkingSpace() * viewer.zoomFactor;
-    const mapThickness = Math.min(minSize, this.maxMapThickness());
+  /** Evaluate the shared slot cap without changing any layout state. @private */
+  _slotThicknessFor(proportionOfMap, mapThickness, slotProportionStats, maxSlotThickness = this.maxSlotThickness) {
+    if (mapThickness <= 0) { return 0; }
 
-    const maxAllowedProportion = this.maxSlotThickness / mapThickness;
-    const slotProportionStats = this.slotProportionStats;
+    const maxAllowedProportion = maxSlotThickness / mapThickness;
     if (slotProportionStats.max > maxAllowedProportion) {
       if (slotProportionStats.min === slotProportionStats.max) {
         proportionOfMap = maxAllowedProportion;
@@ -1115,6 +1135,114 @@ class Layout {
       }
     }
     return proportionOfMap * mapThickness;
+  }
+
+  /**
+   * Compute visible slot widths at a zoom without mutating zoom, slot geometry,
+   * scales, or cached proportions. Live ratios also support nested batches.
+   * @private
+   */
+  _slotThicknessesAt(zoomFactor) {
+    const slots = this.visibleSlots();
+    const sum = slots.reduce((total, slot) => total + slot.thicknessRatio, 0);
+    const proportions = slots.map(slot => slot.thicknessRatio / sum);
+    const stats = {min: d3.min(proportions), max: d3.max(proportions)};
+    const space = Math.min(this.initialWorkingSpace() * zoomFactor, this.maxMapThickness());
+    return slots.map((slot, index) => ({
+      slot,
+      thickness: this._slotThicknessFor(proportions[index], space, stats),
+    }));
+  }
+
+  /**
+   * Solve a one-track pixel resize against the actual overview layout. A shared
+   * cap normally scales ratios proportionally. At extreme ratio ranges its
+   * minimum-slot floor makes the mapping affine instead; retain that mapping
+   * when possible and reject incompatible targets before making any changes.
+   * Neighbouring ratios never change. Does not draw or persist a pixel size.
+   * @private
+   * @param {Track} track - Track with visible slots in this layout.
+   * @param {Number} value - Requested overview pixels per visible slot.
+   */
+  _setTrackOverviewThickness(track, value) {
+    const entries = this._slotThicknessesAt(1);
+    const selected = entries.filter(entry => entry.slot.track === track);
+    if (this.viewer.loading || selected.length === 0) {
+      throw new Error('Pixel sizing requires a loaded, visible track with visible slots.');
+    }
+    const close = (a, b) => Number.isFinite(a) && Number.isFinite(b) &&
+      Math.abs(a - b) <= 1e-10 * Math.max(Math.abs(a), Math.abs(b), Number.MIN_VALUE);
+    if (close(selected[0].thickness, value)) { return; }
+
+    const neighbours = entries.filter(entry => entry.slot.track !== track);
+    const neighbourRatioSum = neighbours.reduce((sum, entry) => sum + entry.slot.thicknessRatio, 0);
+    const scale = neighbours.length > 0 ? neighbours[0].thickness / neighbours[0].slot.thicknessRatio : value / track.thicknessRatio;
+    const proportional = neighbours.every(entry => close(entry.thickness, entry.slot.thicknessRatio * scale));
+    let ratio, space, cap;
+    if (proportional) {
+      ratio = value / scale;
+      space = scale * (neighbourRatioSum + selected.length * ratio);
+      // Never lower the shared cap in the proportional case: a later resize
+      // must not squeeze a track enlarged by an earlier operation.
+      cap = neighbours.reduce((maximum, entry) => Math.max(maximum, entry.thickness), Math.max(this.maxSlotThickness, value));
+    } else {
+      const sorted = [...neighbours].sort((a, b) => a.slot.thicknessRatio - b.slot.thicknessRatio);
+      const low = sorted[0];
+      const high = sorted[sorted.length - 1];
+      const slope = (high.thickness - low.thickness) / (high.slot.thicknessRatio - low.slot.thicknessRatio);
+      const intercept = low.thickness - slope * low.slot.thicknessRatio;
+      ratio = (value - intercept) / slope;
+      const maximumRatio = neighbours.reduce((maximum, entry) => Math.max(maximum, entry.slot.thicknessRatio), ratio);
+      cap = slope * maximumRatio + intercept;
+      // Keep the shared cap active; the candidate check below also verifies
+      // that the minimum slot still lands on the existing floor.
+      space = 2 * cap * (neighbourRatioSum + selected.length * ratio) / maximumRatio;
+    }
+
+    const initialDimension = this.initialWorkingSpace() / this.initialMapThicknessProportion;
+    const maxDimension = this.maxMapThickness() / this.maxMapThicknessProportion;
+    const attributes = {
+      initialMapThicknessProportion: space / initialDimension,
+      maxMapThicknessProportion: Math.max(this.maxMapThicknessProportion, space / maxDimension),
+      maxSlotThickness: cap,
+    };
+    const ratios = entries.map(entry => entry.slot.track === track ? ratio : entry.slot.thicknessRatio);
+    const sum = ratios.reduce((total, current) => total + current, 0);
+    const proportions = ratios.map(current => current / sum);
+    const stats = {min: d3.min(proportions), max: d3.max(proportions)};
+    // Verify the effective space after floating point conversion to settings.
+    const effectiveSpace = Math.min(attributes.initialMapThicknessProportion * initialDimension,
+      attributes.maxMapThicknessProportion * maxDimension);
+    // Large one-sided tracks can exceed the existing circular layout's radius
+    // constraint. Check the same geometry calculation before committing a size
+    // that would otherwise fail later when Canvas draws a negative-radius arc.
+    let validGeometry = true;
+    if (this.type === 'circular') {
+      let inside = this._nonSlotSpace('inside');
+      let outside = this._nonSlotSpace('outside');
+      entries.forEach((entry, index) => {
+        const thickness = effectiveSpace * proportions[index];
+        entry.slot.inside ? inside += thickness : outside += thickness;
+      });
+      const radius = this.delegate.initialBackboneCenterOffsetFor(inside, outside);
+      validGeometry = Number.isFinite(radius) && radius > 0;
+    }
+    const valid = [ratio, sum, effectiveSpace, ...Object.values(attributes)].every(number => Number.isFinite(number) && number > 0) &&
+      validGeometry && cap >= this.minSlotThickness && entries.every((entry, index) => {
+        const expected = entry.slot.track === track ? value : entry.thickness;
+        return close(this._slotThicknessFor(proportions[index], effectiveSpace, stats, cap), expected);
+      });
+    if (!valid) {
+      throw new RangeError('Pixel target cannot preserve neighbouring overview widths with the current shared limits, ratios, and map geometry.');
+    }
+
+    const changedSettings = Object.fromEntries(Object.entries(attributes).filter(([key, next]) => this.viewer.settings[key] !== next));
+    this.batchProportionUpdates(() => {
+      if (Object.keys(changedSettings).length > 0) {
+        this.viewer.settings.update(changedSettings);
+      }
+      track.update({thicknessRatio: ratio});
+    });
   }
 
   // When updating scales because the canvas has been resized, we want to

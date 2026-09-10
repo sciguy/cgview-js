@@ -171,14 +171,19 @@ class LayoutCircular {
   // Calculate the backbone centerOffset (radius) so that the map is centered between the
   // circle center and the edge of the canvas (minDimension)
   updateInitialBackboneCenterOffset(insideThickness, outsideThickness) {
+    this.backbone.centerOffset = this.initialBackboneCenterOffsetFor(insideThickness, outsideThickness);
+  }
+
+  /** Compute the overview radius without changing the backbone. @private */
+  initialBackboneCenterOffsetFor(insideThickness, outsideThickness) {
     // midRadius is the point between the circle center and the edge of the canvas
     // on the minDimension.
     const midRadius = this.viewer.minDimension * 0.25;
     // Minimum extra space inside of map
-    const insideBuffer = 40; 
+    const insideBuffer = 40;
     // The mid radius has to have enough space for the inside thickness
-    const adjustedMidRadius = Math.max(midRadius, insideThickness + insideBuffer)
-    this.backbone.centerOffset = adjustedMidRadius - ((outsideThickness - insideThickness) / 2);
+    const adjustedMidRadius = Math.max(midRadius, insideThickness + insideBuffer);
+    return adjustedMidRadius - ((outsideThickness - insideThickness) / 2);
   }
 
   adjustedBackboneCenterOffset(centerOffset) {

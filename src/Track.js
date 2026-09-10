@@ -52,6 +52,7 @@ import utils from './Utils';
  * [position](#position)             | String    | Position relative to backbone: inside, outside, both, or along (both and along are only for feature tracks) [Default: both]
  * [separateFeaturesBy](#separateFeaturesBy) | String    | How features should be separated: none, strand, readingFrame, type, legend [Default: strand]
  * [thicknessRatio](#thicknessRatio) | Number    | Thickness of track compared to other tracks [Default: 1]
+ * [computedInitialSlotThickness](#computedInitialSlotThickness) | Number | Read-only thickness in pixels per visible slot at zoom factor 1, computed using the current canvas dimensions, ratios, and settings.
  * [loadProgress](#loadProgress)     | Number    | Number between 0 and 100 indicating progress of track loading. Used internally by workers.
  * [drawOrder](#loadProgress)        | String    | Order to draw features in: position, score [Default: position]
  * [favorite](#favorite)             | Boolean   | Track is a favorite [Default: false]
@@ -84,7 +85,8 @@ class Track extends CGObject {
     this.dataKeys = data.dataKeys;
     this.dataOptions = data.dataOptions || {};
     this.position = utils.defaultFor(data.position, 'around');
-    this._thicknessRatio = utils.defaultFor(data.thicknessRatio, 1);
+    const thicknessRatio = Number(utils.defaultFor(data.thicknessRatio, 1));
+    this._thicknessRatio = Number.isFinite(thicknessRatio) && thicknessRatio > 0 ? thicknessRatio : 1;
     this._loadProgress = 0;
     this.refresh();
   }
@@ -308,15 +310,76 @@ class Track extends CGObject {
   }
 
   /**
-   * @member {Viewer} - Get or set the track size as a ratio to all other tracks
+   * @member {Number} - Get or set the slot size as a ratio to all other slots.
+   * Finite positive numbers (including numeric strings) are accepted. Invalid
+   * or unchanged values do not recalculate layout. Updates apply immediately.
    */
   get thicknessRatio() {
     return this._thicknessRatio;
   }
 
   set thicknessRatio(value) {
-    this._thicknessRatio = Number(value);
-    this.layout._adjustProportions();
+    const ratio = Number(value);
+    if (!Number.isFinite(ratio) || ratio <= 0 || ratio === this._thicknessRatio) { return; }
+    this._thicknessRatio = ratio;
+    this.layout._adjustProportions({duration: 0});
+  }
+
+  /**
+   * @member {Number|undefined} - Read-only thickness in pixels per visible slot
+   * at zoom factor 1, computed using the current canvas dimensions, ratios, and settings.
+   * Excludes dividers and spacing. All visible slots in a track have the same
+   * thickness. This getter does not change the
+   * view or store a second thickness. Returns undefined while loading, for a
+   * hidden/removed track, or when the track has no visible slots. Current
+   * rendered thickness is available as slot.thickness.
+   */
+  get computedInitialSlotThickness() {
+    if (this.viewer.loading) { return undefined; }
+    return this.layout._slotThicknessesAt(1).find(entry => entry.slot.track === this)?.thickness;
+  }
+
+  /**
+   * Size this track using its existing ratio and the map's sizing settings.
+   * Ratio mode is equivalent to update({thicknessRatio: value}), including for
+   * hidden or empty tracks; it redistributes space among visible slots.
+   * Pixel mode targets every visible slot at zoom 1, preserving neighbouring
+   * overview widths. Hidden, removed, loading, and slotless tracks cannot use
+   * pixel mode. Shared limits can make some extreme targets incompatible.
+   *
+   * This is an operation, not a fixed-pixel mode. Resizing the canvas changes
+   * overview widths; zoomed widths still follow shared layout limits. Only
+   * thicknessRatio and settings are saved. Updates are synchronous, preserve
+   * the zoomed focal position, and emit tracks-update and (when changed)
+   * settings-update after layout. Call viewer.draw() to render the result.
+   *
+   * @param {Number} value - Finite positive ratio or overview pixels per slot.
+   * @param {Object} options - An explicit mode is required.
+   * @param {String} options.mode - 'ratio' or 'pixels'.
+   * @return {Track} This track, for chaining.
+   * @throws {TypeError} If mode is missing or unknown.
+   * @throws {RangeError} If value is invalid, shared limits prevent the target,
+   * or the target would give a circular map a non-positive backbone radius.
+   * @throws {Error} If pixel sizing is unavailable for this track.
+   * @example
+   * track.setThickness(20, {mode: 'pixels'});
+   * console.log(track.computedInitialSlotThickness); // 20 per visible slot
+   * track.setThickness(2, {mode: 'ratio'});
+   * track.viewer.draw();
+   */
+  setThickness(value, options = {}) {
+    if (!['ratio', 'pixels'].includes(options?.mode)) {
+      throw new TypeError("Track thickness requires mode: 'ratio' or 'pixels'.");
+    }
+    if (!Number.isFinite(value) || value <= 0) {
+      throw new RangeError('Track thickness must be a finite positive number.');
+    }
+    if (options.mode === 'ratio') {
+      this.update({thicknessRatio: value});
+    } else {
+      this.layout._setTrackOverviewThickness(this, value);
+    }
+    return this;
   }
 
   /**
@@ -620,5 +683,3 @@ class Track extends CGObject {
 }
 
 export default Track;
-
-
