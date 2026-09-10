@@ -19,7 +19,7 @@
     <link rel="stylesheet" href="styles/prism.css" />
     <!-- <link rel="stylesheet" href="styles/tables.css" /> -->
     <link rel="stylesheet" href="styles/general.css" />
-    <script src='scripts/marked.min.js'></script>
+    <script src='scripts/markdown-it.min.js'></script>
     <script src='scripts/general.js'></script>
 
     <!-- Plausible Analytics -->
@@ -254,10 +254,6 @@ in linear maps.
 
     </div> <!-- End of markdown in -->
 
-    <!-- <script> -->
-    <!--   tutorialMarkdown(marked); -->
-    <!-- </script> -->
-
     <script src="scripts/prism.js"></script>
     <script>
       const convertPropertiesToLinks = (content) => {
@@ -307,16 +303,12 @@ in linear maps.
 
     <script>
       // Convert Markdown to HTML
-      var marked_ = marked;
-      var marked = function(text) {
-        var tok = marked_.lexer(text);
-        text = marked_.parser(tok);
-        text = text.replace(/<pre>/ig, '<pre class="line-numbers" id="lines">');
-        return text;
-      };
       var inEl = document.querySelector('#markdown-in');
       var outEl = document.querySelector('#markdown-out');
-      outEl.innerHTML = marked( inEl.innerHTML );
+      outEl.innerHTML = renderDocsMarkdown(inEl.innerHTML);
+      const jsonBlock = outEl.querySelector('pre');
+      jsonBlock.classList.add('line-numbers');
+      jsonBlock.id = 'lines';
     </script>
 
     <script>

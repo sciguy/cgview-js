@@ -19,8 +19,7 @@
     <link rel="stylesheet" href="styles/prism.css" />
     <link rel="stylesheet" href="styles/tables.css" />
     <link rel="stylesheet" href="styles/general.css" />
-    <script src='scripts/marked.min.js'></script>
-    <script src='scripts/gumshoe.min.js'></script>
+    <script src='scripts/markdown-it.min.js'></script>
     <script src='scripts/general.js'></script>
 
     <!-- Plausible Analytics -->
@@ -355,26 +354,26 @@ feature.start = 1234;
 However, there are several advantages of using record actions:
 
 - More than one property can be changed at once.
-```js
-feature.update({start: 1234, stop: 2345});
-```
+  ```js
+  feature.update({start: 1234, stop: 2345});
+  ```
 - An error will be returned if the property does not exist.
-```js
-feature.update({strt: 1234});
-// => Error: Feature does not contain a 'strt' property.
-```
+  ```js
+  feature.update({strt: 1234});
+  // => Error: Feature does not contain a 'strt' property.
+  ```
 - The update methods trigger [events](#s.events) (e.g. 'features-update') that can be used as hooks.
-```js
-cgv.on('features-update', ({features}) => {
+  ```js
+  cgv.on('features-update', ({features}) => {
     const names = features.map( f => f.name );
     console.log(`The following features have been updated: ${names.join(', ')}`)
-});
-```
+  });
+  ```
 - In some cases multiple objects (e.g. features, tracks, etc) can be updated at once.
-```js
-// This will update all 3 features but only generate 1 'features-update' event.
-cgv.updateFeatures([feature1, feature2, feature3], {type: 'CDS'});
-```
+  ```js
+  // This will update all 3 features but only generate 1 'features-update' event.
+  cgv.updateFeatures([feature1, feature2, feature3], {type: 'CDS'});
+  ```
 
 </section>
 <section id="s.events">
@@ -874,7 +873,7 @@ Attribute                        | Type      | Description
     </div> <!-- End of markdown in -->
 
     <script>
-      tutorialMarkdown(marked);
+      tutorialMarkdown();
     </script>
 
     <script src="scripts/prism.js"></script>
@@ -882,10 +881,7 @@ Attribute                        | Type      | Description
     <!-- Bootstrap JavaScript -->
     <script src="scripts/bootstrap.min.js"></script>
 
-    <script>
-      var spy = new Gumshoe('#gumshoe-list a', { offset: 50 });
-        // reflow: true,
-    </script>
+    <script src="scripts/section-nav.js"></script>
 
   </body>
 </html>

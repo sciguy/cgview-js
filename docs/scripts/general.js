@@ -2,28 +2,51 @@
 // Markdown conversion
 ////////////////////////////////////////////////////////////////////////////////
 
-// Takes text in #markdown-in and
-//  - convert to markdown and moves it to #markdown-out
-//  - evals the code
-//  - copies code without comments to #final-code
-// see https://github.com/chjj/marked
-function tutorialMarkdown(marked, addFinalCode) {
-  //  marked.setOptions({
-  //    sanitize: true
-  //  });
-  var marked_ = marked;
-  var marked = function(text) {
-    var tok = marked_.lexer(text);
-    text = marked_.parser(tok);
-    text = text.replace(/<pre>/ig, '<pre class="prettyprint">');
-    text = text.replace(/&amp;gt;/g, '>');
-    text = text.replace(/&amp;lt;/g, '<');
-    return text;
+/**
+ * Render trusted, checked-in Markdown with the site's existing heading anchors.
+ * Raw HTML supports embedded viewers and controls. Requires the markdown-it asset;
+ * does not modify the document.
+ * @param {string} source Markdown read from #markdown-in.innerHTML.
+ * @returns {string} HTML ready for #markdown-out.
+ */
+function renderDocsMarkdown(source) {
+  const parser = window.markdownit({ html: true, linkify: true });
+  const slugs = new Set();
+  const headingText = (tokens) => tokens.map((token) => {
+    if (token.type === 'image') return headingText(token.children);
+    if (['text', 'code_inline', 'html_inline'].includes(token.type)) return token.content;
+    if (['softbreak', 'hardbreak'].includes(token.type)) return '\n';
+    return '';
+  }).join('');
+  parser.renderer.rules.heading_open = (tokens, index, options, env, renderer) => {
+    // Retain the old Marked heading normalization so existing URLs keep working.
+    // See vendor/marked-LICENSE.txt for the original slugger's MIT license.
+    const base = headingText(tokens[index + 1].children).toLowerCase().trim()
+      .replace(/<[!\/a-z].*?>/gi, '')
+      .replace(/[\u2000-\u206F\u2E00-\u2E7F\\'!"#$%&()*+,./:;<=>?@[\]^`{|}~]/g, '')
+      .replace(/\s/g, '-');
+    let slug = base;
+    let suffix = 0;
+    while (slugs.has(slug)) slug = `${base}-${++suffix}`;
+    slugs.add(slug);
+    tokens[index].attrSet('id', slug);
+    return renderer.renderToken(tokens, index, options);
   };
 
+  // Reading Markdown from an HTML container escapes angle brackets in code twice.
+  return parser.render(source).replace(/&amp;gt;/g, '>').replace(/&amp;lt;/g, '<');
+}
+
+/**
+ * Render #markdown-in into #markdown-out and optionally run the tutorial examples.
+ * @param {boolean} [addFinalCode=false] Run JavaScript blocks after a short delay
+ *   and append their code without comments to #final-code.
+ * @returns {void}
+ */
+function tutorialMarkdown(addFinalCode = false) {
   var inEl = document.querySelector('#markdown-in');
   var outEl = document.querySelector('#markdown-out');
-  outEl.innerHTML = marked( inEl.innerHTML );
+  outEl.innerHTML = renderDocsMarkdown(inEl.innerHTML);
 
   // Takes all the code block on the page
   // Copies the code (minus the comments) to an element with the id $(#final-code code)

@@ -216,12 +216,17 @@ async function checkSharedAssets(page, origin) {
       const document = new DOMParser().parseFromString(html, 'text/html');
       return {
         assets: Array.from(document.querySelectorAll('script[src], link[href]'), (element) => element.getAttribute('src') || element.getAttribute('href')),
-        head: Array.from(document.head.children, (element) => element.getAttribute('src') || element.getAttribute('href'))
+        head: Array.from(document.head.children, (element) => element.getAttribute('src') || element.getAttribute('href')),
+        markdown: Boolean(document.querySelector('#markdown-in'))
       };
     }, html);
     const themeIndex = result.head.findIndex((url) => url?.endsWith('scripts/theme.js'));
     const styleIndex = result.head.findIndex((url) => url?.endsWith('.css'));
     assert(themeIndex !== -1 && themeIndex < styleIndex, `Theme must load before styles: ${filename}`);
+    assert(!result.assets.some((url) => /\/(marked|gumshoe)\.min\.js$/.test(url)), `Retired browser dependency on ${filename}`);
+    if (result.markdown) {
+      assert(result.assets.some((url) => url.endsWith('/markdown-it.min.js')), `Missing Markdown parser on ${filename}`);
+    }
     for (const asset of result.assets) {
       const url = new URL(asset, `${origin}/${filename}`);
       if (url.origin !== origin) continue;
@@ -231,6 +236,114 @@ async function checkSharedAssets(page, origin) {
   }
   assert.deepEqual(missingAssets, [], 'Missing shared documentation assets.');
   console.log(`Checked shared theme loading and assets on ${pageCount} documentation pages.`);
+}
+
+async function checkMarkdown(context, origin) {
+  const page = await context.newPage();
+  await page.goto(`${origin}/docs.html`);
+  const headings = await page.evaluate(() => {
+    const source = [
+      '# Repeat', '# Repeat', '# Repeat-1', '# Repeat',
+      '## Create [Viewer](api/Viewer.html)',
+      '### <div class="cgv-btn"></div> Reset Button',
+      '## `cgv.features()`', '## ![Map](images/map.png)'
+    ].join('\n\n');
+    const ids = () => Array.from(new DOMParser().parseFromString(renderDocsMarkdown(source), 'text/html')
+      .querySelectorAll('h1,h2,h3'), (element) => element.id);
+    return [ids(), ids()];
+  });
+  const expected = ['repeat', 'repeat-1', 'repeat-1-1', 'repeat-2', 'create-viewer', '-reset-button', 'cgvfeatures', 'map'];
+  assert.deepEqual(headings, [expected, expected], 'Markdown heading URLs changed or leaked between renders.');
+  assert.equal(await page.locator('#markdown-out [id="s.record-action-advantages"] li pre code').count(), 4,
+    'Record action examples must stay inside their list items.');
+
+  await page.goto(`${origin}/tutorials/details-json-files.html`);
+  assert(await page.locator('#markdown-out pre code').allTextContents()
+    .then((blocks) => blocks.some((text) => text.includes('<script') && text.includes('</script>'))),
+  'Escaped HTML examples must remain readable code.');
+
+  // Exercise examples assembled from Markdown, including asynchronous sequence extraction.
+  for (const tutorial of ['controls', 'sequence', 'json', 'cgparse']) {
+    await page.goto(`${origin}/tutorials/tutorial-${tutorial}.html`);
+    // A random sequence can contain no ORFs; both generated plots must still load.
+    await page.waitForFunction((tutorial) => tutorial === 'sequence'
+      ? window.cgv?.plots().length === 2
+      : window.cgv?.features().length > 0, tutorial);
+    assert(await page.locator('#final-code code').textContent().then((text) => text.includes('CGView.Viewer')),
+      `Combined example code is missing in ${tutorial}.`);
+    if (tutorial === 'controls') {
+      assert.equal(await page.locator('#markdown-out [id="-reset-button"]').count(), 1, 'Existing control heading URL changed.');
+      const originalFormat = await page.evaluate(() => cgv.format);
+      await page.locator('main #btn-toggle-format').click();
+      await page.waitForFunction((format) => cgv.format !== format, originalFormat);
+    }
+  }
+
+  await page.goto(`${origin}/json.html`);
+  const ranges = await page.locator('#sidebar-nav a[href^="#lines."]').evaluateAll((links) => links.map((link) => ({
+    name: link.textContent,
+    range: link.hash.slice('#lines.'.length).split('-').map(Number)
+  })));
+  const lines = (await page.locator('#lines code').textContent()).split('\n');
+  assert.equal(ranges.length, 13, 'JSON navigation is incomplete.');
+  for (const { name, range: [start, end] } of ranges) {
+    assert(lines[start - 1]?.includes(`${name}":`), `JSON link for ${name} starts at the wrong line.`);
+    if (end) assert(/^\s*[}\]]/.test(lines[end - 1]), `JSON link for ${name} ends at the wrong line.`);
+  }
+  const settings = page.locator('#sidebar-nav a').filter({ hasText: /^settings$/ });
+  await settings.click();
+  await page.locator('#lines .temporary.line-highlight').waitFor({ state: 'visible' });
+  await page.locator('#sidebar-nav li.active a').filter({ hasText: /^settings$/ }).waitFor({ state: 'visible' });
+  await page.close();
+  console.log('Markdown checks passed: heading URLs, HTML examples, list structure, live tutorials, and JSON line links.');
+}
+
+async function checkSectionNavigation(context, origin) {
+  const page = await context.newPage();
+  const waitForActive = async (hash) => {
+    await page.waitForFunction((hash) => {
+      const current = document.querySelectorAll('#sidebar-nav li.active a[aria-current="location"]');
+      return current.length === 1 && current[0].hash === hash;
+    }, hash);
+  };
+
+  await page.goto(`${origin}/docs.html#s.Viewer`);
+  await waitForActive('#s.Viewer');
+  for (const hash of ['#s.adding-records', '#s.Sequence', '#s.overview']) {
+    // Change the scroll position without changing the URL to test actual tracking.
+    await page.evaluate((hash) => {
+      const section = document.querySelector(`main #${CSS.escape(hash.slice(1))}`);
+      const offset = parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop);
+      window.scrollTo(0, window.scrollY + section.getBoundingClientRect().top - offset);
+    }, hash);
+    await waitForActive(hash);
+  }
+  await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+  await waitForActive('#s.Divider');
+  await page.evaluate(() => window.scrollTo(0, 0));
+  await waitForActive('#s.setup');
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.locator('#sidebar-nav').waitFor({ state: 'hidden' });
+  await page.locator('.sidebar-toggle').click();
+  await page.locator('#sidebar-nav.show').waitFor({ state: 'visible' });
+  await page.locator('#sidebar-nav a[href="#s.Feature"]').click();
+  await waitForActive('#s.Feature');
+  await page.locator('.sidebar-toggle').click();
+  await page.locator('#sidebar-nav').waitFor({ state: 'hidden' });
+  await waitForActive('#s.Feature');
+
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.goto(`${origin}/index.html`);
+  await waitForActive('#s.welcome');
+  await page.locator('#sidebar-nav a[href="#s.features"]').click();
+  await waitForActive('#s.features');
+  await page.locator('#sidebar-nav a[href="#s.example"]').click();
+  await waitForActive('#s.example');
+  await page.evaluate(() => window.scrollTo(0, 0));
+  await waitForActive('#s.welcome');
+  await page.close();
+  console.log('Section navigation checks passed: dotted deep links, scroll direction, short final sections, and mobile navigation.');
 }
 
 // Change modes through the same button used by mouse, touch, and keyboard users.
@@ -354,6 +467,8 @@ async function main() {
     await checkSharedAssets(parser, origin);
     await parser.close();
     await checkBrowser(context, origin);
+    await checkMarkdown(context, origin);
+    await checkSectionNavigation(context, origin);
     await checkThemes(context, origin);
     assert.deepEqual(errors, [], 'Documentation browser errors.');
   } finally {

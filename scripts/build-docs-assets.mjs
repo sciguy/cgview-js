@@ -43,6 +43,8 @@ const bootstrapScripts = await Promise.all([
 await writeFile(path.join(docsDirectory, 'scripts/bootstrap.min.js'), bootstrapScripts.join('\n'));
 await copyAsset('bootstrap', 'LICENSE', 'vendor/bootstrap-LICENSE.txt');
 await copyAsset('@popperjs/core', 'LICENSE.md', 'vendor/popper-LICENSE.txt');
+await copyAsset('markdown-it', 'dist/markdown-it.min.js', 'scripts/markdown-it.min.js');
+await copyAsset('markdown-it', 'LICENSE', 'vendor/markdown-it-LICENSE.txt');
 await copyAsset('prismjs', 'LICENSE', 'vendor/prismjs-LICENSE.txt');
 await bundlePrism('scripts/prism.js', [
   ...['core', 'markup', 'css', 'clike', 'javascript', 'bash', 'json']
@@ -55,4 +57,4 @@ await bundlePrism('styles/prism.css', [
   'plugins/line-highlight/prism-line-highlight.css',
   'plugins/line-numbers/prism-line-numbers.css'
 ]);
-console.log('Updated shared Bootstrap and Prism assets from installed dependencies.');
+console.log('Updated shared Bootstrap, markdown-it, and Prism assets from installed dependencies.');

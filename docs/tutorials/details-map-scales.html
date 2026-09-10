@@ -19,7 +19,7 @@
     <link rel="stylesheet" href="../styles/prism.css" />
     <!-- <link rel="stylesheet" href="../styles/tables.css" /> -->
     <link rel="stylesheet" href="../styles/general.css" />
-    <script src='../scripts/marked.min.js'></script>
+    <script src='../scripts/markdown-it.min.js'></script>
     <script src='../scripts/general.js'></script>
 
     <!-- Plausible Analytics -->
@@ -113,7 +113,6 @@ The scales are accessed directly through the viewer object, here shown as <em>cg
 ```js
 cgv.scale
 // => {bp: function, x: function, y: function}
-
 ```
 
 
@@ -132,7 +131,7 @@ cgv.scale
     </div> <!-- End of markdown in -->
 
     <script>
-      tutorialMarkdown(marked, false);
+      tutorialMarkdown(false);
       // autoResizeMyViewer();
     </script>
 
@@ -143,5 +142,4 @@ cgv.scale
 
   </body>
 </html>
-
 

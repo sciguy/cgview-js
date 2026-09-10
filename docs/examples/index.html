@@ -19,7 +19,7 @@
     <link rel="stylesheet" href="../styles/prism.css" />
     <link rel="stylesheet" href="../styles/tables.css" />
     <link rel="stylesheet" href="../styles/general.css" />
-    <script src='../scripts/marked.min.js'></script>
+    <script src='../scripts/markdown-it.min.js'></script>
     <script src='../scripts/general.js'></script>
 
     <!-- Load CGViewBuild JSON Config as a global variable: exampleConfig -->
@@ -167,9 +167,8 @@ function createViewerAndLoadGenBank(path, config={}) {
       // Add the example config to the page (before converting markdown)
       const jsonSpan = document.querySelector('#json-config');
       jsonSpan.innerHTML = JSON.stringify(exampleConfig, null, 2);
-      // console.log('marked', marked)
 
-      tutorialMarkdown(marked);
+      tutorialMarkdown();
     </script>
 
     <script src="../scripts/prism.js"></script>
