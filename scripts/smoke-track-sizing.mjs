@@ -44,8 +44,16 @@ async function syncReadout() {
   });
 }
 
-async function changeNumber(value) {
+async function changeNumber(value, checkPendingSync = false) {
   await page.locator('#track-sizing-value').fill(String(value));
+  if (checkPendingSync) {
+    await page.evaluate(() => {
+      cgv.settings.update({maxSlotThickness: cgv.settings.maxSlotThickness});
+      return new Promise(resolve => requestAnimationFrame(resolve));
+    });
+    assert.equal(await page.locator('#track-sizing-value').inputValue(), String(value),
+      'a queued readout refresh must preserve the unsubmitted numeric edit');
+  }
   await page.locator('#track-sizing-value').dispatchEvent('change');
   await syncReadout();
 }
@@ -70,7 +78,7 @@ try {
     await page.locator('#track-sizing-track').selectOption(trackID);
     await page.locator('#track-sizing-mode').selectOption('pixels');
     const before = await page.evaluate(() => cgv.tracks().map(track => ({id: track.cgvID, overview: track.computedInitialSlotThickness, ratio: track.thicknessRatio})));
-    await changeNumber(20);
+    await changeNumber(20, true);
     const after = await page.evaluate(() => cgv.tracks().map(track => ({id: track.cgvID, overview: track.computedInitialSlotThickness, ratio: track.thicknessRatio, slots: track.slots().map(slot => slot.thickness)})));
     after.forEach((track, i) => {
       near(track.overview, track.id === trackID ? 20 : before[i].overview, `${format} overview target/neighbour`);

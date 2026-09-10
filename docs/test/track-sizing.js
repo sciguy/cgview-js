@@ -14,6 +14,7 @@
   let syncFrame;
   let drawFrame;
   let errorMessage = '';
+  let editingNumber = false;
 
   function selectedTrack() {
     return cgv.tracks().find(track => track.cgvID === trackSelect.value);
@@ -54,7 +55,11 @@
       'Pixels per visible slot at zoom 1, excluding dividers. Preserves other overview widths. Zoom and canvas resizing can change widths; shared limits may prevent extreme targets.' :
       'Actual thicknessRatio weight. Redistributes existing space, so other tracks may change width. Equal ratios give equal slot widths.';
     const value = pixels ? overview : track?.thicknessRatio;
-    numberInput.value = unavailable ? '' : String(Number(value.toPrecision(12)));
+    // Zoom/settings/resize events can refresh readouts between keystrokes.
+    // Keep the pending numeric edit until it is submitted or loses focus.
+    if (!editingNumber || unavailable) {
+      numberInput.value = unavailable ? '' : String(Number(value.toPrecision(12)));
+    }
     // Extend the slider for existing values; the numeric input has no upper
     // bound. Both represent the actual API value, not a saved original ratio.
     slider.min = String(Math.min(pixels ? 0.1 : 0.05, value || 1));
@@ -85,6 +90,7 @@
   }
 
   function applyValue(value, full = false) {
+    editingNumber = false;
     const track = selectedTrack();
     if (!track || numberInput.disabled) { return; }
     try {
@@ -98,11 +104,17 @@
     }
   }
 
+  numberInput.addEventListener('input', () => { editingNumber = true; });
   numberInput.addEventListener('change', () => applyValue(numberInput.valueAsNumber, true));
+  numberInput.addEventListener('blur', () => {
+    editingNumber = false;
+    syncControls();
+  });
   slider.addEventListener('input', () => applyValue(slider.valueAsNumber));
   slider.addEventListener('change', () => requestDraw(true));
   for (const select of [trackSelect, modeSelect]) {
     select.addEventListener('change', () => {
+      editingNumber = false;
       errorMessage = '';
       syncControls();
     });
@@ -113,6 +125,7 @@
     cgv.on(`${event}.track-sizing`, requestSync);
   }
   cgv.on('cgv-json-load.track-sizing', () => {
+    editingNumber = false;
     errorMessage = '';
     requestSync(); // The load event precedes synchronous record replacement.
   });
