@@ -22,6 +22,49 @@ main {
   bottom: 40px;
   display: flex;
   flex-direction: column;
+  overflow-y: auto;
+}
+
+#track-sizing {
+  font-size: 12px;
+}
+
+.track-sizing-inputs {
+  display: grid;
+  grid-template-columns: 1fr 120px;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+#track-sizing-slider {
+  display: block;
+  width: 100%;
+  margin: 8px 0;
+}
+
+.track-sizing-readout {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+#track-sizing-help,
+#track-sizing-status {
+  margin: 5px 0 0;
+  line-height: 1.35;
+}
+
+#track-sizing-help {
+  color: #555;
+}
+
+#track-sizing-status {
+  color: #8b3100;
+}
+
+#track-sizing-status:empty {
+  display: none;
 }
 
 .dev-title {

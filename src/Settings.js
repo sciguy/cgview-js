@@ -49,6 +49,7 @@ import utils from './Utils';
  * [arrowHeadLength](#arrowHeadLength) | Number    | Length of feature arrowheads as a proportion of the feature thickness. From 0 (no arrowhead) to 1 (arrowhead as long on the feature is thick) [Default: 0.3]
  * [initialMapThicknessProportion](#initialMapThicknessProportion) | Number  | Proportion of canvas size to use for drawing map tracks at a zoomFactor of 1 [Default: 0.1]
  * [maxMapThicknessProportion](#maxMapThicknessProportion) | Number  | Proportion of canvas size to use for drawing map tracks at max zoom level [Default: 0.5]
+ * [maxSlotThickness](#maxSlotThickness) | Number | Shared maximum slot thickness in pixels, including overview [Default: 50]
  *
  * ### Examples
  *
@@ -78,6 +79,7 @@ class Settings {
     this._borderThickness = utils.defaultFor(options.borderThickness, 1.5);
     this.initialMapThicknessProportion = utils.defaultFor(options.initialMapThicknessProportion, 0.1);
     this.maxMapThicknessProportion = utils.defaultFor(options.maxMapThicknessProportion, 0.5);
+    this.maxSlotThickness = utils.defaultFor(options.maxSlotThickness, 50);
     this.viewer.trigger('settings-update', {attributes: this.toJSON({includeDefaults: true})});
   }
 
@@ -275,16 +277,31 @@ class Settings {
   }
 
   /**
+   * @member {Number} - Shared maximum thickness in pixels for feature and plot
+   * slots, at overview and while zooming (Default: 50). Must be finite and at
+   * least layout.minSlotThickness (normally 1). Invalid values are ignored.
+   * This cap can rescale all slots. Pixel sizing raises it when necessary;
+   * zoomed neighbouring slots may consequently change thickness.
+   */
+  get maxSlotThickness() {
+    return this.viewer.layout.maxSlotThickness;
+  }
+
+  set maxSlotThickness(value) {
+    this.viewer.layout.maxSlotThickness = value;
+  }
+
+  /**
    * Update settings [attributes](#attributes).
    * See [updating records](../docs.html#s.updating-records) for details.
    * @param {Object} attributes - Object describing the properties to change
    */
   update(attributes) {
-    this.viewer.updateRecords(this, attributes, {
+    this.viewer.layout.batchProportionUpdates(() => this.viewer.updateRecords(this, attributes, {
       recordClass: 'Settings',
-      validKeys: ['format', 'backgroundColor', 'plotRenderer', 'showPlotOutline', 'showShading', 'showTrackLabels', 'showBorder', 'borderColor', 'borderThickness', 'arrowHeadLength', 'geneticCode', 'initialMapThicknessProportion', 'maxMapThicknessProportion']
-    });
-    this.viewer.trigger('settings-update', { attributes });
+      validKeys: ['format', 'backgroundColor', 'plotRenderer', 'showPlotOutline', 'showShading', 'showTrackLabels', 'showBorder', 'borderColor', 'borderThickness', 'arrowHeadLength', 'geneticCode', 'initialMapThicknessProportion', 'maxMapThicknessProportion', 'maxSlotThickness']
+    }));
+    this.viewer.layout._triggerProportionEvent('settings-update', { attributes });
   }
 
   /**
@@ -304,7 +321,8 @@ class Settings {
       borderThickness: this.borderThickness,
       arrowHeadLength: this.arrowHeadLength,
       initialMapThicknessProportion: this.initialMapThicknessProportion,
-      maxMapThicknessProportion: this.maxMapThicknessProportion
+      maxMapThicknessProportion: this.maxMapThicknessProportion,
+      maxSlotThickness: this.maxSlotThickness
     };
   }
 

@@ -596,11 +596,21 @@ Attribute                         | Type      | Description
 [position](api/Track.html#position)             | String    | Position relative to backbone: inside, outside, or both [Default: both]
 [separateFeaturesBy](api/Track.html#separateFeaturesBy) | String    | How features should be separated: none, strand, readingFrame, type, legend [Default: strand]
 [thicknessRatio](api/Track.html#thicknessRatio) | Number    | Thickness of track compared to other tracks [Default: 1]
+[computedInitialSlotThickness](test/track-sizing.md) | Number | Read-only thickness in pixels per visible slot at zoom factor 1, computed using the current canvas dimensions, ratios, and settings.
 [loadProgress](api/Track.html#loadProgress)     | Number    | Number between 0 and 100 indicating progress of track loading. Used internally by workers.
 [drawOrder](api/Track.html#loadProgress)        | String    | Order to draw features in: position, score [Default: position]
 [favorite](api/Track.html#favorite)             | Boolean   | Track is a favorite [Default: false]
 [visible](api/CGObject.html#visible)  | Boolean   | Track is visible [Default: true]
 [meta](api/CGObject.html#meta)        | Object    | [Meta data](tutorials/details-meta-data.html) for Track
+
+```js
+track.setThickness(20, {mode: 'pixels'}); // each visible slot at overview
+track.setThickness(2, {mode: 'ratio'});   // redistribute existing space
+cgv.draw();
+```
+
+See the [track sizing guide](test/track-sizing.md) for computed readouts,
+shared limits, unavailable tracks, events, and serialization.
 
 </section>
 <section id='s.Settings'>
@@ -622,6 +632,7 @@ Attribute                           | Type      | Description
 [arrowHeadLength](api/Settings.html#arrowHeadLength) | Number    | Length of feature arrowheads as a proportion of the feature thickness. From 0 (no arrowhead) to 1 (arrowhead as long on the feature is thick) [Default: 0.3]
 [initialMapThicknessProportion](api/Settings.html#initialMapThicknessProportion) | Number  | Proportion of canvas size to use for drawing map tracks at a zoomFactor of 1 [Default: 0.1]
 [maxMapThicknessProportion](api/Settings.html#maxMapThicknessProportion) | Number  | Proportion of canvas size to use for drawing map tracks at max zoom level [Default: 0.5]
+[maxSlotThickness](test/track-sizing.md) | Number | Shared maximum slot thickness in pixels, at overview and while zooming [Default: 50]
 
 `plotRenderer` is an **experimental testing setting**, retained for comparisons
 with the original plot renderer. It is not a stable API and may change or be
