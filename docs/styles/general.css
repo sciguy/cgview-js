@@ -1,8 +1,86 @@
+/* Shared palette for the site and the customized Jaguar API template. */
+:root {
+  --docs-bg: #fff;
+  --docs-text: #212529;
+  --docs-muted: #626b74;
+  --docs-link: #337ab7;
+  --docs-link-hover: #23527c;
+  --docs-border: #ccc;
+  --docs-divider: #e1e1e1;
+  --docs-stripe: #f4f4f4;
+  --docs-accent: #587b24;
+  --docs-badge-bg: #626b74;
+  --docs-badge-static: #587b24;
+  --docs-badge-object: #2a6496;
+  --docs-badge-boolean: #ac4747;
+  --docs-optional-bg: #e9ecef;
+  --docs-code-bg: #f5f5f5;
+  --docs-code-text: #374151;
+  --docs-code-comment: #626e77;
+  --docs-code-keyword: #7c3ea1;
+  --docs-code-string: #52751d;
+  --docs-code-number: #a84f0d;
+  --docs-code-function: #286aa2;
+  --docs-code-property: #96514b;
+  --docs-code-operator: #615644;
+  --docs-notice-bg: #cff4fc;
+  --docs-notice-text: #055160;
+  --docs-notice-border: #b6effb;
+  --docs-menu-bg: #f5f5f5;
+  --docs-menu-hover: #bfe4ec;
+  /* Keep CGView's dark navigation in both modes. */
+  --docs-nav-bg: #212529;
+  --docs-sidebar-bg: #1a1a1a;
+  --docs-nav-text: #e1e1e1;
+  --docs-nav-muted: #bbb;
+  --docs-nav-border: #555;
+  --docs-nav-input: #333;
+  --docs-nav-accent: #a6c86f;
+}
+
+:root[data-bs-theme="dark"] {
+  --docs-nav-bg: #14181d;
+  --docs-bg: #20262d;
+  --docs-text: #dee4eb;
+  --docs-muted: #a7b2bf;
+  --docs-link: #8cc2f2;
+  --docs-link-hover: #b9dfff;
+  --docs-border: #485360;
+  --docs-divider: #3a444f;
+  --docs-stripe: #29323c;
+  --docs-accent: #a6c86f;
+  --docs-badge-bg: #525e6b;
+  --docs-badge-object: #305b7c;
+  --docs-badge-boolean: #963f49;
+  --docs-optional-bg: #353e49;
+  --docs-code-bg: #161b21;
+  --docs-code-text: #d8dee9;
+  --docs-code-comment: #9aa7b5;
+  --docs-code-keyword: #c4a4f5;
+  --docs-code-string: #accf80;
+  --docs-code-number: #f2bc7b;
+  --docs-code-function: #8fc6f1;
+  --docs-code-property: #e9a99c;
+  --docs-code-operator: #dccca2;
+  --docs-notice-bg: #123540;
+  --docs-notice-text: #b8e3ed;
+  --docs-notice-border: #32606e;
+  --docs-menu-bg: #262e37;
+  --docs-menu-hover: #334d59;
+  --bs-body-color: var(--docs-text);
+  --bs-body-bg: var(--docs-bg);
+}
+
 /* Shared API styles complement template/jaguarjs-jsdoc/static/styles/jaguar.css. */
 
 /*****************************************************************************/
 /* General formatting                                                        */
 /*****************************************************************************/
+
+.navbar.bg-dark {
+  /* Override Bootstrap's fixed background utility with the shared palette. */
+  background-color: var(--docs-nav-bg) !important;
+}
 
 body {
   /* font-size: 14.5px; */
@@ -10,8 +88,9 @@ body {
   font-size: 1rem;
   font-family: "Lucida Grande", "Lucida Sans Unicode", "Lucida Sans", Geneva, Verdana, sans-serif;
   line-height: normal;
+  color: var(--docs-text);
   /* This color will fill in the letterbox on iPhone landscape mode */
-  background-color: rgb(33, 37, 41);
+  background-color: var(--docs-nav-bg);
   /* background-color: black; */
 }
 
@@ -38,13 +117,13 @@ h3 {
 }
 
 a {
-  color: #428bca;
+  color: var(--docs-link);
   text-decoration: none;
 }
 
 a:hover,
 a:focus {
-  color: #2a6496;
+  color: var(--docs-link-hover);
   text-decoration: underline;
 }
 
@@ -72,9 +151,11 @@ p {
 
 
 main {
+  min-height: calc(100vh - 50px);
+  overflow-wrap: anywhere;
   margin-left: 175px;
   margin-top: 50px;
-  background-color: white;
+  background-color: var(--docs-bg);
   padding: 0px 20px 50px 20px;
 }
 
@@ -142,7 +223,7 @@ main.welcome {
 }
 
 .over-content {
-  background-color: white;
+  background-color: var(--docs-bg);
   margin: 0 -20px;
   padding: 0 20px;
   padding-bottom: 20px;
@@ -153,7 +234,7 @@ main.welcome {
 /*****************************************************************************/
 
 #sidebar-nav {
-  background-color: rgb(26, 26, 26);
+  background-color: var(--docs-sidebar-bg);
   width: 175px;
   position: fixed;
   height: calc(100vh - 50px);
@@ -175,12 +256,12 @@ main.welcome {
 #sidebar-nav p {
   font-size: 13px;
   font-family: "Lucida Grande", "Lucida Sans Unicode", "Lucida Sans", Geneva, Verdana, sans-serif;
-  color: rgb(225, 225, 225);
+  color: var(--docs-nav-text);
   padding: .1rem 0.5rem;
   display: block;
 }
 #sidebar-nav p {
-  color: rgb(175, 175, 175);
+  color: var(--docs-nav-muted);
   margin-top: 10px;
   margin-bottom: 0;
 }
@@ -189,7 +270,7 @@ main.welcome {
   padding-left: 1.5rem;
 }
 #sidebar-nav li.active {
-  background-color: rgb(33, 37, 41);
+  background-color: var(--docs-nav-bg);
   border-radius: 5px;
 }
 #sidebar-nav li.active .side-link {
@@ -227,10 +308,10 @@ ul#gumshoe-list {
   padding-left: 5px;
   font-size: smaller;
   font-style: italic;
-  color: grey;
+  color: var(--docs-nav-muted);
 }
 
-@media (max-width: 576px) {
+@media (max-width: 575.98px) {
   #sidebar-nav {
     max-height: 40vh;
     height: auto;
@@ -252,14 +333,10 @@ ul#gumshoe-list {
   }
 }
 
-/* Move anchor target offset by nav bar height */
-:target:before {
-  content: "";
-  display: block;
-  height: 50px; /* fixed header height*/
-  margin: -50px 0 0; /* negative fixed header height */
+/* Keep fragment targets below the fixed navigation without altering code lines. */
+html {
+  scroll-padding-top: 60px;
 }
-
 
 /*****************************************************************************/
 /* Code formatting (in Markdown)                                             */
@@ -271,7 +348,7 @@ pre[class*="language-"] {
   margin-bottom: 12px;
 }
 pre[class*="language-"] {
-  border: 1px solid #ccc;
+  border: 1px solid var(--docs-border);
   border-radius: 4px;
   font-size: 12px;
 }
@@ -296,9 +373,9 @@ pre[class*="language-"] {
 /*****************************************************************************/
 
 .viewer-help {
-  border: 1px solid #bee5eb;
-  background-color: #d1ecf1;
-  color: #0c5460;
+  border: 1px solid var(--docs-notice-border);
+  background-color: var(--docs-notice-bg);
+  color: var(--docs-notice-text);
   font-size: 12px;
   margin: 5px 0;
   padding: 5px;
@@ -310,11 +387,11 @@ pre[class*="language-"] {
 /*****************************************************************************/
 
 .proksee-notice {
-  border: 1px solid #bee5eb;
+  border: 1px solid var(--docs-notice-border);
   border-radius: 5px;
-  color: #055160;
-  background-color: #cff4fc;
-  border-color: #b6effb;
+  color: var(--docs-notice-text);
+  background-color: var(--docs-notice-bg);
+  border-color: var(--docs-notice-border);
   text-align: center;
   font-size: 14px;
   margin: 8px 20px;
@@ -406,3 +483,102 @@ pre[class*="language-"] {
 /* } */
 
 
+
+/* Keep the expanded navbar on one line down to its 576px collapse point. */
+@media (min-width: 576px) and (max-width: 767.98px) {
+  .navbar {
+    --bs-navbar-nav-link-padding-x: 0.25rem;
+  }
+}
+
+/* Native theme control also appears inside the collapsed mobile navigation. */
+.theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 34px;
+  height: 34px;
+  margin-left: auto;
+  padding: 6px;
+  color: var(--docs-nav-text);
+  background: transparent;
+  border: 0;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.theme-toggle:hover {
+  background: var(--docs-nav-input);
+}
+.theme-icon-sun,
+:root[data-bs-theme="dark"] .theme-icon-moon {
+  display: none;
+}
+:root[data-bs-theme="dark"] .theme-icon-sun {
+  display: block;
+}
+.theme-toggle:focus-visible,
+.members-toggle:focus-visible {
+  outline: 2px solid #8cc2f2;
+  outline-offset: 3px;
+}
+@media (max-width: 575.98px) {
+  .theme-toggle {
+    margin: 8px 0;
+  }
+}
+
+/* Theme the shared Prism grammar without maintaining a second highlighter. */
+code[class*="language-"],
+pre[class*="language-"] {
+  color: var(--docs-code-text);
+  text-shadow: none;
+}
+:not(pre) > code[class*="language-"],
+pre[class*="language-"] {
+  background: var(--docs-code-bg);
+}
+.token.comment, .token.prolog, .token.doctype, .token.cdata {
+  color: var(--docs-code-comment);
+}
+.token.punctuation {
+  color: var(--docs-muted);
+}
+.token.property, .token.tag, .token.constant, .token.symbol, .token.deleted {
+  color: var(--docs-code-property);
+}
+.token.boolean, .token.number {
+  color: var(--docs-code-number);
+}
+.token.selector, .token.attr-name, .token.string, .token.char, .token.builtin, .token.inserted {
+  color: var(--docs-code-string);
+}
+.token.operator, .token.entity, .token.url, .language-css .token.string, .style .token.string {
+  color: var(--docs-code-operator);
+  background: transparent;
+}
+.token.atrule, .token.attr-value, .token.keyword {
+  color: var(--docs-code-keyword);
+}
+.token.function, .token.class-name {
+  color: var(--docs-code-function);
+}
+.token.regex, .token.important, .token.variable {
+  color: var(--docs-code-number);
+}
+.line-numbers-rows {
+  border-color: var(--docs-border);
+}
+.line-numbers-rows > span::before {
+  color: var(--docs-muted);
+}
+.line-highlight {
+  background: color-mix(in srgb, var(--docs-link) 12%, transparent);
+}
+
+/* Sidebar state is available immediately, including before scripts initialize. */
+@media (min-width: 576px) {
+  #sidebar-nav.collapse {
+    display: block;
+  }
+}

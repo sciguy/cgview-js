@@ -71,13 +71,14 @@ while normal runner variance is being established.
 
 ### Documentation
 
-Regenerate the API and the record tables from the source comments:
+Build the CGView bundles, shared browser assets, API, and record tables:
 
 ```bash
 yarn docs:build
 ```
 
-This uses Node.js 24 and Ruby (standard library only). To regenerate just the API:
+This uses Node.js 24 and Ruby (standard library only). To regenerate the API and
+shared browser assets without rebuilding CGView:
 
 ```bash
 yarn api
@@ -88,8 +89,20 @@ generated pages and assets. Edit the templates in `template/jaguarjs-jsdoc`, not
 the generated files. The template's `static/styles/jaguar.css` is the authoritative
 API stylesheet; it no longer has a LESS or Grunt build.
 
-Check generated navigation, API source links, local assets, search, and mobile
-navigation in Chromium:
+The site's sun/moon toggle uses the palette in `docs/styles/general.css`.
+The initial theme follows the operating system until a visitor toggles it;
+the chosen light or dark preference is stored as `cgview-docs-theme` in local storage.
+Map colors remain controlled by each example's CGView configuration.
+
+Bootstrap, Popper, and Prism are root development dependencies. `yarn docs:assets`
+copies Bootstrap's CSS, bundles Bootstrap with the installed Popper version, and
+assembles the Prism languages/plugins used by the site. Their licenses are copied
+to `docs/vendor`. Update packages in
+the root, regenerate, and review the browser checks instead of editing these
+generated assets. Custom Prism colors belong in `general.css`.
+
+Check generated navigation, API source links, local assets, literal search,
+keyboard and mobile navigation, themes, and shared example pages in Chromium:
 
 ```bash
 yarn playwright install --with-deps chromium # First run only, if not already installed

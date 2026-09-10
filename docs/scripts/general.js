@@ -64,17 +64,23 @@ function sideNavCheck() {
 
 // Adjust side nav on window resize
 window.addEventListener("resize", sideNavCheck)
-setTimeout(sideNavCheck, 100);
+document.addEventListener('DOMContentLoaded', sideNavCheck);
 
 
 ////////////////////////////////////////////////////////////////////////////////
 // Auto Resize My Viewer
 ////////////////////////////////////////////////////////////////////////////////
 
+/**
+ * Fit the page's global CGView viewer to the main content after load and resize.
+ * Installs window load/resize handlers; the viewer may be created by a deferred example.
+ * @returns {void}
+ */
 function autoResizeMyViewer() {
   const setHeight = 500;
   const mainPadding = 20 * 2;
   function myResize() {
+    if (!window.cgv) return; // Tutorial examples create the viewer after a short delay.
     const main = document.getElementsByTagName('main')[0];
     const mainWidth = main.clientWidth - mainPadding;
     const height = Math.min(mainWidth, setHeight);
@@ -189,7 +195,6 @@ function addExampleTables(id, name, size, link) {
 //     <h3>Files</h3>
 //     ${filesTable}`;
 // }
-
 
 
 

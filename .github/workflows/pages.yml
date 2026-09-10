@@ -40,8 +40,6 @@ jobs:
 
       - name: Install dependencies
         run: yarn install --frozen-lockfile
-      - name: Build
-        run: yarn gh-pages
 
       - name: Set up Ruby for record tables
         uses: ruby/setup-ruby@v1

@@ -18,6 +18,14 @@
   filter: none;
 }
 
+[data-bs-theme="dark"] .cgv-btn {
+  filter: invert(80%);
+}
+
+[data-bs-theme="dark"] .cgv-btn:hover {
+  filter: invert(100%);
+}
+
 
 /* The CSS below embeds SVG images for the buttons */
 /* This could be easily replaced with custom external PNG images */
@@ -79,4 +87,3 @@
 #btn-animate {
   content: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30' style='fill:black; stroke:black; stroke-width: 2.5px;'%3E%3Cpath d='M5 10 l7 5 l-7 5 Z'/%3E %3Cpath d='M19 8 v14' stroke-width='3.5'/%3E %3Cpath d='M25 8 v14' stroke-width='3.5'/%3E %3C/svg%3E");
 }
-

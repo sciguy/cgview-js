@@ -1,12 +1,10 @@
 # Documentation modernization follow-ups
 
-The dependency cleanup preserves the customized Jaguar layout. Follow-on stages:
+Dependency cleanup was committed as 24bc73e. Native API navigation, literal search,
+shared Bootstrap/Prism assets, and light/dark/system themes are implemented in the
+following stage. The customized Jaguar layout and API URLs are preserved.
 
-- Replace Jaguar's jQuery navigation/search script with native DOM code and
-  literal search, then remove unused browser assets. Review whether clearing a
-  search restores individual member links as well as class sections.
-- Convert API and shared site colors to CSS variables, update Bootstrap, and add
-  a shared light/dark/system preference.
+Remaining follow-ups:
 - Review existing broken links in API descriptions. A fresh baseline generation
   already contained these problems before the tooling changes:
   - Retired/undocumented properties such as favorite, onlyDrawFavorites,
@@ -17,8 +15,12 @@ The dependency cleanup preserves the customized Jaguar layout. Follow-on stages:
   - Check Box.color, Legend.font, Sequence.name, and Bookmark.bbOffset references.
 - Address remaining library and build/test dependency alerts separately,
   including the d3-color runtime dependency.
+- Review the remaining shared vendored assets separately, including Marked 2.1.2
+  and Gumshoe 5.1.2. The clean documentation dependency audit covers the declared
+  JSDoc/Salty/Playwright/Bootstrap/Popper/Prism trees, not these older copies or the
+  example viewers' D3/CGParse dependencies.
 
-Source-page line anchors are created in the browser by linenumber.js; their
+Source-page line anchors are created in the browser by highlight.js; their
 absence in static HTML is expected and is covered by the browser checks.
 
 The library suite has one existing failure: FeatureLabelRenderer's

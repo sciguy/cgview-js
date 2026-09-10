@@ -32,9 +32,10 @@
     "benchmark:install": "playwright install --with-deps chromium",
     "gh-test": "jest --silent",
     "gh-pages": "rollup --config",
-    "api": "node scripts/build-api.mjs",
-    "docs:build": "yarn api && ruby scripts/update_docs_tables.rb",
-    "docs:check": "node scripts/check-docs.mjs"
+    "api": "yarn docs:assets && node scripts/build-api.mjs",
+    "docs:build": "yarn gh-pages && yarn api && ruby scripts/update_docs_tables.rb",
+    "docs:check": "node scripts/check-docs.mjs",
+    "docs:assets": "node scripts/build-docs-assets.mjs"
   },
   "jest": {
     "preset": "es-jest",
@@ -53,11 +54,14 @@
   "devDependencies": {
     "@jsdoc/salty": "^0.2.12",
     "@playwright/test": "^1.62.1",
+    "@popperjs/core": "^2.11.8",
     "@rollup/plugin-json": "^4.1.0",
+    "bootstrap": "^5.3.8",
     "es-jest": "^1.2.0",
     "jest": "^27.0.4",
     "jest-canvas-mock": "^2.3.1",
     "jsdoc": "^4.0.5",
+    "prismjs": "^1.30.0",
     "rollup": "4.34.6",
     "rollup-plugin-terser": "^7.0.2"
   },

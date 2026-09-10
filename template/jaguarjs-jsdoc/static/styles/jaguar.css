@@ -1,7 +1,7 @@
 html,
 body {
   font: 1em "jaf-bernino-sans", "Lucida Grande", "Lucida Sans Unicode", "Lucida Sans", Geneva, Verdana, sans-serif;
-  background-color: #fff;
+  background-color: var(--docs-bg);
 }
 ul,
 ol {
@@ -20,7 +20,7 @@ li {
   background-color: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background-color: gray;
+  background-color: var(--docs-badge-bg);
   border-radius: 4px;
 }
 .navigation {
@@ -29,7 +29,7 @@ li {
   /* width: 250px; - JRG  */
   /* width: 200px; */
   height: 100%;
-  background-color: #1a1a1a;
+  background-color: var(--docs-sidebar-bg);
 }
 /* .navigation .applicationName { */
 /*   margin: 0; */
@@ -47,9 +47,9 @@ li {
   margin-bottom: 10px;
 }
 .navigation .search input {
-  background-color: #333;
+  background-color: var(--docs-nav-input);
   color: #fff;
-  border-color: #555;
+  border-color: var(--docs-nav-border);
 }
 .navigation .list {
   padding: 10px 15px 0 15px;
@@ -66,7 +66,7 @@ li {
   border-bottom: 0.5px solid #333;
 }
 .navigation li.item a {
-  color: #bbb;
+  color: var(--docs-nav-muted);
 }
 .navigation li.item a:hover {
   color: #fff;
@@ -78,7 +78,7 @@ li {
   font-size: 0.8em;
 }
 .navigation li.item .title a {
-  color: #e1e1e1;
+  color: var(--docs-nav-text);
 }
 .navigation li.item .title a:hover {
   color: #fff;
@@ -86,7 +86,7 @@ li {
 .navigation li.item .title .static {
   display: block;
   border-radius: 3px;
-  background-color: #779c34;
+  background-color: var(--docs-accent);
   color: #000;
   font-size: 0.7em;
   padding: 2px 4px;
@@ -95,7 +95,7 @@ li {
 .navigation li.item .subtitle {
   margin-top: 10px;
   font: bold 0.65em Helvetica;
-  color: #779c34;
+  color: var(--docs-accent);
   display: block;
 }
 .navigation li.item ul > li {
@@ -103,8 +103,8 @@ li {
   padding-left: 8px;
   margin-top: 2px;
 }
-.navigation li.item .itemMembers {
-  display: none;
+.navigation [hidden] {
+  display: none !important;
 }
 /* .main { */
   /* padding: 20px 20px; */
@@ -145,7 +145,7 @@ li {
 .main h4.name span.type-signature {
   display: inline-block;
   border-radius: 3px;
-  background-color: gray;
+  background-color: var(--docs-badge-bg);
   color: #fff;
   font-size: 0.7em;
   padding: 2px 4px;
@@ -156,42 +156,42 @@ li {
 /* .main h4.name span.glyphicon { */
 /*   display: inline-block; */
 /*   vertical-align: middle; */
-/*   color: #e1e1e1; */
+/*   color: var(--docs-nav-text); */
 /*   margin-left: 7px; */
 /* } */
 .main h4.name span.returnType {
   margin-left: 3px;
   background-color: transparent!important;
-  color: gray!important;
+  color: var(--docs-muted)!important;
 }
 .main span.static {
   display: inline-block;
   border-radius: 3px;
-  background-color: #779c34 !important;
+  background-color: var(--docs-badge-static) !important;
   color: #fff;
   font-size: 0.7em;
   padding: 2px 4px;
   margin-right: 8px;
 }
-.main span.number {
-  background-color: gray!important;
+.main .type-signature.number {
+  background-color: var(--docs-badge-bg)!important;
 }
-.main span.string {
-  background-color: gray!important;
+.main .type-signature.string {
+  background-color: var(--docs-badge-bg)!important;
 }
-.main span.object {
-  background-color: #2a6496 !important;
+.main .type-signature.object {
+  background-color: var(--docs-badge-object) !important;
 }
-.main span.array {
-  background-color: #2a6496 !important;
+.main .type-signature.array {
+  background-color: var(--docs-badge-object) !important;
 }
-.main span.boolean {
-  background-color: #ee7d7d !important;
+.main .type-signature.boolean {
+  background-color: var(--docs-badge-boolean) !important;
 }
 .main .subsection-title {
   font-size: 14px;
   margin-top: 30px;
-  color: #779c34;
+  color: var(--docs-accent);
 }
 .main .description {
   margin-top: 10px;
@@ -208,7 +208,7 @@ li {
   margin-top: 30px;
   margin-bottom: 10px;
   padding-bottom: 10px;
-  border-bottom: 1px solid #efefef;
+  border-bottom: 1px solid var(--docs-divider);
 }
 .main .description pre {
   margin: 10px 0;
@@ -222,7 +222,7 @@ li {
 .main dt.tag-todo {
   font-size: 10px;
   display: inline-block;
-  background-color: #2a6496;
+  background-color: var(--docs-badge-object);
   color: #fff;
   padding: 2px 4px;
   border-radius: 5px;
@@ -235,7 +235,7 @@ li {
   font-size: 10px;
 }
 .main .important {
-  background-color: #ee7d7d;
+  background-color: var(--docs-badge-boolean);
   color: #fff;
   padding: 2px 4px;
   border-radius: 5px;
@@ -244,12 +244,12 @@ li {
   position: relative;
   margin-top: 20px;
   padding-top: 5px;
-  border-top: 1px solid #e1e1e1;
+  border-top: 1px solid var(--docs-divider);
 }
 .main .nameContainer .inherited {
   display: inline-block;
   border-radius: 3px;
-  background-color: #888!important;
+  background-color: var(--docs-badge-bg)!important;
   font-size: 0.7em;
   padding: 2px 4px;
   margin-right: 5px;
@@ -264,10 +264,10 @@ li {
   font-size: 10px;
 }
 .main .nameContainer .tag-source a {
-  color: gray;
+  color: var(--docs-muted);
 }
 .main .nameContainer.inherited {
-  color: gray;
+  color: var(--docs-muted);
 }
 .main .nameContainer h4 {
   margin-right: 150px;
@@ -300,13 +300,12 @@ li {
 }
 .main table .type {
   width: 60px;
-  /* max-width: 110px; /*JRG*/ */
-  color: #aaa;
+  color: var(--docs-muted);
   font-size: 11px;
 }
 .main table .attributes {
   width: 80px;
-  color: #aaa;
+  color: var(--docs-muted);
   font-size: 11px;
 }
 .main table .description {
@@ -318,11 +317,11 @@ li {
 .main table .optional {
   float: left;
   border-radius: 3px;
-  background-color: #ddd!important;
+  background-color: var(--docs-optional-bg)!important;
   font-size: 0.7em;
   padding: 2px 4px;
   margin-right: 5px;
-  color: gray;
+  color: var(--docs-muted);
 }
 .main .readme p {
   margin-top: 15px;
@@ -336,7 +335,7 @@ li {
   /* margin-top: 30px; */
   margin-bottom: 10px;
   padding-bottom: 10px;
-  border-bottom: 1px solid #e1e1e1;
+  border-bottom: 1px solid var(--docs-divider);
 }
 .main .readme li {
   font-size: 0.9em;
@@ -357,10 +356,10 @@ li {
 footer {
   margin: 15px 0;
   padding-top: 15px;
-  border-top: 1px solid #e1e1e1;
+  border-top: 1px solid var(--docs-divider);
   font-family: "freight-text-pro", Georgia, Cambria, "Times New Roman", Times, serif;
   font-size: 0.8em;
-  color: gray;
+  color: var(--docs-muted);
 }
 
 /* JRG */
@@ -435,10 +434,10 @@ a:hover {
 }
 
 pre[class*="lang-"] {
-  border: 1px solid #ccc;
+  border: 1px solid var(--docs-border);
   border-radius: 4px;
   padding: 10px;
-  background-color: #f5f5f5;
+  background-color: var(--docs-code-bg);
   line-height: 1.4;
 }
 /* code { */
@@ -447,11 +446,11 @@ pre[class*="lang-"] {
 /*   background-color: #f9f2f4; */
 /*   border-radius: 4px; */
 /* } */
-.main h4.name span.bi {
+.main h4.name .return-arrow {
   display: inline-block;
   vertical-align: middle;
-  /* color: #e1e1e1; */
-  color: #aaaaaa;
+  /* color: var(--docs-nav-text); */
+  color: var(--docs-muted);
   margin-left: 7px;
 }
 
@@ -470,3 +469,63 @@ table.quick-links td {
   padding: 5px 5px;
 }
 
+
+/* Use layout sizing instead of a JavaScript window resize handler. */
+.navigation {
+  display: flex;
+  flex-direction: column;
+  height: calc(100dvh - 50px);
+  overflow: hidden;
+}
+.navigation .list {
+  flex: 1;
+  min-height: 0;
+  padding-bottom: 20px;
+}
+.navigation .search,
+.navigation #nav-title-link {
+  flex: none;
+}
+.navigation .search input::placeholder {
+  color: var(--docs-nav-muted);
+}
+.navigation li.item .title {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  cursor: auto;
+}
+.navigation li.item .title > a {
+  flex: 1;
+  overflow-wrap: anywhere;
+}
+.navigation li.item .subtitle {
+  padding: 0;
+  margin-bottom: 2px;
+  color: var(--docs-nav-accent);
+}
+.members-toggle {
+  flex: none;
+  background: transparent;
+  color: var(--docs-nav-muted);
+  border: 0;
+  border-radius: 3px;
+  padding: 0 4px;
+  line-height: 1;
+  font-size: 20px;
+}
+.members-toggle span {
+  display: inline-block;
+}
+.members-toggle[aria-expanded="true"] span {
+  transform: rotate(90deg);
+}
+.main pre[class*="language-"],
+.main pre code[class*="language-"] {
+  font-size: 11px;
+}
+@media (max-width: 575.98px) {
+  .navigation {
+    max-height: 40dvh;
+  }
+}

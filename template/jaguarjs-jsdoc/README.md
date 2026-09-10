@@ -21,13 +21,30 @@ ES module repository. Keep that package boundary when changing the template.
   navigation, and `mainpage.tmpl` defines the API quick links.
 - `static/styles/jaguar.css` is the authoritative API stylesheet. Edit it directly;
   the original LESS sources and Grunt build have been retired.
-- `static/scripts/` contains scripts copied into the generated API.
+- `static/scripts/main.js` implements native API navigation and literal search.
+- `static/scripts/highlight.js` uses the shared Prism highlighter and preserves
+  source URLs such as `Viewer.js.html#line500`.
 - `../jsdoc_conf.json` controls source discovery and template options.
 - Shared navigation styles and scripts live in `../../docs/styles/` and
   `../../docs/scripts/`.
 
 Regenerate the API after template or static asset changes. Edit the sources here,
 not the generated copies under `docs/api`.
+
+## Themes and browser assets
+
+The sun/moon toggle is shared with the documentation site. The initial theme
+follows the operating system until a visitor chooses light or dark mode.
+`../../docs/scripts/theme.js` applies the preference before styles load and adds
+the control to the navbar. Edit the shared `--docs-*` colors in
+`../../docs/styles/general.css` and use those variables in `jaguar.css`.
+
+Bootstrap and Prism are generated from root development dependencies by
+`../../scripts/build-docs-assets.mjs`; `yarn api` runs that step automatically.
+`yarn docs:build` also builds CGView and updates the record tables, and
+`yarn docs:check` checks browser behavior and generated links. The old jQuery,
+Underscore, Bootstrap 3, Prettify, icon font, Disqus, and Google Analytics
+integrations have been retired. The site's Plausible integration remains active.
 
 ## Attribution
 
