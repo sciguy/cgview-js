@@ -25,7 +25,7 @@ main {
   overflow-y: auto;
 }
 
-#track-sizing {
+.track-sizing-controls {
   font-size: 12px;
 }
 

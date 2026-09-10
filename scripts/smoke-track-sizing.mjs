@@ -61,6 +61,7 @@ async function changeNumber(value, checkPendingSync = false) {
 try {
   await page.goto(`http://127.0.0.1:${server.address().port}/test/`);
   await page.waitForFunction(() => window.cgv?.tracks().length > 0 && !cgv.loading);
+  await page.locator('#option-show-track-sizing').check();
   await syncReadout();
   const original = await page.evaluate(() => cgv.io.toJSON());
   const choices = await page.locator('#track-sizing-track option').allTextContents();

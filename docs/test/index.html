@@ -38,7 +38,7 @@
 
     <!-- Dev Page -->
     <script src='performance.js'></script>
-    <link rel="stylesheet" href="test.css?v=track-sizing" />
+    <link rel="stylesheet" href="test.css?v=track-sizing-section" />
     <!-- Test Map Data -->
     <script src='maps.js'></script>
 
@@ -133,6 +133,7 @@
               <div><label><input id='option-show-plots' type='checkbox' /> Plots</label></div>
             </div>
             <div>
+              <div><label><input id='option-show-track-sizing' type='checkbox' aria-controls='track-sizing' /> Track Sizing</label></div>
               <div><label><input id='option-show-labels' type='checkbox' /> Labels Testing</label></div>
               <div><label><input id='option-show-ruler' type='checkbox' /> Ruler Testing</label></div>
               <div><label><input id='option-show-performance' type='checkbox' /> Performance Testing</label></div>
@@ -159,31 +160,33 @@
 
           <hr />
         </div>
-        <section id='track-sizing' aria-labelledby='track-sizing-heading'>
+        <section id='track-sizing' class='section-track-sizing' aria-labelledby='track-sizing-heading'>
           <div class='test-heading' id='track-sizing-heading'>Track Sizing</div>
-          <label for='track-sizing-track'>Track</label>
-          <select id='track-sizing-track' class='form-select form-select-sm'></select>
-          <div class='track-sizing-inputs'>
-            <div>
-              <label for='track-sizing-mode'>Mode</label>
-              <select id='track-sizing-mode' class='form-select form-select-sm'>
-                <option value='pixels'>Pixels at overview</option>
-                <option value='ratio'>Relative ratio</option>
-              </select>
+          <div class='track-sizing-controls'>
+            <label for='track-sizing-track'>Track</label>
+            <select id='track-sizing-track' class='form-select form-select-sm'></select>
+            <div class='track-sizing-inputs'>
+              <div>
+                <label for='track-sizing-mode'>Mode</label>
+                <select id='track-sizing-mode' class='form-select form-select-sm'>
+                  <option value='pixels'>Pixels at overview</option>
+                  <option value='ratio'>Relative ratio</option>
+                </select>
+              </div>
+              <div>
+                <label for='track-sizing-value' id='track-sizing-value-label'>Pixels per slot</label>
+                <input id='track-sizing-value' type='number' min='0' step='any' class='form-control form-control-sm' aria-describedby='track-sizing-help track-sizing-status' />
+              </div>
             </div>
-            <div>
-              <label for='track-sizing-value' id='track-sizing-value-label'>Pixels per slot</label>
-              <input id='track-sizing-value' type='number' min='0' step='any' class='form-control form-control-sm' aria-describedby='track-sizing-help track-sizing-status' />
+            <input id='track-sizing-slider' type='range' min='0.1' max='100' step='any' aria-label='Pixels per slot' aria-describedby='track-sizing-help track-sizing-status' />
+            <div class='track-sizing-readout'>
+              <span>Overview: <output id='track-sizing-overview'>n/a</output> px/slot</span>
+              <span>Rendered: <output id='track-sizing-rendered'>n/a</output> px/slot</span>
+              <span>Visible slots: <output id='track-sizing-count'>0</output></span>
             </div>
+            <p id='track-sizing-help'></p>
+            <p id='track-sizing-status' role='status' aria-live='polite'></p>
           </div>
-          <input id='track-sizing-slider' type='range' min='0.1' max='100' step='any' aria-label='Pixels per slot' aria-describedby='track-sizing-help track-sizing-status' />
-          <div class='track-sizing-readout'>
-            <span>Overview: <output id='track-sizing-overview'>n/a</output> px/slot</span>
-            <span>Rendered: <output id='track-sizing-rendered'>n/a</output> px/slot</span>
-            <span>Visible slots: <output id='track-sizing-count'>0</output></span>
-          </div>
-          <p id='track-sizing-help'></p>
-          <p id='track-sizing-status' role='status' aria-live='polite'></p>
           <hr />
         </section>
         <div class='section-ruler'>
@@ -279,7 +282,7 @@
     <!-- Bootstrap JavaScript -->
     <script src="../scripts/bootstrap.min.js"></script>
 
-    <script src='test.js?v=plots-settings'></script>
+    <script src='test.js?v=plots-and-track-sizing-sections'></script>
     <script src='track-sizing.js?v=3'></script>
     <script src='../scripts/controls.js'></script>
 
