@@ -71,6 +71,7 @@ notifications after the outermost calculation. Empty/unchanged batches do not
 recalculate. It flushes applied changes even when a callback throws; it is not a
 rollback transaction. Do not pass asynchronous callbacks.
 
-The test page's **Track Sizing** section calls this API directly. Its slider and
+Enable **Track Sizing** in the test page's **Options** to show the section.
+It calls this API directly. Its slider and
 numeric input use actual pixels or ratios, and readouts follow loading, track
 changes, settings, zoom, and canvas resizing.

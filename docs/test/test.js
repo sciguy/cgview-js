@@ -30,6 +30,7 @@ const drawRange = false;
 const selection = false;
 const showTrackLabels = true;
 const showPlotsSettings = false;
+const showTrackSizingTest = false;
 const showPerformanceTest = false;
 const showLabelsTest = false;
 const showRulerTest = false;
@@ -156,6 +157,9 @@ rulerLabelOrientationRadios.forEach((radio) => {
 });
 cgv.on('ruler-update.ruler-label-options', syncRulerLabelOptions);
 syncRulerLabelOptions();
+// Toggle Track Sizing Test
+const trackSizingCheckbox = document.getElementById('option-show-track-sizing');
+trackSizingCheckbox.checked = showTrackSizingTest;
 // Toggle Label Test
 const labelsCheckbox = document.getElementById('option-show-labels');
 labelsCheckbox.checked = showLabelsTest;
@@ -322,6 +326,9 @@ function loadMapJSON(json, name) {
 plotsCheckbox.addEventListener('click', () => {
   updatePageLayout();
 });
+trackSizingCheckbox.addEventListener('click', () => {
+  updatePageLayout();
+});
 labelsCheckbox.addEventListener('click', (e) => {
   updatePageLayout();
 });
@@ -336,6 +343,9 @@ function updatePageLayout() {
   // Plots
   const plotsDiv = document.querySelector('.section-plots');
   plotsDiv.style.display = plotsCheckbox.checked ? 'block' : 'none';
+  // Track Sizing
+  const trackSizingDiv = document.querySelector('.section-track-sizing');
+  trackSizingDiv.style.display = trackSizingCheckbox.checked ? 'block' : 'none';
   // Labels
   const labelsDiv = document.querySelector('.section-labels');
   labelsDiv.style.display = labelsCheckbox.checked ? 'block' : 'none';
