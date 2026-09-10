@@ -29,6 +29,7 @@ const debug = false;
 const drawRange = false;
 const selection = false;
 const showTrackLabels = true;
+const showPlotsSettings = false;
 const showPerformanceTest = false;
 const showLabelsTest = false;
 const showRulerTest = false;
@@ -103,6 +104,9 @@ function setTrackLabelsEnabled(enabled) {
   trackLabelsCheckbox.checked = enabled;
   cgv.settings.showTrackLabels = enabled;
 }
+// Toggle Plots Settings
+const plotsCheckbox = document.getElementById('option-show-plots');
+plotsCheckbox.checked = showPlotsSettings;
 // Plot rendering experiment
 const plotRendererSelect = document.getElementById('plot-renderer');
 const plotOutlineCheckbox = document.getElementById('plot-outline');
@@ -315,6 +319,9 @@ function loadMapJSON(json, name) {
 // Page Layout
 ///////////////////////////////////////////////////////////////////////////////
 
+plotsCheckbox.addEventListener('click', () => {
+  updatePageLayout();
+});
 labelsCheckbox.addEventListener('click', (e) => {
   updatePageLayout();
 });
@@ -326,6 +333,9 @@ performanceCheckbox.addEventListener('click', (e) => {
 });
 
 function updatePageLayout() {
+  // Plots
+  const plotsDiv = document.querySelector('.section-plots');
+  plotsDiv.style.display = plotsCheckbox.checked ? 'block' : 'none';
   // Labels
   const labelsDiv = document.querySelector('.section-labels');
   labelsDiv.style.display = labelsCheckbox.checked ? 'block' : 'none';
