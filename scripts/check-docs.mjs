@@ -9,7 +9,6 @@ import { chromium } from '@playwright/test';
 
 const repositoryRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const docsDirectory = path.join(repositoryRoot, 'docs');
-const apiDirectory = path.join(docsDirectory, 'api');
 const contentTypes = {
   '.html': 'text/html; charset=utf-8',
   '.js': 'text/javascript; charset=utf-8',
@@ -45,33 +44,47 @@ async function startServer() {
   return server;
 }
 
-// Parse generated HTML with the browser's HTML parser. Check template-generated
-// links and assets; pre-existing links in handwritten API descriptions are separate.
-async function checkGeneratedLinks(page, origin) {
-  const filenames = (await readdir(apiDirectory)).filter((filename) => filename.endsWith('.html')).sort();
+// Check local files and fragments in generated API descriptions and rendered site
+// Markdown. Detached documents avoid executing every example just to collect links.
+async function checkDocumentationLinks(page, origin) {
+  const filenames = (await readdir(docsDirectory, { recursive: true }))
+    .filter((filename) => filename.endsWith('.html')).sort();
+  await page.addScriptTag({ path: path.join(docsDirectory, 'scripts/markdown-it.min.js') });
+  await page.addScriptTag({ path: path.join(docsDirectory, 'scripts/general.js') });
   const pages = new Map();
   for (const filename of filenames) {
-    const html = await readFile(path.join(apiDirectory, filename), 'utf8');
+    let html = await readFile(path.join(docsDirectory, filename), 'utf8');
+    if (filename === 'json.html') {
+      // This page builds its property links and Prism line ranges in the browser.
+      await page.goto(`${origin}/json.html`);
+      await page.locator('#lines .line-numbers-rows').waitFor({ state: 'attached' });
+      html = await page.content();
+    }
     const result = await page.evaluate((text) => {
       const document = new DOMParser().parseFromString(text, 'text/html');
+      const markdown = document.querySelector('#markdown-in');
+      if (markdown) {
+        const output = document.querySelector('#markdown-out');
+        if (!output.innerHTML.trim()) output.innerHTML = renderDocsMarkdown(markdown.innerHTML);
+        // Hidden source may contain IDs that are not present in the rendered page.
+        markdown.remove();
+      }
       const ids = Array.from(document.querySelectorAll('[id], a[name]'), (element) => element.id || element.getAttribute('name'));
       const source = document.querySelector('pre.source code');
       // highlight.js assigns these anchors after syntax highlighting in the browser.
       if (source) {
         source.textContent.split('\n').forEach((_, index) => ids.push(`line${index + 1}`));
       }
-      const selectors = [
-        'script[src]', 'link[href]', 'img[src]', '.navigation a[href]',
-        '.navbar a[href]', '.quick-links a[href]', '.details a[href]',
-        '.tag-source a[href]', '.nameContainer .inherited a[href]'
-      ];
-      const references = Array.from(document.querySelectorAll(selectors.join(', ')), (element) => ({
+      const lineBlocks = Object.fromEntries(Array.from(document.querySelectorAll('pre[id] .line-numbers-rows'), (rows) => [
+        rows.closest('pre').id, rows.children.length
+      ]));
+      const references = Array.from(document.querySelectorAll('a[href], link[href], [src]'), (element) => ({
         value: element.getAttribute('href') || element.getAttribute('src'),
         anchor: element.tagName === 'A'
       }));
-      return { ids, references };
+      return { ids, references, lineBlocks };
     }, html);
-    pages.set(`/api/${filename}`, { ids: new Set(result.ids), references: result.references });
+    pages.set(`/${filename}`, { ...result, ids: new Set(result.ids) });
   }
 
   for (const filename of ['index.html', 'Viewer.html', 'Feature.html', 'Plot.html']) {
@@ -83,9 +96,19 @@ async function checkGeneratedLinks(page, origin) {
   let linkCount = 0;
   for (const [pathname, entry] of pages) {
     for (const reference of entry.references) {
-      const url = new URL(reference.value, `${origin}${pathname}`);
-      if (url.origin !== origin) continue;
-      const target = decodeURIComponent(url.pathname).replace(/\/$/, '/index.html');
+      let url;
+      let target;
+      let id;
+      try {
+        url = new URL(reference.value, `${origin}${pathname}`);
+        // Absolute links to the published CGView site refer to this build too.
+        if (url.origin !== origin && !/^https?:\/\/js\.cgview\.ca$/.test(url.origin)) continue;
+        target = decodeURIComponent(url.pathname).replace(/\/$/, '/index.html');
+        id = decodeURIComponent(url.hash.slice(1));
+      } catch {
+        errors.add(`${pathname}: invalid URL ${reference.value}`);
+        continue;
+      }
       if (!assets.has(target)) {
         const filename = path.resolve(docsDirectory, `.${target}`);
         const withinDocs = filename.startsWith(`${docsDirectory}${path.sep}`);
@@ -94,14 +117,19 @@ async function checkGeneratedLinks(page, origin) {
       if (!assets.get(target)) {
         errors.add(`${pathname}: missing ${reference.value}`);
       } else if (reference.anchor && url.hash && pages.has(target)) {
-        const id = decodeURIComponent(url.hash.slice(1));
-        if (!pages.get(target).ids.has(id)) errors.add(`${pathname}: missing anchor ${reference.value}`);
+        const destination = pages.get(target);
+        // Prism uses #block.start-end fragments rather than individual DOM IDs.
+        const range = id.match(/^(.+)\.(\d+)(?:-(\d+))?$/);
+        const first = Number(range?.[2]);
+        const last = Number(range?.[3] || first);
+        const validRange = range && first >= 1 && last >= first && last <= destination.lineBlocks[range[1]];
+        if (!destination.ids.has(id) && !validRange) errors.add(`${pathname}: missing anchor ${reference.value}`);
       }
       linkCount++;
     }
   }
-  assert.equal(errors.size, 0, `Generated documentation links failed:\n${[...errors].slice(0, 30).join('\n')}`);
-  console.log(`Checked ${filenames.length} API pages and ${linkCount} generated links/assets.`);
+  assert.equal(errors.size, 0, `Documentation links failed:\n${[...errors].slice(0, 40).join('\n')}`);
+  console.log(`Checked ${filenames.length} documentation pages and ${linkCount} local links/assets, including handwritten content.`);
 }
 
 async function checkBrowser(context, origin) {
@@ -285,15 +313,32 @@ async function checkMarkdown(context, origin) {
     range: link.hash.slice('#lines.'.length).split('-').map(Number)
   })));
   const lines = (await page.locator('#lines code').textContent()).split('\n');
+  const exampleJSON = JSON.parse(lines.join('\n'));
+  assert(exampleJSON.cgview, 'The displayed JSON example must be valid CGView JSON.');
+  const featureLink = await page.locator('#markdown-out a[href^="#lines."]').first().getAttribute('href');
+  const [, firstFeatureLine, lastFeatureLine] = featureLink.match(/^#lines\.(\d+)-(\d+)$/);
+  const linkedFeature = lines.slice(Number(firstFeatureLine) - 1, Number(lastFeatureLine)).join('\n').trim().replace(/,$/, '');
+  assert.deepEqual(JSON.parse(linkedFeature), exampleJSON.cgview.features[0], 'The prose link must highlight the first feature.');
   assert.equal(ranges.length, 13, 'JSON navigation is incomplete.');
   for (const { name, range: [start, end] } of ranges) {
-    assert(lines[start - 1]?.includes(`${name}":`), `JSON link for ${name} starts at the wrong line.`);
+    assert(lines[start - 1]?.includes(`"${name}":`), `JSON link for ${name} starts at the wrong line.`);
     if (end) assert(/^\s*[}\]]/.test(lines[end - 1]), `JSON link for ${name} ends at the wrong line.`);
   }
   const settings = page.locator('#sidebar-nav a').filter({ hasText: /^settings$/ });
   await settings.click();
   await page.locator('#lines .temporary.line-highlight').waitFor({ state: 'visible' });
   await page.locator('#sidebar-nav li.active a').filter({ hasText: /^settings$/ }).waitFor({ state: 'visible' });
+
+  // The reference JSON should also load as the map it describes.
+  await page.goto(`${origin}/tutorials/tutorial-basic.html`);
+  await page.waitForFunction(() => window.cgv?.features().length > 0);
+  const loaded = await page.evaluate((json) => {
+    cgv.io.loadJSON(json);
+    return { features: cgv.features().length, length: cgv.sequence.length };
+  }, exampleJSON);
+  assert.equal(loaded.features, exampleJSON.cgview.features.length, 'JSON example lost features during import.');
+  assert(loaded.length >= Math.max(...exampleJSON.cgview.features.map((feature) => feature.stop)),
+    'JSON example sequence is shorter than its feature coordinates.');
   await page.close();
   console.log('Markdown checks passed: heading URLs, HTML examples, list structure, live tutorials, and JSON line links.');
 }
@@ -463,7 +508,7 @@ async function main() {
     // Keep checks independent of analytics and external CDNs.
     await context.route('**/*', (route) => new URL(route.request().url()).origin === origin ? route.continue() : route.abort());
     const parser = await context.newPage();
-    await checkGeneratedLinks(parser, origin);
+    await checkDocumentationLinks(parser, origin);
     await checkSharedAssets(parser, origin);
     await parser.close();
     await checkBrowser(context, origin);

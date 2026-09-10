@@ -36,7 +36,7 @@ import utils from './Utils';
  * [Add](../docs.html#adding-records)         | [addItems()](Legend.html#addItems)       | -                   | legendItems-add
  * [Update](../docs.html#updating-records)    | [updateItems()](Legend.html#updateItems) | [update()](#update) | legendItems-update
  * [Remove](../docs.html#removing-records)    | [removeItems()](Legend.html#removeItems) | [remove()](#remove) | legendItems-remove
- * [Reorder](../docs.html#reordering-records) | [moveItem()](Legend.html#moveItem)       | [move()](#move)     | legendItems-reorder
+ * [Reorder](../docs.html#reordering-records) | [moveItem()](Legend.html#moveItem)       | [move()](#move)     | legendItems-moved
  * [Read](../docs.html#reading-records)       | [items()](Legend.html#items)             | -                   | -
  *
  * <a name="attributes"></a>
@@ -45,13 +45,12 @@ import utils from './Utils';
  * Attribute                        | Type      | Description
  * ---------------------------------|-----------|------------
  * [name](#name)                    | String    | Name to diplay for legendItem 
- * [font](#font)                    | String    | A string describing the font [Default: 'SansSerif, plain, 8']. See {@link Font} for details.
- * [fontColor](#fontColor)          | String    | A string describing the font color [Default: 'black']. See {@link Color} for details.
+ * [font](#font)                    | String    | A string describing the font. Defaults to [Legend.defaultFont](Legend.html#defaultFont). See {@link Font} for details.
+ * [fontColor](#fontColor)          | String    | A string describing the font color. Defaults to [Legend.defaultFontColor](Legend.html#defaultFontColor). See {@link Color} for details.
  * [decoration](#decoration)        | String    | How the features should be drawn. Choices: 'arc', 'arrow', 'auto', 'score', 'none'. Auto uses an arc at or below 5 pixels, then grows an arrowhead while retaining a 5-pixel body. Defaults to [Legend.defaultDecoration](Legend.html#defaultDecoration) ('auto').
  * [swatchColor](#swatchColor)      | String    | A string describing the legendItem display color [Default: 'black']. See {@link Color} for details.
  * [minArcLength](#minArcLength)    | Number    | Minimum length in pixels to use when drawing arcs. From 0 to 2 pixels [Default: 1]
  * [drawSwatch](#drawSwatch)        | Boolean   | Draw the swatch beside the legendItem name [Default: true]
- * [favorite](#favorite)            | Boolean   | LegendItem is a favorite [Default: false]
  * [visible](CGObject.html#visible) | Boolean   | LegendItem is visible [Default: true]
  * [meta](CGObject.html#meta)       | Object    | [Meta data](../tutorials/details-meta-data.html)
  *

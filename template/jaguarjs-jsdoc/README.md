@@ -29,7 +29,9 @@ ES module repository. Keep that package boundary when changing the template.
   `../../docs/scripts/`.
 
 Regenerate the API after template or static asset changes. Edit the sources here,
-not the generated copies under `docs/api`.
+not the generated copies under `docs/api`. API descriptions and record attribute
+tables come from JSDoc comments in `../../src/`; run `yarn docs:build` after editing
+them to update both the API and the tables in `../../docs/docs.html`.
 
 ## Themes and browser assets
 
@@ -42,9 +44,15 @@ the control to the navbar. Edit the shared `--docs-*` colors in
 Bootstrap and Prism are generated from root development dependencies by
 `../../scripts/build-docs-assets.mjs`; `yarn api` runs that step automatically.
 `yarn docs:build` also builds CGView and updates the record tables, and
-`yarn docs:check` checks browser behavior and generated links. The old jQuery,
-Underscore, Bootstrap 3, Prettify, icon font, Disqus, and Google Analytics
-integrations have been retired. The site's Plausible integration remains active.
+`yarn docs:check` checks browser behavior and local links and assets throughout
+the generated API, handwritten documentation, tutorials, and examples. It checks
+rendered Markdown fragments, source-line links, and JSON property ranges, and
+verifies that the JSON reference sample parses and loads. External websites are
+not checked.
+
+The old jQuery, Underscore, Bootstrap 3, Prettify, icon font, Disqus, and Google
+Analytics integrations have been retired. The site's Plausible integration
+remains active.
 
 ## Attribution
 

@@ -54,8 +54,13 @@ klasses.each do |klass|
       # Replace meta-data link
       table.gsub!('../tutorials/details-meta-data.html', 'tutorials/details-meta-data.html')
       # puts table
-      # Replace @links
-      table.gsub!(/\{@link (.*?)\}/, '<a href="api/\1.html"><code>\1</code></a>')
+      # Preserve class and member URLs when translating JSDoc links into site tables.
+      table.gsub!(/\{@link (\w+)([.#][\w.]+)?\}/) do
+        class_name = Regexp.last_match(1)
+        member = Regexp.last_match(2)
+        fragment = member&.start_with?('.') ? "##{member}" : member
+        %(<a href="api/#{class_name}.html#{fragment}"><code>#{class_name}#{member}</code></a>)
+      end
       # Add table to output
       tables_replacement += table + "\n\n"
       # NOTE: keep space after comment "*" to include with copied table

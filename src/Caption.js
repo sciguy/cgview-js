@@ -35,7 +35,7 @@ import * as d3 from 'd3';
  * -------------------------------------------|------------------------------------------------|----------------------|-----
  * [Add](../docs.html#adding-records)         | [addCaptions()](Viewer.html#addCaptions)       | -                    | captions-add
  * [Update](../docs.html#updating-records)    | [updateCaptions()](Viewer.html#updateCaptions) | [update()](#update)  | captions-update
- * [Remove](../docs.html#removing-records)    | [removeCaptions()](Viewer.html#removeCaptions) | [remove()](C#remove) | captions-remove
+ * [Remove](../docs.html#removing-records)    | [removeCaptions()](Viewer.html#removeCaptions) | [remove()](#remove) | captions-remove
  * [Reorder](../docs.html#reordering-records) | [moveCaption()](Viewer.html#moveCaption)       | [move()](#move)      | captions-reorder
  * [Read](../docs.html#reading-records)       | [captions()](Viewer.html#captions)             | -                    | -
  *
@@ -53,7 +53,7 @@ import * as d3 from 'd3';
  * [backgroundColor](#font)         | String    | A string describing the background color of the caption [Default: 'white']. See {@link Color} for details.
  * [on](#on)<sup>ic</sup>           | String    | Place the caption relative to the 'canvas' or 'map' [Default: 'canvas']
  * [visible](CGObject.html#visible) | Boolean   | Caption is visible [Default: true]
- * [meta](CGObject.html#meta)       | Object    | [Meta data](tutorial-meta.html) for Caption
+ * [meta](CGObject.html#meta)       | Object    | [Meta data](../tutorials/details-meta-data.html) for Caption
  * 
  * <sup>ic</sup> Ignored on Caption creation
  *

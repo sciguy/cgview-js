@@ -39,7 +39,7 @@ import utils from './Utils';
  * [padding](#padding)   | Number        | Sets paddedX and paddedY values (Default: 0)
  * [position](#position) | String\|Object | Where to place the box. See {@link Position} for details.
  * [anchor](#anchor)     | String\|Object | Where the position should be anchored to the box.
- * [color](#color)       | String\|Color  | A string describing the color. See {@link Color} for details. (DOESN'T DO ANYTHING YET)
+ * [color](#color)       | String\|Color  | Reserved color value [Default: 'white']. Stored on the box; does not control its drawing.
  *
  * Position:
  * If the position is on (i.e. relativeTo) the 'canvas', the box will be in a static position
@@ -74,6 +74,12 @@ class Box {
     // Set position after anchor. If position is on canvas, the anchor will be updated.
     this.position = utils.defaultFor(options.position, 'middle-center');
     this.padding = utils.defaultFor(options.padding, 0);
+    /**
+     * Reserved color value stored on the box. It does not affect drawing;
+     * set the owning caption or legend's background color instead.
+     * @member {String|Color} Box#color
+     * @default 'white'
+     */
     this.color = utils.defaultFor(options.color, 'white');
   }
 
@@ -94,7 +100,7 @@ class Box {
   }
 
   /**
-   * Alias for [Position on](Position.html#on). Values: 'map', 'campus'.
+   * Alias for [Position on](Position.html#on). Values: 'map', 'canvas'.
    */
   get on() {
     return this.position.on;

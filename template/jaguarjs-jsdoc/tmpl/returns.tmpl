@@ -67,7 +67,7 @@ returns.forEach(function (ret, i) {
                 if (ret.type && ret.type.names) {
                     ret.type.names.forEach(function(name, i) { ?>
                         <?js= self.linkto(name, self.htmlsafe(name)) ?>
-                        <?js if (i < ret.type.names.length-1) { ?> | <?js } ?>
+                        <?js if (i < ret.type.names.length-1) { ?> |<?js } ?>
                     <?js });
                 }
             ?>
