@@ -504,6 +504,7 @@ Attribute                         | Type      | Description
 [centerLine](api/Viewer.html#centerLine)<sup>iu</sup> | Object | [CenterLine](api/CenterLine.html) options
 [annotation](api/Viewer.html#annotation)<sup>iu</sup> | Object | [Annotation](api/Annotation.html) options
 [highlighter](api/Viewer.html#highlighter)<sup>iu</sup> | Object | [Highlighter](api/Highlighter.html) options
+[selection](api/Viewer.html#selection)<sup>iu</sup> | Object | [Selection](api/Selection.html) options
 
 <sup>iu</sup> Ignored on Viewer update
 
@@ -535,6 +536,7 @@ Attribute                        | Type     | Description
 [strand](api/Feature.html#strand)                | String   | Strand the features is on [Default: 1]
 [score](api/Feature.html#score)                  | Number   | Score associated with the feature
 [favorite](api/Feature.html#favorite)            | Boolean  | Feature is a favorite [Default: false]
+[selected](api/Feature.html#selected)            | Boolean  | Feature is selected [Default: false]
 [visible](api/CGObject.html#visible) | Boolean  | Feature is visible [Default: true]
 [meta](api/CGObject.html#meta)       | Object   | [Meta data](tutorials/details-meta-data.html) for Feature
 [qualifiers](api/Feature.html#qualifiers)        | Object   | Qualifiers associated with the feature (from GenBank/EMBL) [Default: {}]
@@ -593,7 +595,7 @@ Attribute                         | Type      | Description
 [dataType](api/Track.html#dataType)             | String    | Type of data shown by the track: plot, feature [Default: feature]
 [dataMethod](api/Track.html#dataMethod)         | String    | Methods used to extract/connect to features or a plot: sequence, source, type, tag [Default: source]
 [dataKeys](api/Track.html#dataKeys)             | String\|Array | Values used by dataMethod to extract features or a plot.
-[position](api/Track.html#position)             | String    | Position relative to backbone: inside, outside, or both [Default: both]
+[position](api/Track.html#position)             | String    | Position relative to backbone: inside, outside, both, or along (both and along are only for feature tracks) [Default: both]
 [separateFeaturesBy](api/Track.html#separateFeaturesBy) | String    | How features should be separated: none, strand, readingFrame, type, legend [Default: strand]
 [thicknessRatio](api/Track.html#thicknessRatio) | Number    | Thickness of track compared to other tracks [Default: 1]
 [loadProgress](api/Track.html#loadProgress)     | Number    | Number between 0 and 100 indicating progress of track loading. Used internally by workers.
@@ -616,29 +618,16 @@ Attribute                           | Type      | Description
 ------------------------------------|-----------|------------
 [format](api/Settings.html#format)                   | String    | The layout format of the map: circular, linear [Default: circular]
 [backgroundColor](api/Settings.html#backgroundColor) | String    | A string describing the background color of the map [Default: 'white']. See <a href="api/Color.html"><code>Color</code></a> for details.
+[plotRenderer](api/Settings.html#plotRenderer)       | String    | Experimental testing switch: contour or legacy. May change or be removed without notice. [Default: contour]
+[showPlotOutline](api/Settings.html#showPlotOutline) | Boolean   | Draw the contour edge on line plots during full draws [Default: true]
 [showShading](api/Settings.html#showShading)         | Boolean   | Should a shading effect be drawn on the features [Default: true]
-`showPlotOutline` | Boolean | Draw a thin edge on contour line plots during full-quality draws [Default: true]
-`plotRenderer` | String | Experimental testing switch: `contour` or `legacy` [Default: `contour`]
+[showTrackLabels](api/Settings.html#showTrackLabels) | Boolean | Show compact track names when the map is zoomed in [Default: true]
+[showBorder](api/Settings.html#showBorder)           | Boolean   | Should a border be drawn on the features [Default: true]
+[borderColor](api/Settings.html#borderColor)         | String    | A string describing the border color of features [Default: 'rgba(0,0,0,1)']. See <a href="api/Color.html"><code>Color</code></a> for details.
+[borderThickness](api/Settings.html#borderThickness) | Number    | The width of the border drawn on features in pixels [Default: 1.5]
 [arrowHeadLength](api/Settings.html#arrowHeadLength) | Number    | Length of feature arrowheads as a proportion of the feature thickness. From 0 (no arrowhead) to 1 (arrowhead as long on the feature is thick) [Default: 0.3]
 [initialMapThicknessProportion](api/Settings.html#initialMapThicknessProportion) | Number  | Proportion of canvas size to use for drawing map tracks at a zoomFactor of 1 [Default: 0.1]
 [maxMapThicknessProportion](api/Settings.html#maxMapThicknessProportion) | Number  | Proportion of canvas size to use for drawing map tracks at max zoom level [Default: 0.5]
-
-`plotRenderer` is an **experimental testing setting**, retained for comparisons
-with the original plot renderer. It is not a stable API and may change or be
-removed at any time without notice. Applications should use the default renderer
-without depending on this selector. It is currently saved in settings JSON, but
-future versions are not guaranteed to honor it.
-
-```js
-// Experimental: temporarily compare with the original line-plot renderer.
-cgv.settings.update({plotRenderer: 'legacy'});
-cgv.settings.update({plotRenderer: 'contour'});
-```
-
-The `showPlotOutline` setting controls the contour's thin edge independently.
-Fast draws omit the outline, and bar plots retain stepped geometry with either
-renderer selection. See the [plot renderer comparison guide](test/plot-renderers.md)
-for the benchmark procedure.
 
 </section>
 <section id='s.Legend'>
@@ -656,6 +645,7 @@ Attribute                          | Type      | Description
 [anchor](api/Legend.html#anchor)                  | String\|Object | Where to anchor the legend box to the position [Default: 'auto']. See <a href="api/Anchor.html"><code>Anchor</code></a> for details.
 [defaultFont](api/Legend.html#defaultFont)        | String    | A string describing the default font [Default: 'SansSerif, plain, 8']. See <a href="api/Font.html"><code>Font</code></a> for details.
 [defaultFontColor](api/Legend.html#defaultFontColor) | String    | A string describing the default font color [Default: 'black']. See <a href="api/Color.html"><code>Color</code></a> for details.
+[defaultDecoration](api/Legend.html#defaultDecoration) | String | Default decoration for legend items that do not define their own. Choices: 'arc', 'arrow', 'auto', 'score', 'none' [Default: 'auto']
 [defaultMinArcLength](api/Legend.html#defaultMinArcLength) | Number    | Default minimum length in pixels to use when drawing arcs. From 0 to 2 pixels [Default: 1]
 [textAlignment](api/Legend.html#textAlignment)    | String    | Alignment of legend text: *left*, or *right* [Default: 'left']
 [backgroundColor](api/Legend.html#font)           | String    | A string describing the background color of the legend [Default: 'white']. See <a href="api/Color.html"><code>Color</code></a> for details.
@@ -685,7 +675,7 @@ Attribute                        | Type      | Description
 [name](api/LegendItem.html#name)                    | String    | Name to diplay for legendItem 
 [font](api/LegendItem.html#font)                    | String    | A string describing the font [Default: 'SansSerif, plain, 8']. See <a href="api/Font.html"><code>Font</code></a> for details.
 [fontColor](api/LegendItem.html#fontColor)          | String    | A string describing the font color [Default: 'black']. See <a href="api/Color.html"><code>Color</code></a> for details.
-[decoration](api/LegendItem.html#decoration)        | String    | How the features should be drawn. Choices: 'arc' [Default], 'arrow', 'score', 'none' [Default: 'arc']
+[decoration](api/LegendItem.html#decoration)        | String    | How the features should be drawn. Choices: 'arc', 'arrow', 'auto', 'score', 'none'. Auto uses an arc at or below 5 pixels, then grows an arrowhead while retaining a 5-pixel body. Defaults to [Legend.defaultDecoration](api/Legend.html#defaultDecoration) ('auto').
 [swatchColor](api/LegendItem.html#swatchColor)      | String    | A string describing the legendItem display color [Default: 'black']. See <a href="api/Color.html"><code>Color</code></a> for details.
 [minArcLength](api/LegendItem.html#minArcLength)    | Number    | Minimum length in pixels to use when drawing arcs. From 0 to 2 pixels [Default: 1]
 [drawSwatch](api/LegendItem.html#drawSwatch)        | Boolean   | Draw the swatch beside the legendItem name [Default: true]
@@ -734,9 +724,13 @@ Action                                    | Viewer Method                       
 Attribute                        | Type      | Description
 ---------------------------------|-----------|------------
 [font](api/Annotation.html#font)                    | String    | A string describing the font [Default: 'monospace, plain, 12']. See <a href="api/Font.html"><code>Font</code></a> for details.
-[color](api/Annotation.html#color)                  | String   | A string describing the color [Default: undefined]. If the color is undefined, the legend color for the feature will be used. See <a href="api/Color.html"><code>Color</code></a> for details.
+[color](api/Annotation.html#color)                  | String   | A string describing the color of all labels [Default: undefined]. When undefined, outside labels use the feature legend color and inline labels choose black or white for contrast. See <a href="api/Color.html"><code>Color</code></a> for details.
 [onlyDrawFavorites](api/Annotation.html#onlyDrawFavorites) | Boolean   | Only draw labels for features that are favorited [Default: false]
 [labelPlacement](api/Annotation.html#labelPlacement) | String   | The label placement method for positioning labels. Choices: 'default', 'angled' [Default: 'default']
+[labelPosition](api/Annotation.html#labelPosition) | String | Where feature labels are drawn. Choices: 'outside', 'inline', 'auto'. With 'auto', outside labels are fallbacks for labels that do not fit inline [Default: 'auto']
+[inlineLabelAllowShrinking](api/Annotation.html#inlineLabelAllowShrinking) | Boolean | Shrink inline labels down to the renderer's minimum font size [Default: true]
+[inlineLabelAllowTruncation](api/Annotation.html#inlineLabelAllowTruncation) | Boolean | Truncate inline labels with an ellipsis when the full name cannot fit [Default: false]
+[inlineLabelColor](api/Annotation.html#inlineLabelColor) | String | Optional inline-label color override. When omitted, `color` is used if defined; otherwise black or white is selected for contrast against the rendered feature color.
 [visible](api/CGObject.html#visible) | Boolean   | Labels are visible [Default: true]
 [meta](api/CGObject.html#meta)       | Object    | [Meta data](tutorial-meta.html) for Annotation
 
@@ -779,6 +773,8 @@ Attribute                         | Type      | Description
 [color](api/Backbone.html#color)                   | String    | A string describing the main backbone color [Default: 'grey']. See <a href="api/Color.html"><code>Color</code></a> for details.
 [colorAlternate](api/Backbone.html#alternateColor) | String    | A string describing the alternate color used for contigs [Default: 'rgb(200,200,200)']. See <a href="api/Color.html"><code>Color</code></a> for details.
 [decoration](api/Backbone.html#decoration)         | String    | How the bakcbone should be drawn. Choices: 'arc', 'arrow' [Default: arc for single contig, arrow for muliple contigs]
+[showShading](api/Backbone.html#showShading)       | Boolean   | Override <a href="api/Settings#showShading.html"><code>Settings#showShading</code></a> for the backbone. When set, this value is used instead of the global setting. [Default: undefined]
+[showBorder](api/Backbone.html#showBorder)         | Boolean   | Override <a href="api/Settings#showBorder.html"><code>Settings#showBorder</code></a> for the backbone. When set, this value is used instead of the global setting. [Default: undefined]
 [visible](api/CGObject.html#visible)  | Boolean   | Backbone is visible [Default: true]
 [meta](api/CGObject.html#meta)        | Object    | [Meta data](tutorials/details-meta-data.html)
 
@@ -844,6 +840,8 @@ Attribute                        | Type      | Description
 ---------------------------------|-----------|------------
 [font](api/Ruler.html#font)                    | String    | A string describing the font [Default: 'sans-serif, plain, 10']. See <a href="api/Font.html"><code>Font</code></a> for details.
 [color](api/Ruler.html#color)                  | String    | A string describing the color [Default: 'black']. See <a href="api/Color.html"><code>Color</code></a> for details.
+[labelPosition](api/Ruler.html#labelPosition)  | String    | Side on which labels are drawn: 'inside', 'outside', 'both', or 'none' [Default: 'inside']
+[labelOrientation](api/Ruler.html#labelOrientation) | String | Label presentation: 'horizontal' or 'curved' [Default: 'horizontal']
 [visible](api/CGObject.html#visible) | Boolean   | Rulers are visible [Default: true]
 [meta](api/CGObject.html#meta)       | Object    | [Meta data](tutorials/details-meta-data.html) for ruler
 

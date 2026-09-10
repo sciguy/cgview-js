@@ -43,6 +43,20 @@ jobs:
       - name: Build
         run: yarn gh-pages
 
+      - name: Set up Ruby for record tables
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3'
+
+      - name: Generate documentation
+        run: yarn docs:build
+
+      - name: Install Chromium
+        run: yarn playwright install --with-deps chromium
+
+      - name: Check documentation
+        run: yarn docs:check
+
       - name: Setup Pages
         uses: actions/configure-pages@v5
 

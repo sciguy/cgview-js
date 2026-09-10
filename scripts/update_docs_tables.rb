@@ -98,9 +98,9 @@ if tables_found && nav_found
   puts "Updating File: '#{docs_path}'"
   File.write(docs_path, docs_file)
 else
-  puts "FILE WAS NOT CHANGED"
+  warn 'Record tables were not updated: docs.html must contain both REPLACE_TABLES and REPLACE_NAV markers.'
+  exit 1
 end
-
 
 
 

@@ -1,7 +1,4 @@
-/* Some of API CSS is dependent on the jsdoc Output template.
- * Check the bottom of the following CSS files: */
-/*   - docs/dash-jsdoc/static/styles/jsdoc-default.css */
-/*   - docs/jaguarjs-jsdoc/static/styles/jaguar.css */
+/* Shared API styles complement template/jaguarjs-jsdoc/static/styles/jaguar.css. */
 
 /*****************************************************************************/
 /* General formatting                                                        */
@@ -407,6 +404,5 @@ pre[class*="language-"] {
 /*   max-width: none; */
 /*   word-break: break-all; */
 /* } */
-
 
 

@@ -1,3 +1,11 @@
-CGView.js uses the jaguarjs jsdoc template for the API pages. The template has
-been modified (and included here) to integrate with the rest of the
-documentation.
+CGView.js maintains a customized Jaguar template for JSDoc 4 in jaguarjs-jsdoc/.
+Run yarn api from the repository root to regenerate docs/api.
+
+Install dependencies only at the repository root. The template uses the root
+package.json and yarn.lock; its own package.json only defines its CommonJS
+module boundary and package metadata.
+
+Edit jaguarjs-jsdoc/static/styles/jaguar.css directly. The old LESS/Grunt
+workflow and the unused Dash template have been retired.
+
+See jaguarjs-jsdoc/README.md for template maintenance details.

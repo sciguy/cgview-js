@@ -1,9 +1,17 @@
 This directory contains the [CGView.js Homepage](http://js.cgview.ca).
 
-Two steps are required to update the API:
+Run 'yarn docs:build' to regenerate the API and the record tables.
+Run 'yarn docs:check' to check generated navigation, source links, local assets,
+search, and mobile navigation using Playwright Chromium.
+
+The individual generation commands are:
 
 - Run 'yarn api' to generate the API jsdoc pages.
-- Update the the record tables (docs.html) with: 'ruby scripts/update_docs_tables.rb'.
+- Update the record tables (docs.html) with: 'ruby scripts/update_docs_tables.rb'.
+
+API generation replaces the generated docs/api directory only after a successful
+build. Edit template/jaguarjs-jsdoc for API layout and styling changes. All build
+dependencies are installed from the repository root; there is no template install.
 
 Example Map JSON can be updated by running:
 

@@ -69,11 +69,37 @@ candidate revisions on one GitHub Actions runner. Pushes to `main` compare the
 new revision with the previous main revision. Performance flags are informational
 while normal runner variance is being established.
 
-If needed, regenerate the API documentation from the JSDoc comments in the source code:
+### Documentation
+
+Regenerate the API and the record tables from the source comments:
+
+```bash
+yarn docs:build
+```
+
+This uses Node.js 24 and Ruby (standard library only). To regenerate just the API:
 
 ```bash
 yarn api
 ```
+
+API generation replaces `docs/api` only after a successful build, removing stale
+generated pages and assets. Edit the templates in `template/jaguarjs-jsdoc`, not
+the generated files. The template's `static/styles/jaguar.css` is the authoritative
+API stylesheet; it no longer has a LESS or Grunt build.
+
+Check generated navigation, API source links, local assets, search, and mobile
+navigation in Chromium:
+
+```bash
+yarn playwright install --with-deps chromium # First run only, if not already installed
+yarn docs:check
+```
+
+The browser checks use a temporary local server and block external analytics and
+CDN requests. Handwritten links in API descriptions require a separate content
+review. CI runs documentation generation and checks on pushes and pull requests,
+and the Pages workflow regenerates and checks documentation before publishing.
 
 ## Pull Requests
 

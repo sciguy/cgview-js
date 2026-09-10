@@ -35,10 +35,5 @@
 		"hardwrap": false,
     "breaks": false,
 		"tags": ["examples"]
-	},
-  "docset": {
-    "name": "CGView",
-    "icon": "docs/images/logo.png",
-    "enableJavascript": true
-  }
+	}
 }

@@ -72,8 +72,8 @@
             <img src="../images/cgview-logo.png" alt="CG Apps" />
           </a>
           <div id="cg-apps" role="menu" aria-label="CG Apps">
-            <a role="menuitem" href="https://js.cgview.ca"><img src='../images/cgview-logo.png' />CGView.js</a>
-            <a role="menuitem" href="https://parse.cgview.ca"><img src='../images/cgparse-logo.png' />CGParse.js</a>
+            <a target="_blank" role="menuitem" href="https://js.cgview.ca"><img src='../images/cgview-logo.png' />CGView.js</a>
+            <a target="_blank" role="menuitem" href="https://parse.cgview.ca"><img src='../images/cgparse-logo.png' />CGParse.js</a>
           </div>
         </div>
         <a class="navbar-brand" href="../index.html">CGView.js</a>
@@ -92,7 +92,7 @@
         <a class="nav-link active" aria-current="page" href="index.html">API</a>
         <a class="nav-link" href="../json.html">JSON</a>
         <a class="nav-link" href="../test/index.html">Test</a>
-        <a class="nav-link github-logo" href="https://github.com/sciguy/cgview-js"><img src='../images/GitHub-Mark-Light-64px.png' /></a>
+        <a target="_blank" class="nav-link github-logo" href="https://github.com/sciguy/cgview-js"><img src='../images/GitHub-Mark-Light-64px.png' /></a>
       </div>
     </div>
   </div>
@@ -2479,234 +2479,2918 @@
 <div id="wrap" class="clearfix jaguar">
     <div class="main">
 
-        <h1 class="page-title" data-filename="CGObject.js.html">Source: CGObject.js</h1>
+        <h1 class="page-title" data-filename="Selection.html">Class: Selection</h1>
 
 
 
 
-    <section>
-        <article>
-            <pre class="prettyprint source "><code>//////////////////////////////////////////////////////////////////////////////
-// CGObject
-//////////////////////////////////////////////////////////////////////////////
+<section>
 
-/**
- * CGView.js – Interactive Circular Genome Viewer
- * Copyright © 2016–2026 Jason R. Grant
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+<header>
+    <h2>
+    Selection
+    </h2>
 
-import utils from './Utils';
+        <div class="class-description"><p>The Selection object controls feature selection from viewer interactions.</p>
+<p><a name="attributes"></a></p>
+<h3>Attributes</h3>
+<table>
+<thead>
+<tr>
+<th>Attribute</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="#enabled">enabled</a></td>
+<td>Boolean</td>
+<td>Select features from clicks and clear with Escape [Default: false]</td>
+</tr>
+</tbody>
+</table></div>
 
-// Generate cgvID
-let cgvID = 0;
-const generateID = function() {
-  return `cgv-id-${cgvID++}`;
-};
+</header>  
 
-/**
- * The CGObject is the base class of many CGView Classes. In particular, any class
- * that is drawn on the map will be a subclass of CGObject (e.g. [Track](Track.html),
- * [Slot](Slot.html), [Feature](Feature.html), [Plot](Plot.html), etc).
- *
- * Any subclass instances will be given a unique temporary cgvID.
- * This id is not saved to JSON and should not be used across CGView sessions
- * (i.e. don't expect a feature to have the same cgvID if it's loaded in the viewer again).
- * Any object can be easily returned using the cgvID and [Viewer.objects](Viewer.html#objects).
- *
- * Classes that extend CGObject will have access to several commonly accessed viewer objects:
- * - viewer
- * - sequence
- * - canvas
- * - layout
- *
- * &lt;a name="attributes">&lt;/a>
- * ### Attributes
- *
- * Attribute           | Type      | Description
- * --------------------|-----------|------------
- * [visible](#visible) | Boolean   | Object is visible [Default: true]
- * [meta](#meta)       | Object    | [Meta data](../tutorials/details-meta-data.html) [Default: {}]
- *
- */
-class CGObject {
-
-  /**
-   * Create a new CGObject.
-   * @param {Viewer} viewer - The viewer
-   * @param {Object} options - [Attributes](#attributes) used to create the bookmark
-   * @param {Object} [meta] - User-defined [Meta data](../tutorials/details-meta-data.html) to add to the bookmark.
-   */
-  constructor(viewer, options = {}, meta = {}) {
-    // super();
-    this._viewer = viewer;
-    this.meta = utils.merge(options.meta, meta);
-    this.visible = utils.defaultFor(options.visible, true);
-    this._cgvID = generateID();
-    viewer._objects[this.cgvID] = this;
-  }
-
-  /**
-   * Return the class name as a string.
-   * @return {String} - 'CGObject'
-   */
-  toString() {
-    return 'CGObject';
-  }
-
-  get cgvID() {
-    return this._cgvID;
-  }
-
-  /**
-   * @member {Viewer} - Get the viewer.
-   */
-  get viewer() {
-    return this._viewer;
-  }
-
-  /**
-   * @member {Canvas} - Get the canvas.
-   */
-  get canvas() {
-    return this.viewer.canvas;
-  }
-
-  /**
-   * @member {Layout} - Get the layout.
-   */
-  get layout() {
-    return this.viewer.layout;
-  }
-
-  /**
-   * @member {Sequence} - Get the sequence.
-   */
-  get sequence() {
-    return this.viewer.sequence;
-  }
-
-  /**
-   * @member {Boolean} - Get or Set the visibility of this object.
-   */
-  get visible() {
-    return this._visible;
-  }
-
-  set visible(value) {
-    this._visible = value;
-  }
-
-  /**
-   * @member {Boolean} - Get or Set the meta data of this object. See the [meta data](../tutorials/details-meta-data.html) tutorial for details.
-   */
-  get meta() {
-    return this._meta;
-  }
-
-  set meta(value) {
-    this._meta = value;
-  }
-
-  /**
-   * Remove the object from Viewer.objects
-   */
-  deleteFromObjects() {
-    delete this.viewer._objects[this.cgvID];
-  }
-
-  //////////////////////////////////////////////////////////////////////////////
-  // PLUGIN METHODS
-  //////////////////////////////////////////////////////////////////////////////
-
-  /**
-   * Add a plugin to the object.
-   * @param {String} id - The id of the plugin
-   * @param {Object} options - The plugin options
-   */
-  addPluginOptions(id, options) {
-    this.viewer.plugins?._addPluginOptions(this, id, options);
-    // if (this.hasPlugin(id)) {
-    //   throw new Error(`Plugin ${id} already exists.`);
-    // }
-    // if (!this.pluginOptions) {
-    //   this.pluginOptions = {};
-    // }
-    // if (this.viewer.plugins.includes(id)) {
-    //   this.pluginOptions[id] = options;
-    // } else {
-    //   throw new Error(`Plugin '${id}' not found in viewer.`);
-    // }
-  }
-
-  /**
-   * Update plugin options. Merge the new options with the old options.
-   * @param {String} id - The id of the plugin
-   * @param {Object} options - The plugin options
-   */
-  updatePluginOptions(id, options) {
-    this.viewer.plugins?._updatePluginOptions(this, id, options);
-    // if (this.hasPlugin(id)) {
-    //   const updates = {...this.pluginOptions[id], ...options};
-    //   const pluginOptions = {...this.pluginOptions, [id]: updates};
-    //   if (typeof this.update === 'function') {
-    //     this.update({pluginOptions});
-    //   } else {
-    //     console.log('No update function found.', this, pluginOptions);
-    //     // this.pluginOptions = pluginOptions;
-    //   }
-    // } else {
-    //   throw new Error(`Plugin '${id}' not found.`);
-    // }
-  }
-
-  /**
-   * Does this object have a particular plugin?
-   * @param {String} pluginID - The ID of the plugin
-   * @return {Boolean} - Whether the object has the plugin
-   */
-  hasPlugin(pluginID) {
-    return this.viewer.plugins?._hasPlugin(this, pluginID);
-    // return this.viewer.plugins.
-    // if (this.pluginOptions) {
-    //   const pluginIDs = Object.keys(this.pluginOptions).map(key => key.toLowerCase());
-    //   return pluginIDs.includes(pluginID.toLowerCase());
-    // }
-  }
-
-  /**
-   * Get the options for a particular plugin.
-   * @param {String} pluginName - The name of the plugin
-   * @return {Object} - The options for the plugin or undefined if the plugin is not found
-   */
-  optionsForPlugin(pluginID) {
-    return this.viewer.plugins?._optionsForPlugin(this, pluginID);
-    // if (this.hasPlugin(pluginID)) {
-    //   return this.pluginOptions[pluginID];
-    // }
-  }
+<article>
+    <div class="container-overview">
 
 
-}
-
-export default CGObject;
 
 
-</code></pre>
-        </article>
-    </section>
+<dt>
+    <div class="nameContainer">
+        <h4 class="name" id="Selection">
 
+            new Selection<span class="signature">(viewer, options)</span>
+        </h4>
+
+
+        <div class="tag-source">
+            <a href="Selection.js.html">Selection.js</a>, <a href="Selection.js.html#line35">line 35</a>
+        </div>
+
+    </div>
+
+
+</dt>
+<dd>
+
+
+    <div class="description">
+        <p>Create a Selection object.</p>
+    </div>
+
+
+
+
+
+
+
+
+
+<table class="params">
+    <thead>
+	<tr>
+
+		<th>Name</th>
+
+
+		<th>Type</th>
+
+
+
+		<th class="last">Description</th>
+	</tr>
+	</thead>
+
+	<tbody>
+
+
+        <tr>
+
+                <td class="name"><code>viewer</code></td>
+
+
+            <td class="type">
+
+
+<span class="param-type"><a href="Viewer.html">Viewer</a></span>
+
+
+
+            </td>
+
+
+
+            <td class="description last">
+
+                <p>The viewer</p></td>
+        </tr>
+
+
+
+        <tr>
+
+                <td class="name"><code>options</code></td>
+
+
+            <td class="type">
+
+
+<span class="param-type">Object</span>
+
+
+
+            </td>
+
+
+
+            <td class="description last">
+
+                <p><a href="#attributes">Attributes</a> used to create the selection object.</p></td>
+        </tr>
+
+
+	</tbody>
+</table>
+
+
+
+<dl class="details">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+</dd>
+
+
+    </div>
+
+
+
+
+
+
+
+
+
+
+
+
+        <h3 class="subsection-title">Members</h3>
+
+        <dl>
+
+<dt>
+    <div class="nameContainer">
+        <h4 class="name" id="enabled">enabled<span class="type-signature type boolean">Boolean</span> </h4>
+    </div>
+
+
+</dt>
+<dd>
+
+    <div class="description">
+        <p>Get or set whether selection interactions are enabled.</p>
+    </div>
+
+
+
+<dl class="details">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</dl>
+
+
+
+</dd>
+
+        </dl>
+
+
+
+        <h3 class="subsection-title">Methods</h3>
+
+        <dl>
+
+<dt>
+    <div class="nameContainer">
+        <h4 class="name" id="attach">
+
+            attach<span class="signature">()</span>
+        </h4>
+
+
+        <div class="tag-source">
+            <a href="Selection.js.html">Selection.js</a>, <a href="Selection.js.html#line83">line 83</a>
+        </div>
+
+    </div>
+
+
+</dt>
+<dd>
+
+
+    <div class="description">
+        <p>Enable viewer selection interactions.</p>
+    </div>
+
+
+
+
+
+
+
+
+
+<dl class="details">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+</dd>
+
+
+
+<dt>
+    <div class="nameContainer">
+        <h4 class="name" id="canStartMarquee">
+
+            canStartMarquee<span class="signature">(event)</span><span class="bi bi-arrow-right-circle-fill"></span><span class="type-signature returnType">{Boolean}</span>
+        </h4>
+
+
+        <div class="tag-source">
+            <a href="Selection.js.html">Selection.js</a>, <a href="Selection.js.html#line164">line 164</a>
+        </div>
+
+    </div>
+
+
+</dt>
+<dd>
+
+
+    <div class="description">
+        <p>Return whether a mousedown event should start marquee selection.</p>
+    </div>
+
+
+
+
+
+
+
+
+
+<table class="params">
+    <thead>
+	<tr>
+
+		<th>Name</th>
+
+
+		<th>Type</th>
+
+
+
+		<th class="last">Description</th>
+	</tr>
+	</thead>
+
+	<tbody>
+
+
+        <tr>
+
+                <td class="name"><code>event</code></td>
+
+
+            <td class="type">
+
+
+<span class="param-type">Object</span>
+
+
+
+            </td>
+
+
+
+            <td class="description last">
+
+                <p>Event-like object from EventMonitor.</p></td>
+        </tr>
+
+
+	</tbody>
+</table>
+
+
+
+<dl class="details">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+    <h5>Returns:</h5>
+
+
+
+<table class="params">
+    <thead>
+    <tr>
+
+        <th>Type</th>
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+    <tbody>
+
+        <tr>
+
+            <td class="type">
+
+                        Boolean
+
+
+            </td>
+            <td class="description last"></td>
+        </tr>
+
+    </tbody>
+</table>
+
+
+
+
+</dd>
+
+
+
+<dt>
+    <div class="nameContainer">
+        <h4 class="name" id="clear">
+
+            clear<span class="signature">()</span>
+        </h4>
+
+
+        <div class="tag-source">
+            <a href="Selection.js.html">Selection.js</a>, <a href="Selection.js.html#line252">line 252</a>
+        </div>
+
+    </div>
+
+
+</dt>
+<dd>
+
+
+    <div class="description">
+        <p>Deselect all selected features.</p>
+    </div>
+
+
+
+
+
+
+
+
+
+<dl class="details">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+</dd>
+
+
+
+<dt>
+    <div class="nameContainer">
+        <h4 class="name" id="detach">
+
+            detach<span class="signature">()</span>
+        </h4>
+
+
+        <div class="tag-source">
+            <a href="Selection.js.html">Selection.js</a>, <a href="Selection.js.html#line96">line 96</a>
+        </div>
+
+    </div>
+
+
+</dt>
+<dd>
+
+
+    <div class="description">
+        <p>Disable viewer selection interactions.</p>
+    </div>
+
+
+
+
+
+
+
+
+
+<dl class="details">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+</dd>
+
+
+
+<dt>
+    <div class="nameContainer">
+        <h4 class="name" id="drawMarquee">
+
+            drawMarquee<span class="signature">()</span>
+        </h4>
+
+
+        <div class="tag-source">
+            <a href="Selection.js.html">Selection.js</a>, <a href="Selection.js.html#line350">line 350</a>
+        </div>
+
+    </div>
+
+
+</dt>
+<dd>
+
+
+    <div class="description">
+        <p>Draw the active marquee on the UI layer.</p>
+    </div>
+
+
+
+
+
+
+
+
+
+<dl class="details">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+</dd>
+
+
+
+<dt>
+    <div class="nameContainer">
+        <h4 class="name" id="drawMarqueeBoundary">
+
+            drawMarqueeBoundary<span class="signature">(range, centerOffset, lineWidth, color, dashes)</span>
+        </h4>
+
+
+        <div class="tag-source">
+            <a href="Selection.js.html">Selection.js</a>, <a href="Selection.js.html#line394">line 394</a>
+        </div>
+
+    </div>
+
+
+</dt>
+<dd>
+
+
+    <div class="description">
+        <p>Draw one dotted marquee boundary along the map.</p>
+    </div>
+
+
+
+
+
+
+
+
+
+<table class="params">
+    <thead>
+	<tr>
+
+		<th>Name</th>
+
+
+		<th>Type</th>
+
+
+
+		<th class="last">Description</th>
+	</tr>
+	</thead>
+
+	<tbody>
+
+
+        <tr>
+
+                <td class="name"><code>range</code></td>
+
+
+            <td class="type">
+
+
+<span class="param-type"><a href="CGRange.html">CGRange</a></span>
+
+
+
+            </td>
+
+
+
+            <td class="description last">
+
+                <p>Base pair range covered by the marquee.</p></td>
+        </tr>
+
+
+
+        <tr>
+
+                <td class="name"><code>centerOffset</code></td>
+
+
+            <td class="type">
+
+
+<span class="param-type">Number</span>
+
+
+
+            </td>
+
+
+
+            <td class="description last">
+
+                <p>Distance from center of map to the boundary.</p></td>
+        </tr>
+
+
+
+        <tr>
+
+                <td class="name"><code>lineWidth</code></td>
+
+
+            <td class="type">
+
+
+<span class="param-type">Number</span>
+
+
+
+            </td>
+
+
+
+            <td class="description last">
+
+                <p>Boundary line width.</p></td>
+        </tr>
+
+
+
+        <tr>
+
+                <td class="name"><code>color</code></td>
+
+
+            <td class="type">
+
+
+<span class="param-type">String</span>
+
+
+
+            </td>
+
+
+
+            <td class="description last">
+
+                <p>Boundary stroke color.</p></td>
+        </tr>
+
+
+
+        <tr>
+
+                <td class="name"><code>dashes</code></td>
+
+
+            <td class="type">
+
+
+<span class="param-type">Array</span>
+
+
+
+            </td>
+
+
+
+            <td class="description last">
+
+                <p>Boundary dash pattern.</p></td>
+        </tr>
+
+
+	</tbody>
+</table>
+
+
+
+<dl class="details">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+</dd>
+
+
+
+<dt>
+    <div class="nameContainer">
+        <h4 class="name" id="featureFromEvent">
+
+            featureFromEvent<span class="signature">(event)</span><span class="bi bi-arrow-right-circle-fill"></span><span class="type-signature returnType">{<a href="Feature.html">Feature</a>|undefined}</span>
+        </h4>
+
+
+        <div class="tag-source">
+            <a href="Selection.js.html">Selection.js</a>, <a href="Selection.js.html#line217">line 217</a>
+        </div>
+
+    </div>
+
+
+</dt>
+<dd>
+
+
+    <div class="description">
+        <p>Return the feature from a click event.</p>
+    </div>
+
+
+
+
+
+
+
+
+
+<table class="params">
+    <thead>
+	<tr>
+
+		<th>Name</th>
+
+
+		<th>Type</th>
+
+
+
+		<th class="last">Description</th>
+	</tr>
+	</thead>
+
+	<tbody>
+
+
+        <tr>
+
+                <td class="name"><code>event</code></td>
+
+
+            <td class="type">
+
+
+<span class="param-type">Object</span>
+
+
+
+            </td>
+
+
+
+            <td class="description last">
+
+                <p>Event-like object from EventMonitor.</p></td>
+        </tr>
+
+
+	</tbody>
+</table>
+
+
+
+<dl class="details">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+    <h5>Returns:</h5>
+
+
+
+<table class="params">
+    <thead>
+    <tr>
+
+        <th>Type</th>
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+    <tbody>
+
+        <tr>
+
+            <td class="type">
+
+                        <a href="Feature.html">Feature</a>
+                         | 
+
+                        undefined
+
+
+            </td>
+            <td class="description last"></td>
+        </tr>
+
+    </tbody>
+</table>
+
+
+
+
+</dd>
+
+
+
+<dt>
+    <div class="nameContainer">
+        <h4 class="name" id="handleClick">
+
+            handleClick<span class="signature">(event)</span>
+        </h4>
+
+
+        <div class="tag-source">
+            <a href="Selection.js.html">Selection.js</a>, <a href="Selection.js.html#line124">line 124</a>
+        </div>
+
+    </div>
+
+
+</dt>
+<dd>
+
+
+    <div class="description">
+        <p>Select the clicked feature, or clear selection when no feature is clicked.
+Shift-click adds to the existing selection.</p>
+    </div>
+
+
+
+
+
+
+
+
+
+<table class="params">
+    <thead>
+	<tr>
+
+		<th>Name</th>
+
+
+		<th>Type</th>
+
+
+
+		<th class="last">Description</th>
+	</tr>
+	</thead>
+
+	<tbody>
+
+
+        <tr>
+
+                <td class="name"><code>event</code></td>
+
+
+            <td class="type">
+
+
+<span class="param-type">Object</span>
+
+
+
+            </td>
+
+
+
+            <td class="description last">
+
+                <p>Event-like object from EventMonitor.</p></td>
+        </tr>
+
+
+	</tbody>
+</table>
+
+
+
+<dl class="details">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+</dd>
+
+
+
+<dt>
+    <div class="nameContainer">
+        <h4 class="name" id="handleKeydown">
+
+            handleKeydown<span class="signature">(event)</span>
+        </h4>
+
+
+        <div class="tag-source">
+            <a href="Selection.js.html">Selection.js</a>, <a href="Selection.js.html#line205">line 205</a>
+        </div>
+
+    </div>
+
+
+</dt>
+<dd>
+
+
+    <div class="description">
+        <p>Clear selection when Escape is pressed.</p>
+    </div>
+
+
+
+
+
+
+
+
+
+<table class="params">
+    <thead>
+	<tr>
+
+		<th>Name</th>
+
+
+		<th>Type</th>
+
+
+
+		<th class="last">Description</th>
+	</tr>
+	</thead>
+
+	<tbody>
+
+
+        <tr>
+
+                <td class="name"><code>event</code></td>
+
+
+            <td class="type">
+
+
+<span class="param-type">KeyboardEvent</span>
+
+
+
+            </td>
+
+
+
+            <td class="description last">
+
+                <p>Keyboard event.</p></td>
+        </tr>
+
+
+	</tbody>
+</table>
+
+
+
+<dl class="details">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+</dd>
+
+
+
+<dt>
+    <div class="nameContainer">
+        <h4 class="name" id="handleMousedown">
+
+            handleMousedown<span class="signature">(event)</span>
+        </h4>
+
+
+        <div class="tag-source">
+            <a href="Selection.js.html">Selection.js</a>, <a href="Selection.js.html#line143">line 143</a>
+        </div>
+
+    </div>
+
+
+</dt>
+<dd>
+
+
+    <div class="description">
+        <p>Start marquee selection from empty map space while Shift is pressed.</p>
+    </div>
+
+
+
+
+
+
+
+
+
+<table class="params">
+    <thead>
+	<tr>
+
+		<th>Name</th>
+
+
+		<th>Type</th>
+
+
+
+		<th class="last">Description</th>
+	</tr>
+	</thead>
+
+	<tbody>
+
+
+        <tr>
+
+                <td class="name"><code>event</code></td>
+
+
+            <td class="type">
+
+
+<span class="param-type">Object</span>
+
+
+
+            </td>
+
+
+
+            <td class="description last">
+
+                <p>Event-like object from EventMonitor.</p></td>
+        </tr>
+
+
+	</tbody>
+</table>
+
+
+
+<dl class="details">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+</dd>
+
+
+
+<dt>
+    <div class="nameContainer">
+        <h4 class="name" id="handleMousemove">
+
+            handleMousemove<span class="signature">(event)</span>
+        </h4>
+
+
+        <div class="tag-source">
+            <a href="Selection.js.html">Selection.js</a>, <a href="Selection.js.html#line174">line 174</a>
+        </div>
+
+    </div>
+
+
+</dt>
+<dd>
+
+
+    <div class="description">
+        <p>Update marquee selection while dragging.</p>
+    </div>
+
+
+
+
+
+
+
+
+
+<table class="params">
+    <thead>
+	<tr>
+
+		<th>Name</th>
+
+
+		<th>Type</th>
+
+
+
+		<th class="last">Description</th>
+	</tr>
+	</thead>
+
+	<tbody>
+
+
+        <tr>
+
+                <td class="name"><code>event</code></td>
+
+
+            <td class="type">
+
+
+<span class="param-type">Object</span>
+
+
+
+            </td>
+
+
+
+            <td class="description last">
+
+                <p>Event-like object from EventMonitor.</p></td>
+        </tr>
+
+
+	</tbody>
+</table>
+
+
+
+<dl class="details">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+</dd>
+
+
+
+<dt>
+    <div class="nameContainer">
+        <h4 class="name" id="handleMouseup">
+
+            handleMouseup<span class="signature">(event)</span>
+        </h4>
+
+
+        <div class="tag-source">
+            <a href="Selection.js.html">Selection.js</a>, <a href="Selection.js.html#line187">line 187</a>
+        </div>
+
+    </div>
+
+
+</dt>
+<dd>
+
+
+    <div class="description">
+        <p>Finish marquee selection and clear it from the UI layer.</p>
+    </div>
+
+
+
+
+
+
+
+
+
+<table class="params">
+    <thead>
+	<tr>
+
+		<th>Name</th>
+
+
+		<th>Type</th>
+
+
+
+		<th class="last">Description</th>
+	</tr>
+	</thead>
+
+	<tbody>
+
+
+        <tr>
+
+                <td class="name"><code>event</code></td>
+
+
+            <td class="type">
+
+
+<span class="param-type">Object</span>
+
+
+
+            </td>
+
+
+
+            <td class="description last">
+
+                <p>Event-like object from EventMonitor.</p></td>
+        </tr>
+
+
+	</tbody>
+</table>
+
+
+
+<dl class="details">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+</dd>
+
+
+
+<dt>
+    <div class="nameContainer">
+        <h4 class="name" id="marqueeRange">
+
+            marqueeRange<span class="signature">()</span><span class="bi bi-arrow-right-circle-fill"></span><span class="type-signature returnType">{<a href="CGRange.html">CGRange</a>|undefined}</span>
+        </h4>
+
+
+        <div class="tag-source">
+            <a href="Selection.js.html">Selection.js</a>, <a href="Selection.js.html#line312">line 312</a>
+        </div>
+
+    </div>
+
+
+</dt>
+<dd>
+
+
+    <div class="description">
+        <p>Return the active marquee selection range.</p>
+    </div>
+
+
+
+
+
+
+
+
+
+<dl class="details">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+    <h5>Returns:</h5>
+
+
+
+<table class="params">
+    <thead>
+    <tr>
+
+        <th>Type</th>
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+    <tbody>
+
+        <tr>
+
+            <td class="type">
+
+                        <a href="CGRange.html">CGRange</a>
+                         | 
+
+                        undefined
+
+
+            </td>
+            <td class="description last"></td>
+        </tr>
+
+    </tbody>
+</table>
+
+
+
+
+</dd>
+
+
+
+<dt>
+    <div class="nameContainer">
+        <h4 class="name" id="nearestUnwrappedBp">
+
+            nearestUnwrappedBp<span class="signature">(bp, referenceBp)</span><span class="bi bi-arrow-right-circle-fill"></span><span class="type-signature returnType">{Number}</span>
+        </h4>
+
+
+        <div class="tag-source">
+            <a href="Selection.js.html">Selection.js</a>, <a href="Selection.js.html#line330">line 330</a>
+        </div>
+
+    </div>
+
+
+</dt>
+<dd>
+
+
+    <div class="description">
+        <p>Return the equivalent base pair nearest to a continuous reference position.</p>
+    </div>
+
+
+
+
+
+
+
+
+
+<table class="params">
+    <thead>
+	<tr>
+
+		<th>Name</th>
+
+
+		<th>Type</th>
+
+
+
+		<th class="last">Description</th>
+	</tr>
+	</thead>
+
+	<tbody>
+
+
+        <tr>
+
+                <td class="name"><code>bp</code></td>
+
+
+            <td class="type">
+
+
+<span class="param-type">Number</span>
+
+
+
+            </td>
+
+
+
+            <td class="description last">
+
+                <p>Wrapped base pair.</p></td>
+        </tr>
+
+
+
+        <tr>
+
+                <td class="name"><code>referenceBp</code></td>
+
+
+            <td class="type">
+
+
+<span class="param-type">Number</span>
+
+
+
+            </td>
+
+
+
+            <td class="description last">
+
+                <p>Continuous base pair position to compare with.</p></td>
+        </tr>
+
+
+	</tbody>
+</table>
+
+
+
+<dl class="details">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+    <h5>Returns:</h5>
+
+
+
+<table class="params">
+    <thead>
+    <tr>
+
+        <th>Type</th>
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+    <tbody>
+
+        <tr>
+
+            <td class="type">
+
+                        Number
+
+
+            </td>
+            <td class="description last"></td>
+        </tr>
+
+    </tbody>
+</table>
+
+
+
+
+</dd>
+
+
+
+<dt>
+    <div class="nameContainer">
+        <h4 class="name" id="normalizeMapBp">
+
+            normalizeMapBp<span class="signature">(bp)</span><span class="bi bi-arrow-right-circle-fill"></span><span class="type-signature returnType">{Number}</span>
+        </h4>
+
+
+        <div class="tag-source">
+            <a href="Selection.js.html">Selection.js</a>, <a href="Selection.js.html#line342">line 342</a>
+        </div>
+
+    </div>
+
+
+</dt>
+<dd>
+
+
+    <div class="description">
+        <p>Normalize a base pair to the map coordinate range.</p>
+    </div>
+
+
+
+
+
+
+
+
+
+<table class="params">
+    <thead>
+	<tr>
+
+		<th>Name</th>
+
+
+		<th>Type</th>
+
+
+
+		<th class="last">Description</th>
+	</tr>
+	</thead>
+
+	<tbody>
+
+
+        <tr>
+
+                <td class="name"><code>bp</code></td>
+
+
+            <td class="type">
+
+
+<span class="param-type">Number</span>
+
+
+
+            </td>
+
+
+
+            <td class="description last">
+
+                <p>Base pair.</p></td>
+        </tr>
+
+
+	</tbody>
+</table>
+
+
+
+<dl class="details">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+    <h5>Returns:</h5>
+
+
+
+<table class="params">
+    <thead>
+    <tr>
+
+        <th>Type</th>
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+    <tbody>
+
+        <tr>
+
+            <td class="type">
+
+                        Number
+
+
+            </td>
+            <td class="description last"></td>
+        </tr>
+
+    </tbody>
+</table>
+
+
+
+
+</dd>
+
+
+
+<dt>
+    <div class="nameContainer">
+        <h4 class="name" id="select">
+
+            select<span class="signature">(feature, options)</span>
+        </h4>
+
+
+        <div class="tag-source">
+            <a href="Selection.js.html">Selection.js</a>, <a href="Selection.js.html#line232">line 232</a>
+        </div>
+
+    </div>
+
+
+</dt>
+<dd>
+
+
+    <div class="description">
+        <p>Select a feature.</p>
+    </div>
+
+
+
+
+
+
+
+
+
+<table class="params">
+    <thead>
+	<tr>
+
+		<th>Name</th>
+
+
+		<th>Type</th>
+
+
+
+		<th class="last">Description</th>
+	</tr>
+	</thead>
+
+	<tbody>
+
+
+        <tr>
+
+                <td class="name"><code>feature</code></td>
+
+
+            <td class="type">
+
+
+<span class="param-type"><a href="Feature.html">Feature</a></span>
+
+
+
+            </td>
+
+
+
+            <td class="description last">
+
+                <p>Feature to select.</p></td>
+        </tr>
+
+
+
+        <tr>
+
+                <td class="name"><code>options</code></td>
+
+
+            <td class="type">
+
+
+<span class="param-type">Object</span>
+
+
+
+            </td>
+
+
+
+            <td class="description last">
+
+                <p>Selection options.</p>
+
+
+<table class="params">
+    <thead>
+	<tr>
+
+		<th>Name</th>
+
+
+		<th>Type</th>
+
+
+
+		<th class="last">Description</th>
+	</tr>
+	</thead>
+
+	<tbody>
+
+
+        <tr>
+
+                <td class="name"><code>append</code></td>
+
+
+            <td class="type">
+
+
+<span class="param-type">Boolean</span>
+
+
+
+            </td>
+
+
+
+            <td class="description last">
+
+                <p>Keep currently selected features selected.</p></td>
+        </tr>
+
+
+	</tbody>
+</table>
+            </td>
+        </tr>
+
+
+	</tbody>
+</table>
+
+
+
+<dl class="details">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+</dd>
+
+
+
+<dt>
+    <div class="nameContainer">
+        <h4 class="name" id="selectFeaturesInMarquee">
+
+            selectFeaturesInMarquee<span class="signature">()</span>
+        </h4>
+
+
+        <div class="tag-source">
+            <a href="Selection.js.html">Selection.js</a>, <a href="Selection.js.html#line264">line 264</a>
+        </div>
+
+    </div>
+
+
+</dt>
+<dd>
+
+
+    <div class="description">
+        <p>Select visible features that overlap the active marquee range.</p>
+    </div>
+
+
+
+
+
+
+
+
+
+<dl class="details">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+</dd>
+
+
+
+<dt>
+    <div class="nameContainer">
+        <h4 class="name" id="selectedFeatures">
+
+            selectedFeatures<span class="signature">()</span><span class="bi bi-arrow-right-circle-fill"></span><span class="type-signature returnType">{<a href="CGArray.html">CGArray</a>}</span>
+        </h4>
+
+
+        <div class="tag-source">
+            <a href="Selection.js.html">Selection.js</a>, <a href="Selection.js.html#line411">line 411</a>
+        </div>
+
+    </div>
+
+
+</dt>
+<dd>
+
+
+    <div class="description">
+        <p>Return all selected features.</p>
+    </div>
+
+
+
+
+
+
+
+
+
+<dl class="details">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+    <h5>Returns:</h5>
+
+
+
+<table class="params">
+    <thead>
+    <tr>
+
+        <th>Type</th>
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+    <tbody>
+
+        <tr>
+
+            <td class="type">
+
+                        <a href="CGArray.html">CGArray</a>
+
+
+            </td>
+            <td class="description last"></td>
+        </tr>
+
+    </tbody>
+</table>
+
+
+
+
+</dd>
+
+
+
+<dt>
+    <div class="nameContainer">
+        <h4 class="name" id="toJSON">
+
+            toJSON<span class="signature">()</span>
+        </h4>
+
+
+        <div class="tag-source">
+            <a href="Selection.js.html">Selection.js</a>, <a href="Selection.js.html#line430">line 430</a>
+        </div>
+
+    </div>
+
+
+</dt>
+<dd>
+
+
+    <div class="description">
+        <p>Returns JSON representing the object.</p>
+    </div>
+
+
+
+
+
+
+
+
+
+<dl class="details">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+</dd>
+
+
+
+<dt>
+    <div class="nameContainer">
+        <h4 class="name" id="toString">
+
+            toString<span class="signature">()</span><span class="bi bi-arrow-right-circle-fill"></span><span class="type-signature returnType">{String}</span>
+        </h4>
+
+
+        <div class="tag-source">
+            <a href="Selection.js.html">Selection.js</a>, <a href="Selection.js.html#line54">line 54</a>
+        </div>
+
+    </div>
+
+
+</dt>
+<dd>
+
+
+    <div class="description">
+        <p>Return the class name as a string.</p>
+    </div>
+
+
+
+
+
+
+
+
+
+<dl class="details">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+    <h5>Returns:</h5>
+
+
+
+<table class="params">
+    <thead>
+    <tr>
+
+        <th>Type</th>
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+    <tbody>
+
+        <tr>
+
+            <td class="type">
+
+                        String
+
+
+            </td>
+            <td class="description last"><ul>
+<li>'Selection'</li>
+</ul></td>
+        </tr>
+
+    </tbody>
+</table>
+
+
+
+
+</dd>
+
+
+
+<dt>
+    <div class="nameContainer">
+        <h4 class="name" id="update">
+
+            update<span class="signature">(attributes)</span>
+        </h4>
+
+
+        <div class="tag-source">
+            <a href="Selection.js.html">Selection.js</a>, <a href="Selection.js.html#line108">line 108</a>
+        </div>
+
+    </div>
+
+
+</dt>
+<dd>
+
+
+    <div class="description">
+        <p>Update selection <a href="#attributes">attributes</a>.
+See <a href="../docs.html#s.updating-records">updating records</a> for details.</p>
+    </div>
+
+
+
+
+
+
+
+
+
+<table class="params">
+    <thead>
+	<tr>
+
+		<th>Name</th>
+
+
+		<th>Type</th>
+
+
+
+		<th class="last">Description</th>
+	</tr>
+	</thead>
+
+	<tbody>
+
+
+        <tr>
+
+                <td class="name"><code>attributes</code></td>
+
+
+            <td class="type">
+
+
+<span class="param-type">Object</span>
+
+
+
+            </td>
+
+
+
+            <td class="description last">
+
+                <p>Object describing the properties to change</p></td>
+        </tr>
+
+
+	</tbody>
+</table>
+
+
+
+<dl class="details">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+</dd>
+
+
+
+<dt>
+    <div class="nameContainer">
+        <h4 class="name" id="updateFeatures">
+
+            updateFeatures<span class="signature">(updates)</span>
+        </h4>
+
+
+        <div class="tag-source">
+            <a href="Selection.js.html">Selection.js</a>, <a href="Selection.js.html#line419">line 419</a>
+        </div>
+
+    </div>
+
+
+</dt>
+<dd>
+
+
+    <div class="description">
+        <p>Apply selection updates and redraw when the selection changed.</p>
+    </div>
+
+
+
+
+
+
+
+
+
+<table class="params">
+    <thead>
+	<tr>
+
+		<th>Name</th>
+
+
+		<th>Type</th>
+
+
+
+		<th class="last">Description</th>
+	</tr>
+	</thead>
+
+	<tbody>
+
+
+        <tr>
+
+                <td class="name"><code>updates</code></td>
+
+
+            <td class="type">
+
+
+<span class="param-type">Object</span>
+
+
+
+            </td>
+
+
+
+            <td class="description last">
+
+                <p>Per-feature updates keyed by cgvID.</p></td>
+        </tr>
+
+
+	</tbody>
+</table>
+
+
+
+<dl class="details">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+</dd>
+
+
+
+<dt>
+    <div class="nameContainer">
+        <h4 class="name" id="updateMarqueeStop">
+
+            updateMarqueeStop<span class="signature">(bp)</span>
+        </h4>
+
+
+        <div class="tag-source">
+            <a href="Selection.js.html">Selection.js</a>, <a href="Selection.js.html#line294">line 294</a>
+        </div>
+
+    </div>
+
+
+</dt>
+<dd>
+
+
+    <div class="description">
+        <p>Update the marquee stop position, preserving circular drag direction.</p>
+    </div>
+
+
+
+
+
+
+
+
+
+<table class="params">
+    <thead>
+	<tr>
+
+		<th>Name</th>
+
+
+		<th>Type</th>
+
+
+
+		<th class="last">Description</th>
+	</tr>
+	</thead>
+
+	<tbody>
+
+
+        <tr>
+
+                <td class="name"><code>bp</code></td>
+
+
+            <td class="type">
+
+
+<span class="param-type">Number</span>
+
+
+
+            </td>
+
+
+
+            <td class="description last">
+
+                <p>Base pair position under the mouse.</p></td>
+        </tr>
+
+
+	</tbody>
+</table>
+
+
+
+<dl class="details">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+</dd>
+
+        </dl>
+
+
+
+
+
+</article>
+
+</section>  
 
 
 
@@ -2715,8 +5399,8 @@ export default CGObject;
 
 
         <footer>
-           <!--  Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 4.0.5</a> on Thu Sep 10 2026 14:42:13 GMT+0000 (Coordinated Universal Time) -->
-           Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 4.0.5</a>. See <a href='index.html'>API Home</a> for documentation generation date.
+           <!--  Documentation generated by <a target="_blank" href="https://github.com/jsdoc3/jsdoc">JSDoc 4.0.5</a> on Thu Sep 10 2026 14:42:14 GMT+0000 (Coordinated Universal Time) -->
+           Documentation generated by <a target="_blank" href="https://github.com/jsdoc3/jsdoc">JSDoc 4.0.5</a>. See <a href='index.html'>API Home</a> for documentation generation date.
         </footer>
     </div>
 </div>
