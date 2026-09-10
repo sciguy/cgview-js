@@ -62,7 +62,7 @@ console.log(`CGView.js Version: ${version}`)
 
 /**
  * The Viewer is the main container class for CGView. It controls the
- * overal appearance of the map (e.g. width, height, etc).
+ * overall appearance of the map (e.g. width, height, etc).
  * It also contains all the major components of the map (e.g. [Layout](Layout.html),
  * [Sequence](Sequence.html), [Ruler](Ruler.html), etc). Many
  * of component options can be set during construction of the Viewer.
@@ -79,11 +79,11 @@ console.log(`CGView.js Version: ${version}`)
  * Attribute                         | Type      | Description
  * ----------------------------------|-----------|------------
  * [name](#name)                     | String    | Name for the map
- * [id](#id)                         | String    | ID for the map [Default: random 20 character HexString]
+ * [id](#id)<sup>ic</sup>            | String    | ID for the map [Default: random 40-character hexadecimal string]. Can be set with update() or loaded from JSON.
  * [width](#width)                   | Number    | Width of the viewer map in pixels [Default: 600]
  * [height](#height)                 | Number    | Height of the viewer map in pixels [Default: 600]
  * [dataHasChanged](#dataHasChanged) | Boolean   | Indicates that data been update/added since this attribute was reset
- * [meta](#meta)                     | Boolean   | Meta data for the map. Updating this attribute will overwrite **all** the current meta data.
+ * [meta](#meta)<sup>ic</sup>        | Object    | Meta data for the map, set with update() or loaded from JSON. Updating this attribute replaces **all** current meta data.
  * [sequence](#sequence)<sup>iu</sup>    | Object | [Sequence](Sequence.html) options
  * [settings](#settings)<sup>iu</sup>    | Object | [Settings](Settings.html) options
  * [legend](#legend)<sup>iu</sup>        | Object | [Legend](Legend.html) options
@@ -97,6 +97,7 @@ console.log(`CGView.js Version: ${version}`)
  * [selection](#selection)<sup>iu</sup> | Object | [Selection](Selection.html) options
  * 
  * <sup>iu</sup> Ignored on Viewer update
+ * <sup>ic</sup> Ignored on Viewer creation
  *
  * ### Examples
  * ```js
@@ -162,7 +163,10 @@ class Viewer {
 
     this._loading = true;
 
-    // Initialize Canvas
+    /**
+     * Canvas layers and drawing helpers owned by this viewer.
+     * @member {Canvas} Viewer#canvas
+     */
     this.canvas = new Canvas(this, this._wrapper, {width: this.width, height: this.height});
 
     // Initialize Layout and set the default map format (ie. topology).
@@ -172,7 +176,10 @@ class Viewer {
     this._zoomFactor = 1;
     this._minZoomFactor = 0.5;
 
-    // Initialize IO
+    /**
+     * Import and export helpers owned by this viewer.
+     * @member {IO} Viewer#io
+     */
     this.io = new IO(this);
     // Initialize DragAndDrop
     this.allowDragAndDrop = utils.defaultFor(options.allowDragAndDrop, true);
@@ -260,6 +267,13 @@ class Viewer {
   //////////////////////////////////////////////////////////////////////////
   // MEMBERS
   //////////////////////////////////////////////////////////////////////////
+
+  /**
+   * Map-level [meta data](../tutorials/details-meta-data.html), populated by
+   * [update()](#update) or [IO.loadJSON()](IO.html#loadJSON). Undefined until set;
+   * assignment replaces the previous object.
+   * @member {Object|undefined} Viewer#meta
+   */
 
   /**
    * @member {String} - Get CGView version
@@ -488,7 +502,8 @@ class Viewer {
   }
 
   /**
-   * @member {Object} - Return the canvas [scales](Canvas.html#scale)
+   * @member {Object} - Return the layout's coordinate [scales](Layout.html#scale).
+   * See [Map Scales](../tutorials/details-map-scales.html) for examples.
    */
   get scale() {
     return this.layout.scale;
@@ -660,6 +675,15 @@ class Viewer {
     return this.sequence.contigs(term);
   }
 
+  /**
+   * Update the viewer's name, id, dimensions, dataHasChanged flag, or meta data.
+   * Resizes the canvas when dimensions change and emits viewer-update. The
+   * attributes object may be augmented with dataHasChanged: true.
+   * @param {Object} attributes - Viewer properties to change.
+   * @returns {void}
+   * @example
+   * cgv.update({name: 'Example map', width: 800, height: 600});
+   */
   update(attributes) {
     // Validate attribute keys
     let keys = Object.keys(attributes);
@@ -846,6 +870,16 @@ class Viewer {
     return captions;
   }
 
+  /**
+   * Update [attributes](Caption.html#attributes) for one or more captions and
+   * emit captions-update. See [updating records](../docs.html#s.updating-records).
+   * @param {Caption|Array|Object} captionsOrUpdates - Caption, array of captions,
+   *   or object mapping cgvIDs to individual updates.
+   * @param {Object} [attributes] - Shared changes when supplying caption objects.
+   * @returns {void}
+   * @example
+   * cgv.updateCaptions(cgv.captions(), {fontColor: 'blue'});
+   */
   updateCaptions(captionsOrUpdates, attributes) {
     const { records: captions, updates } = this.updateRecords(captionsOrUpdates, attributes, {
       recordClass: 'Caption',
@@ -854,6 +888,14 @@ class Viewer {
     this.trigger('captions-update', { captions, attributes, updates });
   }
 
+  /**
+   * Remove captions from the viewer and its object registry, refresh the canvas
+   * layer, and emit captions-remove.
+   * @param {Caption|Array} captions - Caption or array of captions to remove.
+   * @returns {void}
+   * @example
+   * cgv.removeCaptions(cgv.captions());
+   */
   removeCaptions(captions) {
     captions = CGArray.arrayerize(captions);
     this._captions = this._captions.filter( f => !captions.includes(f) );
@@ -1263,6 +1305,14 @@ class Viewer {
     this.layout.draw(fast);
   }
 
+  /**
+   * Return the distinct feature type strings, optionally selecting from them.
+   * Does not modify the features.
+   * @param {Number|String|Array} [term] - See [CGArray.get](CGArray.html#get).
+   * @returns {CGArray|String} All matching types, or one type when selected by index.
+   * @example
+   * cgv.featureTypes();
+   */
   featureTypes(term) {
     return this._features.map( f => f.type ).unique().get(term);
   }

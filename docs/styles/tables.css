@@ -2,7 +2,7 @@ table {
   font-size: 12px;
   /* margin-left: 10px; */
   margin-bottom: 15px;
-  /* border: rgb(26, 26, 26) solid 1px; */
+  /* border: var(--docs-border) solid 1px; */
 
   border-collapse: separate;
   /* border-radius: 4px; */
@@ -14,8 +14,19 @@ table {
 table th {
   height: 20px;
   /* Match Sidebar */
-  background-color: rgb(26, 26, 26);
-  color: rgb(225, 225, 225);
+  background-color: var(--docs-sidebar-bg);
+  color: var(--docs-nav-text);
+}
+
+/* Complete the same outer border used by body rows, without column dividers. */
+:root[data-bs-theme="dark"] table tr:first-child > th {
+  border-top: var(--docs-border) solid 1px;
+}
+:root[data-bs-theme="dark"] table th:first-child {
+  border-left: var(--docs-border) solid 1px;
+}
+:root[data-bs-theme="dark"] table th:last-child {
+  border-right: var(--docs-border) solid 1px;
 }
 
 th:first-of-type {
@@ -32,13 +43,13 @@ tr:last-of-type td:last-of-type {
 }
 
 tr td:first-of-type {
-  border-left: rgb(26, 26, 26) solid 1px;
+  border-left: var(--docs-border) solid 1px;
 }
 tr td:last-of-type {
-  border-right: rgb(26, 26, 26) solid 1px;
+  border-right: var(--docs-border) solid 1px;
 }
 tr:last-of-type td {
-  border-bottom: rgb(26, 26, 26) solid 1px;
+  border-bottom: var(--docs-border) solid 1px;
 }
 
 table th,
@@ -48,6 +59,5 @@ table td {
 }
 
 table tr:nth-child(even) {
-  background-color: #f4f4f4;
+  background-color: var(--docs-stripe);
 }
-

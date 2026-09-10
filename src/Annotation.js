@@ -54,7 +54,7 @@ import FeatureLabelRenderer from './FeatureLabelRenderer';
  * [inlineLabelAllowTruncation](#inlineLabelAllowTruncation) | Boolean | Truncate inline labels with an ellipsis when the full name cannot fit [Default: false]
  * [inlineLabelColor](#inlineLabelColor) | String | Optional inline-label color override. When omitted, `color` is used if defined; otherwise black or white is selected for contrast against the rendered feature color.
  * [visible](CGObject.html#visible) | Boolean   | Labels are visible [Default: true]
- * [meta](CGObject.html#meta)       | Object    | [Meta data](tutorial-meta.html) for Annotation
+ * [meta](CGObject.html#meta)       | Object    | [Meta data](../tutorials/details-meta-data.html) for Annotation
  *
  * ### Examples
  * ```js
@@ -102,6 +102,11 @@ class Annotation extends CGObject {
     this.color = options.color;
     this.lineCap = 'round';
     // this.lineCap = 'butt';
+    /**
+     * Draw labels only for features whose [favorite](Feature.html#favorite) flag is set.
+     * @member {Boolean} Annotation#onlyDrawFavorites
+     * @default false
+     */
     this.onlyDrawFavorites = utils.defaultFor(options.onlyDrawFavorites, false);
     this.labelPosition = utils.defaultFor(options.labelPosition, 'auto');
     this.inlineLabelAllowShrinking = utils.defaultFor(options.inlineLabelAllowShrinking, true);
@@ -311,7 +316,7 @@ class Annotation extends CGObject {
   }
 
   /**
-   * Returns an [CGArray](CGArray.html) of Labels or a single Label.
+   * Returns a [CGArray](CGArray.html) of internal [feature labels](Feature.html#label) or a single label.
    * @param {Integer|String|Array} term - See [CGArray.get](CGArray.html#get) for details.
    * @return {CGArray}
    */
@@ -321,7 +326,7 @@ class Annotation extends CGObject {
 
   /**
    * Add a new label to the set.
-   * @param {Label} label - The Label to add to the set.
+   * @param {Object} label - The internal [feature label](Feature.html#label) to add to the set.
    */
   addLabel(label) {
     this._labels.push(label);
@@ -329,7 +334,7 @@ class Annotation extends CGObject {
 
   /**
    * Remove a label or an array of labels from the set.
-   * @param {Label|Array} labels - The Label(s) to remove from the set.
+   * @param {Object|Array} labels - Internal [feature labels](Feature.html#label) to remove from the set.
    */
   removeLabels(labels) {
     labels = (labels.toString() === 'CGArray') ? labels : new CGArray(labels);

@@ -32,16 +32,16 @@ import utils from './Utils';
  * The CGView Sequence represents the sequence that makes up the map.
  *
  * ### Sequence Length
- * The essential proptery of the Sequence is the length. The length must be
+ * The essential property of the Sequence is the length. The length must be
  * known in order to draw a map of the correct size. There are 3 ways to set
  * the Sequence length on map creation.
  * - seq: provide the sequence. The length will be set directly from the sequence.
  * - length: provide the sequence length without sequence
  * - contigs: an array of contigs. Each contig must then include its length or sequence.
  *
- * The seq and length propteries are read only and cannot be changed unless a new
- * map is loaded (see [IO.loadJSON](IO.html#loadJson). With contigs, the updateContigs and
- * moveContigs methods can be used to change the name, orienation, visbility and
+ * The seq and length properties are read only and cannot be changed unless a new
+ * map is loaded (see [IO.loadJSON](IO.html#loadJSON)). With contigs, the updateContigs and
+ * moveContig methods can be used to change the name, orientation, visibility and
  * order, however, the seq and length property of each contig is still read only.
  *
  * ### Sequence Coordinates:
@@ -61,13 +61,12 @@ import utils from './Utils';
  *
  * Attribute                        | Type      | Description
  * ---------------------------------|-----------|------------
- * [name](#name)                    | String    | Sequence name. [TODO]
  * [seq](#seq)<sup>iu</sup>         | String    | The map sequence.
  * [length](#length)<sup>iu</sup>   | Number    | The length of the sequence. This is ignored if a seq is provided. [Default: 1000]
  * [contigs](#contigs)<sup>iu</sup> | Array     | Array of contigs. Contigs are ignored if a seq is provided.
  * [font](#font)                    | String    | A string describing the font [Default: 'SansSerif, plain, 14']. See {@link Font} for details.
  * [color](#color)                  | String    | A string describing the sequence color [Default: 'black']. See {@link Color} for details.
- * [visible](CGObject.html#visible) | Boolean   | Sequence sequence is visible when zoomed in enough [Default: true]
+ * [visible](CGObject.html#visible) | Boolean   | Sequence is visible when zoomed in enough [Default: true]
  * [meta](CGObject.html#meta)       | Object    | [Meta data](../tutorials/details-meta-data.html)
  * 
  * <sup>iu</sup> Ignored on Sequence update

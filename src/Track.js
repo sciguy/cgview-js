@@ -34,11 +34,11 @@ import utils from './Utils';
  *
  * Action                                    | Viewer Method                              | Track Method        | Event
  * ------------------------------------------|--------------------------------------------|---------------------|-----
- * [Add](../docs.html#adding-tracks)         | [addTracks()](Viewer.html#addTracks)       | -                   | tracks-add
- * [Update](../docs.html#updating-tracks)    | [updateTracks()](Viewer.html#updateTracks) | [update()](#update) | tracks-update
- * [Remove](../docs.html#removing-tracks)    | [removeTracks()](Viewer.html#removeTracks) | [remove()](#remove) | tracks-remove
- * [Reorder](../docs.html#reordering-tracks) | [moveTrack()](Viewer.html#moveTrack)       | [move()](#move)     | tracks-reorder
- * [Read](../docs.html#reading-tracks)       | [tracks()](Viewer.html#tracks)             | -                   | -
+ * [Add](../docs.html#s.adding-records)      | [addTracks()](Viewer.html#addTracks)       | -                   | tracks-add
+ * [Update](../docs.html#s.updating-records) | [updateTracks()](Viewer.html#updateTracks) | [update()](#update) | tracks-update
+ * [Remove](../docs.html#s.removing-records) | [removeTracks()](Viewer.html#removeTracks) | [remove()](#remove) | tracks-remove
+ * [Reorder](../docs.html#s.reordering-records) | [moveTrack()](Viewer.html#moveTrack)    | [move()](#move)     | tracks-moved
+ * [Read](../docs.html#s.reading-records)    | [tracks()](Viewer.html#tracks)             | -                   | -
  *
  * <a name="attributes"></a>
  * ### Attributes
@@ -49,15 +49,17 @@ import utils from './Utils';
  * [dataType](#dataType)             | String    | Type of data shown by the track: plot, feature [Default: feature]
  * [dataMethod](#dataMethod)         | String    | Methods used to extract/connect to features or a plot: sequence, source, type, tag [Default: source]
  * [dataKeys](#dataKeys)             | String\|Array | Values used by dataMethod to extract features or a plot.
- * [position](#position)             | String    | Position relative to backbone: inside, outside, both, or along (both and along are only for feature tracks) [Default: both]
+ * [position](#position)             | String    | Feature tracks: inside, outside, around, or along [Default: around]. Plot tracks: inside or outside; set explicitly. The old feature-track value 'both' is an alias for 'around'.
  * [separateFeaturesBy](#separateFeaturesBy) | String    | How features should be separated: none, strand, readingFrame, type, legend [Default: strand]
  * [thicknessRatio](#thicknessRatio) | Number    | Thickness of track compared to other tracks [Default: 1]
  * [computedInitialSlotThickness](#computedInitialSlotThickness) | Number | Read-only thickness in pixels per visible slot at zoom factor 1, computed using the current canvas dimensions, ratios, and settings.
  * [loadProgress](#loadProgress)     | Number    | Number between 0 and 100 indicating progress of track loading. Used internally by workers.
- * [drawOrder](#loadProgress)        | String    | Order to draw features in: position, score [Default: position]
- * [favorite](#favorite)             | Boolean   | Track is a favorite [Default: false]
+ * [drawOrder](#drawOrder)           | String    | Order to draw features in: position, score [Default: position]
+ * [favorite](#favorite)<sup>ic</sup> | Boolean  | Optional application flag set with update(); not saved to JSON or used for drawing.
  * [visible](CGObject.html#visible)  | Boolean   | Track is visible [Default: true]
  * [meta](CGObject.html#meta)        | Object    | [Meta data](../tutorials/details-meta-data.html) for Track
+ *
+ * <sup>ic</sup> Ignored on Track creation
  *
  * ### Examples
  *
@@ -90,6 +92,12 @@ class Track extends CGObject {
     this._loadProgress = 0;
     this.refresh();
   }
+
+  /**
+   * Optional application flag accepted by [update()](#update). It is not
+   * initialized from creation data, saved to JSON, or used for drawing.
+   * @member {Boolean|undefined} Track#favorite
+   */
 
   /**
    * Return the class name as a string.
@@ -241,7 +249,9 @@ class Track extends CGObject {
   }
 
   /**
-   * @member {String} - Get or set the position. Possible values are 'inside', 'outside', or 'around'.
+   * @member {String} - Get or set the position. Feature tracks accept 'inside',
+   * 'outside', 'around', or 'along'; 'both' is a deprecated alias for 'around'.
+   * Plot tracks accept 'inside' or 'outside'.
    */
   get position() {
     return this._position;

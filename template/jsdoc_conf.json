@@ -14,8 +14,6 @@
 			"outputSourceFiles" : true
 		},
 		"applicationName": "CGView.js",
-		"disqus": "",
-		"googleAnalytics": "",
 		"openGraph": {
 			"title": "",
 			"type": "website",
@@ -35,10 +33,5 @@
 		"hardwrap": false,
     "breaks": false,
 		"tags": ["examples"]
-	},
-  "docset": {
-    "name": "CGView",
-    "icon": "docs/images/logo.png",
-    "enableJavascript": true
-  }
+	}
 }

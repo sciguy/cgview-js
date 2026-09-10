@@ -1,6 +1,7 @@
 <!doctype html>
 <html lang="en">
   <head>
+    <script src="scripts/theme.js"></script>
     <!-- Required meta tags -->
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -18,8 +19,7 @@
     <link rel="stylesheet" href="styles/prism.css" />
     <link rel="stylesheet" href="styles/tables.css" />
     <link rel="stylesheet" href="styles/general.css" />
-    <script src='scripts/marked.min.js'></script>
-    <script src='scripts/gumshoe.min.js'></script>
+    <script src='scripts/markdown-it.min.js'></script>
     <script src='scripts/general.js'></script>
 
     <!-- Plausible Analytics -->
@@ -50,7 +50,7 @@
         </div>
 
         <!-- Docs Toggle -->
-        <button class="btn sidebar-toggle d-sm-none collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#sidebar-nav"  aria-expanded="false" aria-label="Toggle docs navigation">
+        <button class="btn sidebar-toggle d-sm-none collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#sidebar-nav" aria-controls="sidebar-nav" aria-expanded="false" aria-label="Toggle docs navigation">
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" class="bi bi-expand" fill="currentColor" viewBox="0 0 16 16"> <title>Expand</title> <path fill-rule="evenodd" d="M1 8a.5.5 0 0 1 .5-.5h13a.5.5 0 0 1 0 1h-13A.5.5 0 0 1 1 8zM7.646.146a.5.5 0 0 1 .708 0l2 2a.5.5 0 0 1-.708.708L8.5 1.707V5.5a.5.5 0 0 1-1 0V1.707L6.354 2.854a.5.5 0 1 1-.708-.708l2-2zM8 10a.5.5 0 0 1 .5.5v3.793l1.146-1.147a.5.5 0 0 1 .708.708l-2 2a.5.5 0 0 1-.708 0l-2-2a.5.5 0 0 1 .708-.708L7.5 14.293V10.5A.5.5 0 0 1 8 10z"></path> </svg>
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" class="bi bi-collapse" fill="currentColor" viewBox="0 0 16 16"> <title>Collapse</title> <path fill-rule="evenodd" d="M1 8a.5.5 0 0 1 .5-.5h13a.5.5 0 0 1 0 1h-13A.5.5 0 0 1 1 8zm7-8a.5.5 0 0 1 .5.5v3.793l1.146-1.147a.5.5 0 0 1 .708.708l-2 2a.5.5 0 0 1-.708 0l-2-2a.5.5 0 1 1 .708-.708L7.5 4.293V.5A.5.5 0 0 1 8 0zm-.5 11.707l-1.146 1.147a.5.5 0 0 1-.708-.708l2-2a.5.5 0 0 1 .708 0l2 2a.5.5 0 0 1-.708.708L8.5 11.707V15.5a.5.5 0 0 1-1 0v-3.793z"></path> </svg>
         </button>
@@ -69,7 +69,7 @@
     </nav>
 
     <!-- Side Nav -->
-    <nav id='sidebar-nav'>
+    <nav id='sidebar-nav' class='collapse'>
       <ul id='gumshoe-list' class='sidebar-list'>
         <li><a class="side-link" href="#s.setup">Setup</a></li>
         <li><a class="side-link" href="#s.overview">Overview</a></li>
@@ -166,7 +166,7 @@ viewer.features('my_feature')
 Component                        | Accessor                                   | Description
 ---------------------------------|--------------------------------------------|------------
 [Sequence](api/Sequence.html)        | [sequence](api/Viewer.html#sequence)           | The Sequence object contains the sequence itself or at the very least the length of the sequence.
-[Canvas](api/Canvas.html)            | [canvas](api/Viewer.html#canvas)               | The Canvas object contains the canvas layers, scale and various drawing methods.
+[Canvas](api/Canvas.html)            | [canvas](api/Viewer.html#canvas)               | The Canvas object contains the canvas layers and drawing methods. Coordinate scales belong to [Layout](api/Layout.html#scale).
 [IO](api/IO.html)                    | [io](api/Viewer.html#io)                       | The IO object has methods for reading and writing data to and from the Viewer.
 [Legend](api/Legend.html)            | [legend](api/Viewer.html#legend)               | The Legend object contains the [LegendItems](api/LegendItem.html) which are used to color the features and plots.
 [Backbone](api/Backbone.html)        | [backbone](api/Viewer.html#backbone)           | The Backbone represents the sequence.
@@ -180,7 +180,7 @@ Component                        | Accessor                                   | 
 [Feature](api/Feature.html)          | [features()](api/Viewer.html#features)         | Returns one or more Features.
 [Plot](api/Plot.html)                | [plots()](api/Viewer.html#plots)               | Returns one or more Plots.
 [Caption](api/Caption.html)          | [captions()](api/Viewer.html#captions)         | Returns one or more Captions.
-FeatureType                          | [featureType()](api/Viewer.html#featureTypes)  | Returns one or more FeatureTypes.
+Feature types                        | [featureTypes()](api/Viewer.html#featureTypes) | Returns the distinct feature type strings.
 <!-- [Messenger](api/Messenger.html)      | [messenger](api/Viewer.html#messenger)         | Messenger provides an interface for showing messages. -->
 
 </section>
@@ -233,20 +233,23 @@ All the examples use a Viewer instance: <em>cgv</em>.
 ## Adding Records
 Adding records is done through methods on the Viewer Instance (e.g.
 addFeatures, addTracks, etc). Data can be added as a single object to create
-one record on as an array of objects to create an array of records.
+one record or as an array of objects to create multiple records. These methods
+return a [CGArray](api/CGArray.html), including when only one record is added.
 Adding one or more records will trigger a single event (e.g. features-add).
 Each record type will have a list of attributes that can be set when creating
 records or updating them.
 ```js
 // Add a single feature
-featureData = {...};
-cgv.addFeatures(featureData);
-// => Feature
+featureData = {name: 'Example', start: 1, stop: 100};
+let [feature] = cgv.addFeatures(featureData);
 
-// Add a multiple features
-featureData = [{...},{...}];
-cgv.addFeatures(featureData);
-// => [Feature, Feature]
+// Add multiple features
+featureData = [
+  {name: 'First', start: 1, stop: 100},
+  {name: 'Second', start: 200, stop: 300}
+];
+let features = cgv.addFeatures(featureData);
+// => CGArray of two Features
 ```
 
 The data object is passed directly to the record constructor. So the following
@@ -254,7 +257,7 @@ are similar, however, creating an object directly with the constructor does not
 trigger events (see [Record Action Advantages](#record-action-advantages)).
 
 ```js
-featureData = {...};
+featureData = {name: 'Example', start: 1, stop: 100};
 // Create Feature with Add Action (Recommended)
 cgv.addFeatures(featureData);
 
@@ -276,7 +279,7 @@ cgv.removeFeatures(feature);
 feature.remove();
 
 // Remove multiple records
-features = [feature_1, feature_2, features_3];
+features = [feature_1, feature_2, feature_3];
 cgv.removeFeatures(features);
 ```
 
@@ -286,10 +289,11 @@ cgv.removeFeatures(features);
 ## Updating Records
 Updating records is done through methods on the Viewer Instance (e.g. updateFeatures)
 or directly on the record. Updating records will trigger a single event (e.g. features-update).
-The list of attributes that can be updated for a record are the same as for adding new records.
+The available update options depend on the record type. Some constructor options
+are ignored or rejected on update; see the record's attribute table and update() method.
 ```js
 // attributes is an object describing the properties to change
-attributes = {type: 'CDS', legend: 'CDS'};
+attributes = {type: 'CDS', legendItem: 'CDS'};
 
 // Update a single record
 feature = cgv.features(1);
@@ -298,29 +302,40 @@ cgv.updateFeatures(feature, attributes);
 feature.update(attributes);
 
 // Update multiple records to have the same attributes
-features = [feature_1, feature_2, features_3];
+features = [feature_1, feature_2, feature_3];
 cgv.updateFeatures(features, attributes);
 
 // Update multiple records with different attributes
 // The updates object has record cgvIDs as keys and the new attributes as values
 const updates = {
-  feature_1.cgvID: {type: 'CDS', legend: 'CDS'},
-  feature_2.cgvID: {type: 'tRNA', legend: 'tRNA'}
+  [feature_1.cgvID]: {type: 'CDS', legendItem: 'CDS'},
+  [feature_2.cgvID]: {type: 'tRNA', legendItem: 'tRNA'}
 }
 cgv.updateFeatures(updates);
 ```
+
+For track sizing, use [setThickness()](api/Track.html#setThickness):
+
+```js
+track.setThickness(20, {mode: 'pixels'}); // each visible slot at overview
+track.setThickness(2, {mode: 'ratio'});   // redistribute existing space
+cgv.draw();
+```
+
+See the [track sizing guide](test/track-sizing.md) for computed readouts,
+shared limits, unavailable tracks, events, and serialization.
 
 </section>
 <section id="s.reordering-records">
 
 ## Reordering Records
 For some records, the order is important (e.g. Tracks, Contigs, etc).
-Changing the order is done through methods on the Viewer Instance (e.g. moveTracks)
-or directly on the record. Moving records will trigger a move event (e.g. tracks-reordered).
+Changing the order is done through methods on the Viewer Instance (e.g. moveTrack)
+or directly on the record. Moving records will trigger a move event (e.g. tracks-moved).
 
 ```js
-track = cgv.tracks(1)
-cgv.moveTrack(track.index, newIndex)
+track = cgv.tracks(1);
+cgv.moveTrack(cgv.tracks().indexOf(track), newIndex);
 // OR
 track.move(newIndex);
 ```
@@ -354,26 +369,26 @@ feature.start = 1234;
 However, there are several advantages of using record actions:
 
 - More than one property can be changed at once.
-```js
-feature.update({start: 1234, stop: 2345});
-```
+  ```js
+  feature.update({start: 1234, stop: 2345});
+  ```
 - An error will be returned if the property does not exist.
-```js
-feature.update({strt: 1234});
-// => Error: Feature does not contain a 'strt' property.
-```
+  ```js
+  feature.update({strt: 1234});
+  // => Error: Feature does not contain a 'strt' property.
+  ```
 - The update methods trigger [events](#s.events) (e.g. 'features-update') that can be used as hooks.
-```js
-cgv.on('features-update', ({features}) => {
+  ```js
+  cgv.on('features-update', ({features}) => {
     const names = features.map( f => f.name );
     console.log(`The following features have been updated: ${names.join(', ')}`)
-});
-```
+  });
+  ```
 - In some cases multiple objects (e.g. features, tracks, etc) can be updated at once.
-```js
-// This will update all 3 features but only generate 1 'features-update' event.
-cgv.updateFeatures([feature1, feature2, feature3], {type: 'CDS'});
-```
+  ```js
+  // This will update all 3 features but only generate 1 'features-update' event.
+  cgv.updateFeatures([feature1, feature2, feature3], {type: 'CDS'});
+  ```
 
 </section>
 <section id="s.events">
@@ -387,7 +402,7 @@ Record Action | Event Name | Callback Arguments
 Add           | *-add      | Array of records added
 Remove        | *-remove   | Array of records removed
 Update        | *-update   | Object { <em>records</em><sup>1</sup>, attributes<sup>2</sup>, updates<sup>3</sup> }
-Reorder       | *-reorder  | Object { oldIndex, newIndex }
+Reorder       | *-moved    | Object { oldIndex, newIndex }
 
 - <sup>1</sup>Records: will be the name of the record type (e.g. features, tracks, etc).
 - <sup>2</sup>Attibutes: object of attributes used to change all of the records.
@@ -407,20 +422,19 @@ cgv.on('features-add', (features) => {
 
 ## Off
 
-Remove callbacks for an event using [off()](Viewer.html#off).
+Remove callbacks for an event using [off()](api/Viewer.html#off).
 
 ```js
-cgv.off('features-add').
+cgv.off('features-add');
 ```
 
 ## Trigger
 
-Events can be triggered without changes to execute callback function.
+Events can be triggered to notify callbacks without updating records. Supply the
+same payload shape that listeners receive from the corresponding record action.
 
 ```js
-cgv.trigger('features-update', [feature]);
-// Same as
-feature.update();
+cgv.trigger('features-update', {features: [feature], attributes: {}});
 ```
 
 ## Other Events
@@ -452,7 +466,7 @@ Once saved, the site would manually set this property to false.
 // New CGView object
 cgv.dataHasChanged
 // => false
-cgv.addFeatures({...})
+cgv.addFeatures({name: 'Example', start: 1, stop: 100});
 cgv.dataHasChanged
 // => true
 ```
@@ -489,11 +503,11 @@ Action                                  | Viewer Method                        |
 Attribute                         | Type      | Description
 ----------------------------------|-----------|------------
 [name](api/Viewer.html#name)                     | String    | Name for the map
-[id](api/Viewer.html#id)                         | String    | ID for the map [Default: random 20 character HexString]
+[id](api/Viewer.html#id)<sup>ic</sup>            | String    | ID for the map [Default: random 40-character hexadecimal string]. Can be set with update() or loaded from JSON.
 [width](api/Viewer.html#width)                   | Number    | Width of the viewer map in pixels [Default: 600]
 [height](api/Viewer.html#height)                 | Number    | Height of the viewer map in pixels [Default: 600]
 [dataHasChanged](api/Viewer.html#dataHasChanged) | Boolean   | Indicates that data been update/added since this attribute was reset
-[meta](api/Viewer.html#meta)                     | Boolean   | Meta data for the map. Updating this attribute will overwrite **all** the current meta data.
+[meta](api/Viewer.html#meta)<sup>ic</sup>        | Object    | Meta data for the map, set with update() or loaded from JSON. Updating this attribute replaces **all** current meta data.
 [sequence](api/Viewer.html#sequence)<sup>iu</sup>    | Object | [Sequence](api/Sequence.html) options
 [settings](api/Viewer.html#settings)<sup>iu</sup>    | Object | [Settings](api/Settings.html) options
 [legend](api/Viewer.html#legend)<sup>iu</sup>        | Object | [Legend](api/Legend.html) options
@@ -504,8 +518,10 @@ Attribute                         | Type      | Description
 [centerLine](api/Viewer.html#centerLine)<sup>iu</sup> | Object | [CenterLine](api/CenterLine.html) options
 [annotation](api/Viewer.html#annotation)<sup>iu</sup> | Object | [Annotation](api/Annotation.html) options
 [highlighter](api/Viewer.html#highlighter)<sup>iu</sup> | Object | [Highlighter](api/Highlighter.html) options
+[selection](api/Viewer.html#selection)<sup>iu</sup> | Object | [Selection](api/Selection.html) options
 
 <sup>iu</sup> Ignored on Viewer update
+<sup>ic</sup> Ignored on Viewer creation
 
 </section>
 <section id='s.Feature'>
@@ -523,7 +539,8 @@ Attribute                        | Type     | Description
 ---------------------------------|----------|------------
 [name](api/Feature.html#name)                    | String   | Name of feature
 [type](api/Feature.html#type)                    | String   | Feature type (e.g. CDS, rRNA, etc)
-[legend](api/Feature.html#legend)                | String\|LegendItem | Name of legendItem or the legendItem itself
+[legend](api/Feature.html#legend)<sup>iu</sup>   | String\|LegendItem | Legend item name or object used at creation. Use legendItem when updating.
+[legendItem](api/Feature.html#legendItem)<sup>ic</sup> | String\|LegendItem | Legend item name or object to assign when updating.
 [source](api/Feature.html#source)                | String   | Source of the feature
 [tags](api/Feature.html#tags)                    | String\|Array | A single string or an array of strings associated with the feature as tags
 [contig](api/Feature.html#contig)                | String\|Contig | Name of contig or the contig itself
@@ -532,9 +549,10 @@ Attribute                        | Type     | Description
 [locations](api/Feature.html#locations)          | Array    | Array of locations (start, stop) on the contig (e.g. [[1, 100], [200, 300]]).
 [mapStart](api/Feature.html#mapStart)<sup>ic</sup> | Number   | Start base pair on the map (converted to contig position). Ignored if locations are present.
 [mapStop](api/Feature.html#mapStop)<sup>ic</sup> | Number   | Stop base pair on the map (converted to contig position). Ignored if locations are present.
-[strand](api/Feature.html#strand)                | String   | Strand the features is on [Default: 1]
+[strand](api/Feature.html#strand)                | Number   | Feature strand: 1 (direct) or -1 (reverse). Also accepts '+' and '-' [Default: 1]
 [score](api/Feature.html#score)                  | Number   | Score associated with the feature
 [favorite](api/Feature.html#favorite)            | Boolean  | Feature is a favorite [Default: false]
+[selected](api/Feature.html#selected)            | Boolean  | Feature is selected [Default: false]
 [visible](api/CGObject.html#visible) | Boolean  | Feature is visible [Default: true]
 [meta](api/CGObject.html#meta)       | Object   | [Meta data](tutorials/details-meta-data.html) for Feature
 [qualifiers](api/Feature.html#qualifiers)        | Object   | Qualifiers associated with the feature (from GenBank/EMBL) [Default: {}]
@@ -542,6 +560,7 @@ Attribute                        | Type     | Description
 
 <sup>rc</sup> Required on Feature creation
 <sup>ic</sup> Ignored on Record creation
+<sup>iu</sup> Not accepted on Feature update
 
 </section>
 <section id='s.Plot'>
@@ -559,19 +578,20 @@ Attribute                         | Type     | Description
 ----------------------------------|----------|------------
 [name](api/Plot.html#name)                     | String   | Name of plot
 [legend](api/Plot.html#legend)                 | String\|LegendItem | Name of legendItem or the legendItem itself (sets positive and negative legend)
-[legendNegative](api/Plot.html#legendNegative) | String\|LegendItem | Name of legendItem or the legendItem itself for the plot above the baseline
-[legendPositive](api/Plot.html#legendPositive) | String\|LegendItem | Name of legendItem or the legendItem itself for the plot below the baseline
+[legendNegative](api/Plot.html#legendNegative) | String\|LegendItem | Name of legendItem or the legendItem itself for the plot below the baseline
+[legendPositive](api/Plot.html#legendPositive) | String\|LegendItem | Name of legendItem or the legendItem itself for the plot above the baseline
 [source](api/Plot.html#source)                 | String   | Source of the plot
-[positions](api/Plot.html#positions)<sup>rc,iu</sup> | Array   | Array of base pair position on contig
+[positions](api/Plot.html#positions)<sup>rc,iu</sup> | Array   | Array of map base-pair positions
 [scores](api/Plot.html#scores)<sup>rc,iu</sup> | Array    | Array of scores
 [baseline](api/Plot.html#baseline)             | Number   | Score where the plot goes from negative to positive (in terms of legend)
 [axisMax](api/Plot.html#axisMax)               | Number   | Maximum value for the plot axis
 [axisMin](api/Plot.html#axisMin)               | Number   | Minimum value for the plot axis
-[favorite](api/Plot.html#favorite)             | Boolean  | Plot is a favorite [Default: false]
+[favorite](api/Plot.html#favorite)<sup>ic</sup> | Boolean  | Optional application flag set after creation with update(); does not affect drawing.
 [visible](api/CGObject.html#visible)  | Boolean  | Plot is visible [Default: true]
 [meta](api/CGObject.html#meta)        | Object   | [Meta data](tutorials/details-meta-data.html) for Plot
 
 <sup>rc</sup> Required on Plot creation
+<sup>ic</sup> Ignored on Plot creation, including when loading JSON
 <sup>iu</sup> Ignored on Plot update
 
 </section>
@@ -581,11 +601,11 @@ Attribute                         | Type     | Description
 
 Action                                    | Viewer Method                              | Track Method        | Event
 ------------------------------------------|--------------------------------------------|---------------------|-----
-[Add](#adding-tracks)         | [addTracks()](api/Viewer.html#addTracks)       | -                   | tracks-add
-[Update](#updating-tracks)    | [updateTracks()](api/Viewer.html#updateTracks) | [update()](api/Track.html#update) | tracks-update
-[Remove](#removing-tracks)    | [removeTracks()](api/Viewer.html#removeTracks) | [remove()](api/Track.html#remove) | tracks-remove
-[Reorder](#reordering-tracks) | [moveTrack()](api/Viewer.html#moveTrack)       | [move()](api/Track.html#move)     | tracks-reorder
-[Read](#reading-tracks)       | [tracks()](api/Viewer.html#tracks)             | -                   | -
+[Add](#s.adding-records)      | [addTracks()](api/Viewer.html#addTracks)       | -                   | tracks-add
+[Update](#s.updating-records) | [updateTracks()](api/Viewer.html#updateTracks) | [update()](api/Track.html#update) | tracks-update
+[Remove](#s.removing-records) | [removeTracks()](api/Viewer.html#removeTracks) | [remove()](api/Track.html#remove) | tracks-remove
+[Reorder](#s.reordering-records) | [moveTrack()](api/Viewer.html#moveTrack)    | [move()](api/Track.html#move)     | tracks-moved
+[Read](#s.reading-records)    | [tracks()](api/Viewer.html#tracks)             | -                   | -
 
 Attribute                         | Type      | Description
 ----------------------------------|-----------|------------
@@ -593,24 +613,15 @@ Attribute                         | Type      | Description
 [dataType](api/Track.html#dataType)             | String    | Type of data shown by the track: plot, feature [Default: feature]
 [dataMethod](api/Track.html#dataMethod)         | String    | Methods used to extract/connect to features or a plot: sequence, source, type, tag [Default: source]
 [dataKeys](api/Track.html#dataKeys)             | String\|Array | Values used by dataMethod to extract features or a plot.
-[position](api/Track.html#position)             | String    | Position relative to backbone: inside, outside, or both [Default: both]
+[position](api/Track.html#position)             | String    | Feature tracks: inside, outside, around, or along [Default: around]. Plot tracks: inside or outside; set explicitly. The old feature-track value 'both' is an alias for 'around'.
 [separateFeaturesBy](api/Track.html#separateFeaturesBy) | String    | How features should be separated: none, strand, readingFrame, type, legend [Default: strand]
 [thicknessRatio](api/Track.html#thicknessRatio) | Number    | Thickness of track compared to other tracks [Default: 1]
-[computedInitialSlotThickness](test/track-sizing.md) | Number | Read-only thickness in pixels per visible slot at zoom factor 1, computed using the current canvas dimensions, ratios, and settings.
+[computedInitialSlotThickness](api/Track.html#computedInitialSlotThickness) | Number | Read-only thickness in pixels per visible slot at zoom factor 1, computed using the current canvas dimensions, ratios, and settings.
 [loadProgress](api/Track.html#loadProgress)     | Number    | Number between 0 and 100 indicating progress of track loading. Used internally by workers.
-[drawOrder](api/Track.html#loadProgress)        | String    | Order to draw features in: position, score [Default: position]
-[favorite](api/Track.html#favorite)             | Boolean   | Track is a favorite [Default: false]
+[drawOrder](api/Track.html#drawOrder)           | String    | Order to draw features in: position, score [Default: position]
+[favorite](api/Track.html#favorite)<sup>ic</sup> | Boolean  | Optional application flag set with update(); not saved to JSON or used for drawing.
 [visible](api/CGObject.html#visible)  | Boolean   | Track is visible [Default: true]
 [meta](api/CGObject.html#meta)        | Object    | [Meta data](tutorials/details-meta-data.html) for Track
-
-```js
-track.setThickness(20, {mode: 'pixels'}); // each visible slot at overview
-track.setThickness(2, {mode: 'ratio'});   // redistribute existing space
-cgv.draw();
-```
-
-See the [track sizing guide](test/track-sizing.md) for computed readouts,
-shared limits, unavailable tracks, events, and serialization.
 
 </section>
 <section id='s.Settings'>
@@ -626,30 +637,17 @@ Attribute                           | Type      | Description
 ------------------------------------|-----------|------------
 [format](api/Settings.html#format)                   | String    | The layout format of the map: circular, linear [Default: circular]
 [backgroundColor](api/Settings.html#backgroundColor) | String    | A string describing the background color of the map [Default: 'white']. See <a href="api/Color.html"><code>Color</code></a> for details.
+[plotRenderer](api/Settings.html#plotRenderer)       | String    | Experimental testing switch: contour or legacy. May change or be removed without notice. [Default: contour]
+[showPlotOutline](api/Settings.html#showPlotOutline) | Boolean   | Draw the contour edge on line plots during full draws [Default: true]
 [showShading](api/Settings.html#showShading)         | Boolean   | Should a shading effect be drawn on the features [Default: true]
-`showPlotOutline` | Boolean | Draw a thin edge on contour line plots during full-quality draws [Default: true]
-`plotRenderer` | String | Experimental testing switch: `contour` or `legacy` [Default: `contour`]
+[showTrackLabels](api/Settings.html#showTrackLabels) | Boolean | Show compact track names when the map is zoomed in [Default: true]
+[showBorder](api/Settings.html#showBorder)           | Boolean   | Should a border be drawn on the features [Default: true]
+[borderColor](api/Settings.html#borderColor)         | String    | A string describing the border color of features [Default: 'rgba(0,0,0,1)']. See <a href="api/Color.html"><code>Color</code></a> for details.
+[borderThickness](api/Settings.html#borderThickness) | Number    | The width of the border drawn on features in pixels [Default: 1.5]
 [arrowHeadLength](api/Settings.html#arrowHeadLength) | Number    | Length of feature arrowheads as a proportion of the feature thickness. From 0 (no arrowhead) to 1 (arrowhead as long on the feature is thick) [Default: 0.3]
 [initialMapThicknessProportion](api/Settings.html#initialMapThicknessProportion) | Number  | Proportion of canvas size to use for drawing map tracks at a zoomFactor of 1 [Default: 0.1]
 [maxMapThicknessProportion](api/Settings.html#maxMapThicknessProportion) | Number  | Proportion of canvas size to use for drawing map tracks at max zoom level [Default: 0.5]
-[maxSlotThickness](test/track-sizing.md) | Number | Shared maximum slot thickness in pixels, at overview and while zooming [Default: 50]
-
-`plotRenderer` is an **experimental testing setting**, retained for comparisons
-with the original plot renderer. It is not a stable API and may change or be
-removed at any time without notice. Applications should use the default renderer
-without depending on this selector. It is currently saved in settings JSON, but
-future versions are not guaranteed to honor it.
-
-```js
-// Experimental: temporarily compare with the original line-plot renderer.
-cgv.settings.update({plotRenderer: 'legacy'});
-cgv.settings.update({plotRenderer: 'contour'});
-```
-
-The `showPlotOutline` setting controls the contour's thin edge independently.
-Fast draws omit the outline, and bar plots retain stepped geometry with either
-renderer selection. See the [plot renderer comparison guide](test/plot-renderers.md)
-for the benchmark procedure.
+[maxSlotThickness](api/Settings.html#maxSlotThickness) | Number | Shared maximum slot thickness in pixels, including overview [Default: 50]
 
 </section>
 <section id='s.Legend'>
@@ -658,18 +656,19 @@ for the benchmark procedure.
 
 Action                                  | Viewer Method                | Legend Method                  | Event
 ----------------------------------------|------------------------------|--------------------------------|-----
-[Update](#updating-records) | -                            | [update()](api/Legend.html#update) | legends-update
+[Update](#updating-records) | -                            | [update()](api/Legend.html#update) | legend-update
 [Read](#reading-records)    | [legend](api/Viewer.html#legend) | -                              | -
 
 Attribute                          | Type      | Description
 -----------------------------------|-----------|------------
 [position](api/Legend.html#position)              | String\|Object | Where to draw the legend [Default: 'top-right']. See <a href="api/Position.html"><code>Position</code></a> for details.
 [anchor](api/Legend.html#anchor)                  | String\|Object | Where to anchor the legend box to the position [Default: 'auto']. See <a href="api/Anchor.html"><code>Anchor</code></a> for details.
-[defaultFont](api/Legend.html#defaultFont)        | String    | A string describing the default font [Default: 'SansSerif, plain, 8']. See <a href="api/Font.html"><code>Font</code></a> for details.
+[defaultFont](api/Legend.html#defaultFont)        | String    | A string describing the default font [Default: 'sans-serif, plain, 14']. See <a href="api/Font.html"><code>Font</code></a> for details.
 [defaultFontColor](api/Legend.html#defaultFontColor) | String    | A string describing the default font color [Default: 'black']. See <a href="api/Color.html"><code>Color</code></a> for details.
+[defaultDecoration](api/Legend.html#defaultDecoration) | String | Default decoration for legend items that do not define their own. Choices: 'arc', 'arrow', 'auto', 'score', 'none' [Default: 'auto']
 [defaultMinArcLength](api/Legend.html#defaultMinArcLength) | Number    | Default minimum length in pixels to use when drawing arcs. From 0 to 2 pixels [Default: 1]
 [textAlignment](api/Legend.html#textAlignment)    | String    | Alignment of legend text: *left*, or *right* [Default: 'left']
-[backgroundColor](api/Legend.html#font)           | String    | A string describing the background color of the legend [Default: 'white']. See <a href="api/Color.html"><code>Color</code></a> for details.
+[backgroundColor](api/Legend.html#backgroundColor) | String   | A string describing the background color of the legend. Defaults to the viewer's background color. See <a href="api/Color.html"><code>Color</code></a> for details.
 [on](api/Legend.html#on)<sup>ic</sup>             | String    | Place the legend relative to the 'canvas' or 'map' [Default: 'canvas']
 [items](api/Legend.html#items)<sup>iu</sup>       | Array     | Array of legend item data.
 [visible](api/CGObject.html#visible)   | Boolean   | Legend is visible [Default: true]
@@ -688,19 +687,18 @@ Action                                     | Legend Method                      
 [Add](#adding-records)         | [addItems()](api/Legend.html#addItems)       | -                   | legendItems-add
 [Update](#updating-records)    | [updateItems()](api/Legend.html#updateItems) | [update()](api/LegendItem.html#update) | legendItems-update
 [Remove](#removing-records)    | [removeItems()](api/Legend.html#removeItems) | [remove()](api/LegendItem.html#remove) | legendItems-remove
-[Reorder](#reordering-records) | [moveItem()](api/Legend.html#moveItem)       | [move()](api/LegendItem.html#move)     | legendItems-reorder
+[Reorder](#reordering-records) | [moveItem()](api/Legend.html#moveItem)       | [move()](api/LegendItem.html#move)     | legendItems-moved
 [Read](#reading-records)       | [items()](api/Legend.html#items)             | -                   | -
 
 Attribute                        | Type      | Description
 ---------------------------------|-----------|------------
 [name](api/LegendItem.html#name)                    | String    | Name to diplay for legendItem 
-[font](api/LegendItem.html#font)                    | String    | A string describing the font [Default: 'SansSerif, plain, 8']. See <a href="api/Font.html"><code>Font</code></a> for details.
-[fontColor](api/LegendItem.html#fontColor)          | String    | A string describing the font color [Default: 'black']. See <a href="api/Color.html"><code>Color</code></a> for details.
-[decoration](api/LegendItem.html#decoration)        | String    | How the features should be drawn. Choices: 'arc' [Default], 'arrow', 'score', 'none' [Default: 'arc']
+[font](api/LegendItem.html#font)                    | String    | A string describing the font. Defaults to [Legend.defaultFont](api/Legend.html#defaultFont). See <a href="api/Font.html"><code>Font</code></a> for details.
+[fontColor](api/LegendItem.html#fontColor)          | String    | A string describing the font color. Defaults to [Legend.defaultFontColor](api/Legend.html#defaultFontColor). See <a href="api/Color.html"><code>Color</code></a> for details.
+[decoration](api/LegendItem.html#decoration)        | String    | How the features should be drawn. Choices: 'arc', 'arrow', 'auto', 'score', 'none'. Auto uses an arc at or below 5 pixels, then grows an arrowhead while retaining a 5-pixel body. Defaults to [Legend.defaultDecoration](api/Legend.html#defaultDecoration) ('auto').
 [swatchColor](api/LegendItem.html#swatchColor)      | String    | A string describing the legendItem display color [Default: 'black']. See <a href="api/Color.html"><code>Color</code></a> for details.
 [minArcLength](api/LegendItem.html#minArcLength)    | Number    | Minimum length in pixels to use when drawing arcs. From 0 to 2 pixels [Default: 1]
 [drawSwatch](api/LegendItem.html#drawSwatch)        | Boolean   | Draw the swatch beside the legendItem name [Default: true]
-[favorite](api/LegendItem.html#favorite)            | Boolean   | LegendItem is a favorite [Default: false]
 [visible](api/CGObject.html#visible) | Boolean   | LegendItem is visible [Default: true]
 [meta](api/CGObject.html#meta)       | Object    | [Meta data](tutorials/details-meta-data.html)
 
@@ -713,7 +711,7 @@ Action                                     | Viewer Method                      
 -------------------------------------------|------------------------------------------------|----------------------|-----
 [Add](#adding-records)         | [addCaptions()](api/Viewer.html#addCaptions)       | -                    | captions-add
 [Update](#updating-records)    | [updateCaptions()](api/Viewer.html#updateCaptions) | [update()](api/Caption.html#update)  | captions-update
-[Remove](#removing-records)    | [removeCaptions()](api/Viewer.html#removeCaptions) | [remove()](api/C#remove) | captions-remove
+[Remove](#removing-records)    | [removeCaptions()](api/Viewer.html#removeCaptions) | [remove()](api/Caption.html#remove) | captions-remove
 [Reorder](#reordering-records) | [moveCaption()](api/Viewer.html#moveCaption)       | [move()](api/Caption.html#move)      | captions-reorder
 [Read](#reading-records)       | [captions()](api/Viewer.html#captions)             | -                    | -
 
@@ -728,7 +726,7 @@ Attribute                        | Type      | Description
 [backgroundColor](api/Caption.html#font)         | String    | A string describing the background color of the caption [Default: 'white']. See <a href="api/Color.html"><code>Color</code></a> for details.
 [on](api/Caption.html#on)<sup>ic</sup>           | String    | Place the caption relative to the 'canvas' or 'map' [Default: 'canvas']
 [visible](api/CGObject.html#visible) | Boolean   | Caption is visible [Default: true]
-[meta](api/CGObject.html#meta)       | Object    | [Meta data](tutorial-meta.html) for Caption
+[meta](api/CGObject.html#meta)       | Object    | [Meta data](tutorials/details-meta-data.html) for Caption
 
 <sup>ic</sup> Ignored on Caption creation
 
@@ -745,11 +743,15 @@ Action                                    | Viewer Method                       
 Attribute                        | Type      | Description
 ---------------------------------|-----------|------------
 [font](api/Annotation.html#font)                    | String    | A string describing the font [Default: 'monospace, plain, 12']. See <a href="api/Font.html"><code>Font</code></a> for details.
-[color](api/Annotation.html#color)                  | String   | A string describing the color [Default: undefined]. If the color is undefined, the legend color for the feature will be used. See <a href="api/Color.html"><code>Color</code></a> for details.
+[color](api/Annotation.html#color)                  | String   | A string describing the color of all labels [Default: undefined]. When undefined, outside labels use the feature legend color and inline labels choose black or white for contrast. See <a href="api/Color.html"><code>Color</code></a> for details.
 [onlyDrawFavorites](api/Annotation.html#onlyDrawFavorites) | Boolean   | Only draw labels for features that are favorited [Default: false]
 [labelPlacement](api/Annotation.html#labelPlacement) | String   | The label placement method for positioning labels. Choices: 'default', 'angled' [Default: 'default']
+[labelPosition](api/Annotation.html#labelPosition) | String | Where feature labels are drawn. Choices: 'outside', 'inline', 'auto'. With 'auto', outside labels are fallbacks for labels that do not fit inline [Default: 'auto']
+[inlineLabelAllowShrinking](api/Annotation.html#inlineLabelAllowShrinking) | Boolean | Shrink inline labels down to the renderer's minimum font size [Default: true]
+[inlineLabelAllowTruncation](api/Annotation.html#inlineLabelAllowTruncation) | Boolean | Truncate inline labels with an ellipsis when the full name cannot fit [Default: false]
+[inlineLabelColor](api/Annotation.html#inlineLabelColor) | String | Optional inline-label color override. When omitted, `color` is used if defined; otherwise black or white is selected for contrast against the rendered feature color.
 [visible](api/CGObject.html#visible) | Boolean   | Labels are visible [Default: true]
-[meta](api/CGObject.html#meta)       | Object    | [Meta data](tutorial-meta.html) for Annotation
+[meta](api/CGObject.html#meta)       | Object    | [Meta data](tutorials/details-meta-data.html) for Annotation
 
 </section>
 <section id='s.Bookmark'>
@@ -769,7 +771,7 @@ Attribute                        | Type      | Description
 [bp](api/Bookmark.html#bp)                        | Number    | Base pair to center the map position [Default: Current bp]
 [zoom](api/Bookmark.html#zoom)                    | Number    | Zoom factor [Default: Current zoomFactor]
 [format](api/Bookmark.html#format)                | String    | Map format [Default: Current map format]
-[bbOffset](api/Bookmark.html#bbOffset)            | Number    | Distance from the backbone to the center of the canvas [Default: 0]
+[bbOffset](api/Bookmark.html#bbOffset)            | Number    | Distance from the backbone to the center of the canvas [Default: Current viewer bbOffset]
 [shortcut](api/Bookmark.html#shortcut)            | Character | Single character shortcut that when pressed moves the map to this position [Default: N (see name) up to 9]
 [favorite](api/Bookmark.html#favorite)            | Boolean   | Bookmark is a favorite [Default: false]
 [meta](api/CGObject.html#meta)       | Object    | [Meta data](tutorials/details-meta-data.html) for Bookmark
@@ -788,8 +790,10 @@ Attribute                         | Type      | Description
 ----------------------------------|-----------|------------
 [thickness](api/Backbone.html#thickness)           | Number    | Thickness of backbone [Default: 5]
 [color](api/Backbone.html#color)                   | String    | A string describing the main backbone color [Default: 'grey']. See <a href="api/Color.html"><code>Color</code></a> for details.
-[colorAlternate](api/Backbone.html#alternateColor) | String    | A string describing the alternate color used for contigs [Default: 'rgb(200,200,200)']. See <a href="api/Color.html"><code>Color</code></a> for details.
+[colorAlternate](api/Backbone.html#colorAlternate) | String    | A string describing the alternate color used for contigs [Default: 'rgb(200,200,200)']. See <a href="api/Color.html"><code>Color</code></a> for details.
 [decoration](api/Backbone.html#decoration)         | String    | How the bakcbone should be drawn. Choices: 'arc', 'arrow' [Default: arc for single contig, arrow for muliple contigs]
+[showShading](api/Backbone.html#showShading)       | Boolean   | Override <a href="api/Settings.html#showShading"><code>Settings#showShading</code></a> for the backbone. When set, this value is used instead of the global setting. [Default: undefined]
+[showBorder](api/Backbone.html#showBorder)         | Boolean   | Override <a href="api/Settings.html#showBorder"><code>Settings#showBorder</code></a> for the backbone. When set, this value is used instead of the global setting. [Default: undefined]
 [visible](api/CGObject.html#visible)  | Boolean   | Backbone is visible [Default: true]
 [meta](api/CGObject.html#meta)        | Object    | [Meta data](tutorials/details-meta-data.html)
 
@@ -805,13 +809,12 @@ Action                                  | Viewer Method                    | Seq
 
 Attribute                        | Type      | Description
 ---------------------------------|-----------|------------
-[name](api/Sequence.html#name)                    | String    | Sequence name. [TODO]
 [seq](api/Sequence.html#seq)<sup>iu</sup>         | String    | The map sequence.
 [length](api/Sequence.html#length)<sup>iu</sup>   | Number    | The length of the sequence. This is ignored if a seq is provided. [Default: 1000]
 [contigs](api/Sequence.html#contigs)<sup>iu</sup> | Array     | Array of contigs. Contigs are ignored if a seq is provided.
 [font](api/Sequence.html#font)                    | String    | A string describing the font [Default: 'SansSerif, plain, 14']. See <a href="api/Font.html"><code>Font</code></a> for details.
 [color](api/Sequence.html#color)                  | String    | A string describing the sequence color [Default: 'black']. See <a href="api/Color.html"><code>Color</code></a> for details.
-[visible](api/CGObject.html#visible) | Boolean   | Sequence sequence is visible when zoomed in enough [Default: true]
+[visible](api/CGObject.html#visible) | Boolean   | Sequence is visible when zoomed in enough [Default: true]
 [meta](api/CGObject.html#meta)       | Object    | [Meta data](tutorials/details-meta-data.html)
 
 <sup>iu</sup> Ignored on Sequence update
@@ -855,6 +858,8 @@ Attribute                        | Type      | Description
 ---------------------------------|-----------|------------
 [font](api/Ruler.html#font)                    | String    | A string describing the font [Default: 'sans-serif, plain, 10']. See <a href="api/Font.html"><code>Font</code></a> for details.
 [color](api/Ruler.html#color)                  | String    | A string describing the color [Default: 'black']. See <a href="api/Color.html"><code>Color</code></a> for details.
+[labelPosition](api/Ruler.html#labelPosition)  | String    | Side on which labels are drawn: 'inside', 'outside', 'both', or 'none' [Default: 'inside']
+[labelOrientation](api/Ruler.html#labelOrientation) | String | Label presentation: 'horizontal' or 'curved' [Default: 'horizontal']
 [visible](api/CGObject.html#visible) | Boolean   | Rulers are visible [Default: true]
 [meta](api/CGObject.html#meta)       | Object    | [Meta data](tutorials/details-meta-data.html) for ruler
 
@@ -886,7 +891,7 @@ Attribute                        | Type      | Description
     </div> <!-- End of markdown in -->
 
     <script>
-      tutorialMarkdown(marked);
+      tutorialMarkdown();
     </script>
 
     <script src="scripts/prism.js"></script>
@@ -894,10 +899,7 @@ Attribute                        | Type      | Description
     <!-- Bootstrap JavaScript -->
     <script src="scripts/bootstrap.min.js"></script>
 
-    <script>
-      var spy = new Gumshoe('#gumshoe-list a', { offset: 50 });
-        // reflow: true,
-    </script>
+    <script src="scripts/section-nav.js"></script>
 
   </body>
 </html>

@@ -57,8 +57,8 @@ class CGObject {
   /**
    * Create a new CGObject.
    * @param {Viewer} viewer - The viewer
-   * @param {Object} options - [Attributes](#attributes) used to create the bookmark
-   * @param {Object} [meta] - User-defined [Meta data](../tutorials/details-meta-data.html) to add to the bookmark.
+   * @param {Object} options - [Attributes](#attributes) used to create the object
+   * @param {Object} [meta] - User-defined [Meta data](../tutorials/details-meta-data.html) to add to the object.
    */
   constructor(viewer, options = {}, meta = {}) {
     // super();
@@ -121,7 +121,7 @@ class CGObject {
   }
 
   /**
-   * @member {Boolean} - Get or Set the meta data of this object. See the [meta data](../tutorials/details-meta-data.html) tutorial for details.
+   * @member {Object} - Get or set the meta data of this object. Assignment replaces the current object. See the [meta data](../tutorials/details-meta-data.html) tutorial for details.
    */
   get meta() {
     return this._meta;

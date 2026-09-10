@@ -1,7 +1,8 @@
 .DS_Store
-template/dash
+.agents/
 OLD/
 node_modules/
+docs/.api-build-*/
 docs/formatting_example.*
 docs/dist/cgview.esm.*
 docs/dist/cgview.js

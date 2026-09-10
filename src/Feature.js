@@ -45,7 +45,8 @@ import utils from './Utils';
  * ---------------------------------|----------|------------
  * [name](#name)                    | String   | Name of feature
  * [type](#type)                    | String   | Feature type (e.g. CDS, rRNA, etc)
- * [legend](#legend)                | String\|LegendItem | Name of legendItem or the legendItem itself
+ * [legend](#legend)<sup>iu</sup>   | String\|LegendItem | Legend item name or object used at creation. Use legendItem when updating.
+ * [legendItem](#legendItem)<sup>ic</sup> | String\|LegendItem | Legend item name or object to assign when updating.
  * [source](#source)                | String   | Source of the feature
  * [tags](#tags)                    | String\|Array | A single string or an array of strings associated with the feature as tags
  * [contig](#contig)                | String\|Contig | Name of contig or the contig itself
@@ -54,7 +55,7 @@ import utils from './Utils';
  * [locations](#locations)          | Array    | Array of locations (start, stop) on the contig (e.g. [[1, 100], [200, 300]]).
  * [mapStart](#mapStart)<sup>ic</sup> | Number   | Start base pair on the map (converted to contig position). Ignored if locations are present.
  * [mapStop](#mapStop)<sup>ic</sup> | Number   | Stop base pair on the map (converted to contig position). Ignored if locations are present.
- * [strand](#strand)                | String   | Strand the features is on [Default: 1]
+ * [strand](#strand)                | Number   | Feature strand: 1 (direct) or -1 (reverse). Also accepts '+' and '-' [Default: 1]
  * [score](#score)                  | Number   | Score associated with the feature
  * [favorite](#favorite)            | Boolean  | Feature is a favorite [Default: false]
  * [selected](#selected)            | Boolean  | Feature is selected [Default: false]
@@ -65,6 +66,7 @@ import utils from './Utils';
  * 
  * <sup>rc</sup> Required on Feature creation
  * <sup>ic</sup> Ignored on Record creation
+ * <sup>iu</sup> Not accepted on Feature update
  *
  * Implementation notes:
  *   - The feature range is the range on the contig
@@ -91,6 +93,11 @@ class Feature extends CGObject {
     super(viewer, data, meta);
     this.viewer = viewer;
     this.type = utils.defaultFor(data.type, '');
+    /**
+     * Source identifier used to select this feature for tracks with dataMethod 'source'.
+     * @member {String} Feature#source
+     * @default ''
+     */
     this.source = utils.defaultFor(data.source, '');
     this.tags = data.tags;
     this.favorite = utils.defaultFor(data.favorite, false);
@@ -143,7 +150,7 @@ class Feature extends CGObject {
   }
 
   /**
-   * @member {tag} - Get or set the *tags*
+   * @member {CGArray} - Get the tags, or set them from a string or array of strings.
    */
   get tags() {
     return this._tags;
@@ -154,7 +161,7 @@ class Feature extends CGObject {
   }
 
   /**
-   * @member {String} - Get or set the name via the [Label](Label.html).
+   * @member {String} - Get or set the name displayed by the feature's [label](#label).
    */
   get name() {
     return this.label && this.label.name || this._tempName;
@@ -230,6 +237,10 @@ class Feature extends CGObject {
     viewer._features.push(this);
   }
 
+  /**
+   * @member {Number} - Get or set the strand: 1 for the direct strand or -1 for
+   * the reverse strand. The setter also accepts '+' and '-'. Defaults to 1.
+   */
   get strand() {
     return this._strand;
   }
@@ -436,7 +447,8 @@ class Feature extends CGObject {
 
 
   /**
-   * @member {String} - Get or set the feature label.
+   * @member {Object} - The internal label object used by Annotation. Use
+   * [name](#name) to change its text and [Annotation](Annotation.html) to style labels.
    */
   get label() {
     return this._label;
@@ -447,7 +459,7 @@ class Feature extends CGObject {
   }
 
   /**
-   * @member {String} - Get or set the feature as a favorite.
+   * @member {Boolean} - Get or set the feature as a favorite.
    */
   get favorite() {
     return Boolean(this._favorite);

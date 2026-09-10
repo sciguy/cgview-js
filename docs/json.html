@@ -1,6 +1,7 @@
 <!doctype html>
 <html lang="en">
   <head>
+    <script src="scripts/theme.js"></script>
     <!-- Required meta tags -->
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -18,7 +19,7 @@
     <link rel="stylesheet" href="styles/prism.css" />
     <!-- <link rel="stylesheet" href="styles/tables.css" /> -->
     <link rel="stylesheet" href="styles/general.css" />
-    <script src='scripts/marked.min.js'></script>
+    <script src='scripts/markdown-it.min.js'></script>
     <script src='scripts/general.js'></script>
 
     <!-- Plausible Analytics -->
@@ -49,7 +50,7 @@
         </div>
 
         <!-- Docs Toggle -->
-        <button class="btn sidebar-toggle d-sm-none collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#sidebar-nav" aria-controls="cgv-docs-nav" aria-expanded="false" aria-label="Toggle docs navigation">
+        <button class="btn sidebar-toggle d-sm-none collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#sidebar-nav" aria-controls="sidebar-nav" aria-expanded="false" aria-label="Toggle docs navigation">
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" class="bi bi-expand" fill="currentColor" viewBox="0 0 16 16"> <title>Expand</title> <path fill-rule="evenodd" d="M1 8a.5.5 0 0 1 .5-.5h13a.5.5 0 0 1 0 1h-13A.5.5 0 0 1 1 8zM7.646.146a.5.5 0 0 1 .708 0l2 2a.5.5 0 0 1-.708.708L8.5 1.707V5.5a.5.5 0 0 1-1 0V1.707L6.354 2.854a.5.5 0 1 1-.708-.708l2-2zM8 10a.5.5 0 0 1 .5.5v3.793l1.146-1.147a.5.5 0 0 1 .708.708l-2 2a.5.5 0 0 1-.708 0l-2-2a.5.5 0 0 1 .708-.708L7.5 14.293V10.5A.5.5 0 0 1 8 10z"></path> </svg>
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" class="bi bi-collapse" fill="currentColor" viewBox="0 0 16 16"> <title>Collapse</title> <path fill-rule="evenodd" d="M1 8a.5.5 0 0 1 .5-.5h13a.5.5 0 0 1 0 1h-13A.5.5 0 0 1 1 8zm7-8a.5.5 0 0 1 .5.5v3.793l1.146-1.147a.5.5 0 0 1 .708.708l-2 2a.5.5 0 0 1-.708 0l-2-2a.5.5 0 1 1 .708-.708L7.5 4.293V.5A.5.5 0 0 1 8 0zm-.5 11.707l-1.146 1.147a.5.5 0 0 1-.708-.708l2-2a.5.5 0 0 1 .708 0l2 2a.5.5 0 0 1-.708.708L8.5 11.707V15.5a.5.5 0 0 1-1 0v-3.793z"></path> </svg>
         </button>
@@ -68,7 +69,7 @@
     </nav>
 
     <!-- Side Nav -->
-    <nav id='sidebar-nav'>
+    <nav id='sidebar-nav' class='collapse'>
       <ul id='gumshoe-list' class='sidebar-list'>
           <!-- THIS NAV CONTENT IS REPLACED WITH JSON LINKS BY SCRIPT BELOW -->
       </ul>
@@ -86,11 +87,13 @@
 
 Data can be loaded from a JavaScript object literal or a JSON string using [IO.loadJSON](api/IO.html#loadJSON).
 The two formats are very similar and can be converted using JSON.parse and JSON.stringify.
-The example below is shown as an object literal and only shows some of the possible options for each key.
+The example below is valid JSON and shows some of the possible options for each key.
 Click on a key (e.g. backbone, captions, etc) for options and defaults.
+It uses a contig length without sequence data. To include sequence data, provide
+the complete sequence in a contig's `seq` property instead of `length`.
 
 The following two options are available for most sections of the JSON but are
-only present when they have non-default values (see the first [feature](#lines.102-115) for an example with non-default values):
+only present when they have non-default values (see the first [feature](#lines.107-120) for an example with non-default values):
 - _visible_ [Default: true]
 - _meta_ [Default: {}].  The _meta_ key is a place to store [user/app-defined meta data](tutorials/details-meta-data.html).
 
@@ -102,7 +105,7 @@ in linear maps.
 ```json
 {
     "cgview": {
-        "version": "1.7.0",
+        "version": "1.9.0",
         "created": "2022-08-08 13:29:07",
         "updated": "2022-08-08 13:29:07",
         "name": "My Cool Map",
@@ -124,7 +127,7 @@ in linear maps.
         "backbone": {
             "color": "rgba(128,128,128,1)",
             "thickness": 5,
-            "decoration": 'arrow'
+            "decoration": "arrow"
         },
         "ruler": {
             "font": "sans-serif,plain,10",
@@ -171,16 +174,15 @@ in linear maps.
             "items": [
                 {
                     "name": "CDS",
-                    "decoration": "arrow"
-                    "swatchColor": "rgba(0,0,153,0.5)",
+                    "decoration": "arrow",
+                    "swatchColor": "rgba(0,0,153,0.5)"
                 },
                 {
                     "name": "rRNA",
-                    "decoration": "arrow"
+                    "decoration": "arrow",
                     "swatchColor": "rgba(0,153,53,0.5)",
                     "font": "sans-serif,plain,16",
-                    "fontColor": "rgba(100,0,0,1)",
-                    "textAlignment": "left",
+                    "fontColor": "rgba(100,0,0,1)"
                 }
             ]
         },
@@ -191,8 +193,7 @@ in linear maps.
                 {
                     "name": "CP021212",
                     "length": 90229,
-                    "orientation": "+",
-                    "seq": "ATGCCAACTTCATTATCTGTGCCCAGAGACAGCGCATTCAGCAGT..."
+                    "orientation": "+"
                 }
             ]
         },
@@ -216,7 +217,7 @@ in linear maps.
                 "stop": 2806,
                 "strand": 1,
                 "source": "sequence-features",
-                "legend": "rRNA"
+                "legend": "rRNA",
                 "visible": false,
                 "meta": {
                   "score": 1234
@@ -239,7 +240,7 @@ in linear maps.
             {
                 "name": "Features",
                 "separateFeaturesBy": "strand",
-                "position": "both",
+                "position": "around",
                 "thicknessRatio": 1,
                 "dataType": "feature",
                 "dataMethod": "source",
@@ -253,10 +254,6 @@ in linear maps.
 <br /><br />
 
     </div> <!-- End of markdown in -->
-
-    <!-- <script> -->
-    <!--   tutorialMarkdown(marked); -->
-    <!-- </script> -->
 
     <script src="scripts/prism.js"></script>
     <script>
@@ -272,7 +269,7 @@ in linear maps.
           case '"captions"':    return `<a class="json-link" href="api/Caption.html">${content}</a>`;
           case '"legend"':      return `<a class="json-link" href="api/Legend.html">${content}</a>`;
           case '"items"':       return `<a class="json-link" href="api/LegendItem.html">${content}</a>`;
-          case '"sequence"':    return `<a class="json-link" href="api/Sequence.html">sequence"</a>`;
+          case '"sequence"':    return `<a class="json-link" href="api/Sequence.html">${content}</a>`;
           case '"contigs"':     return `<a class="json-link" href="api/Contig.html">${content}</a>`;
           case '"features"':    return `<a class="json-link" href="api/Feature.html">${content}</a>`;
           case '"plots"':       return `<a class="json-link" href="api/Plot.html">${content}</a>`;
@@ -307,16 +304,12 @@ in linear maps.
 
     <script>
       // Convert Markdown to HTML
-      var marked_ = marked;
-      var marked = function(text) {
-        var tok = marked_.lexer(text);
-        text = marked_.parser(tok);
-        text = text.replace(/<pre>/ig, '<pre class="line-numbers" id="lines">');
-        return text;
-      };
       var inEl = document.querySelector('#markdown-in');
       var outEl = document.querySelector('#markdown-out');
-      outEl.innerHTML = marked( inEl.innerHTML );
+      outEl.innerHTML = renderDocsMarkdown(inEl.innerHTML);
+      const jsonBlock = outEl.querySelector('pre');
+      jsonBlock.classList.add('line-numbers');
+      jsonBlock.id = 'lines';
     </script>
 
     <script>

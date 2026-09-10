@@ -48,7 +48,7 @@ import utils from './Utils';
  * [bp](#bp)                        | Number    | Base pair to center the map position [Default: Current bp]
  * [zoom](#zoom)                    | Number    | Zoom factor [Default: Current zoomFactor]
  * [format](#format)                | String    | Map format [Default: Current map format]
- * [bbOffset](#bbOffset)            | Number    | Distance from the backbone to the center of the canvas [Default: 0]
+ * [bbOffset](#bbOffset)            | Number    | Distance from the backbone to the center of the canvas [Default: Current viewer bbOffset]
  * [shortcut](#shortcut)            | Character | Single character shortcut that when pressed moves the map to this position [Default: N (see name) up to 9]
  * [favorite](#favorite)            | Boolean   | Bookmark is a favorite [Default: false]
  * [meta](CGObject.html#meta)       | Object    | [Meta data](../tutorials/details-meta-data.html) for Bookmark
@@ -56,14 +56,13 @@ import utils from './Utils';
  * ### Examples
  * ```js
  * // Create a new bookmark for the current map postion
- * let bookmark = cgv.addBookmarks();
+ * const bookmark = cgv.addBookmarks({})[0];
  * // => Bookmark {name: 'Bookmark-1', bp: 1, zoom: 1, format: 'linear', bbOffset: 0, shortcut: 1}
  * cgv.bookmarks().length;
  * // => 1
  *
  * // Edit the bookmark
  * bookmark.update({name: 'my gene'});
- * // => Bookmark {name: 'my gene', bp: 1, zoom: 1, format: 'linear', bbOffset: 0, shortcut: 1}
  *
  * // Move to the bookmark position
  * bookmark.moveTo()
@@ -97,6 +96,11 @@ class Bookmark extends CGObject {
     this.name = utils.defaultFor(options.name, this.incrementalName());
     this.favorite = utils.defaultFor(options.favorite, false);
     this.shortcut = utils.defaultFor(options.shortcut, this.incrementalShortcut());
+    /**
+     * Backbone offset restored by [moveTo()](#moveTo), in pixels.
+     * Defaults to the viewer's current [bbOffset](Viewer.html#bbOffset).
+     * @member {Number} Bookmark#bbOffset
+     */
     this.bbOffset = utils.defaultFor(options.bbOffset, viewer.bbOffset);
   }
 

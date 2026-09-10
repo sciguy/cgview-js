@@ -38,8 +38,8 @@
   max-height: 0;
   transition: max-height 200ms ease, opacity 200ms ease;
   /* background: #fff; */
-  background: #f5f5f5;
-  border: 1px solid #e5e7eb;
+  background: var(--docs-menu-bg);
+  border: 1px solid var(--docs-border);
   border-radius: 8px;
   box-shadow: 0 8px 20px rgba(0,0,0,0.08);
   padding: 0;              /* padding handled by row styling below */
@@ -61,9 +61,9 @@
   align-items: center;
   padding: 10px 12px;
   text-decoration: none;
-  color: #111827;
+  color: var(--docs-text);
   font-weight: 500;
-  border-bottom: 1px solid #f3f4f6;
+  border-bottom: 1px solid var(--docs-divider);
 }
 
 #cg-apps a[role="menuitem"]:last-child {
@@ -73,6 +73,6 @@
 #cg-apps a[role="menuitem"]:hover,
 #cg-apps a[role="menuitem"]:focus {
   /* background: #f3f4f6; */
-  background: #bfe4ec;
+  background: var(--docs-menu-hover);
   outline: none;
 }

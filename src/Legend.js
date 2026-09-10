@@ -35,7 +35,7 @@ import * as d3 from 'd3';
  *
  * Action                                  | Viewer Method                | Legend Method                  | Event
  * ----------------------------------------|------------------------------|--------------------------------|-----
- * [Update](../docs.html#updating-records) | -                            | [update()](Legend.html#update) | legends-update
+ * [Update](../docs.html#updating-records) | -                            | [update()](Legend.html#update) | legend-update
  * [Read](../docs.html#reading-records)    | [legend](Viewer.html#legend) | -                              | -
  *
  * <a name="attributes"></a>
@@ -45,12 +45,12 @@ import * as d3 from 'd3';
  * -----------------------------------|-----------|------------
  * [position](#position)              | String\|Object | Where to draw the legend [Default: 'top-right']. See {@link Position} for details.
  * [anchor](#anchor)                  | String\|Object | Where to anchor the legend box to the position [Default: 'auto']. See {@link Anchor} for details.
- * [defaultFont](#defaultFont)        | String    | A string describing the default font [Default: 'SansSerif, plain, 8']. See {@link Font} for details.
+ * [defaultFont](#defaultFont)        | String    | A string describing the default font [Default: 'sans-serif, plain, 14']. See {@link Font} for details.
  * [defaultFontColor](#defaultFontColor) | String    | A string describing the default font color [Default: 'black']. See {@link Color} for details.
  * [defaultDecoration](#defaultDecoration) | String | Default decoration for legend items that do not define their own. Choices: 'arc', 'arrow', 'auto', 'score', 'none' [Default: 'auto']
  * [defaultMinArcLength](#defaultMinArcLength) | Number    | Default minimum length in pixels to use when drawing arcs. From 0 to 2 pixels [Default: 1]
  * [textAlignment](#textAlignment)    | String    | Alignment of legend text: *left*, or *right* [Default: 'left']
- * [backgroundColor](#font)           | String    | A string describing the background color of the legend [Default: 'white']. See {@link Color} for details.
+ * [backgroundColor](#backgroundColor) | String   | A string describing the background color of the legend. Defaults to the viewer's background color. See {@link Color} for details.
  * [on](#on)<sup>ic</sup>             | String    | Place the legend relative to the 'canvas' or 'map' [Default: 'canvas']
  * [items](#items)<sup>iu</sup>       | Array     | Array of legend item data.
  * [visible](CGObject.html#visible)   | Boolean   | Legend is visible [Default: true]

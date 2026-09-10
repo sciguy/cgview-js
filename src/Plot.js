@@ -46,19 +46,20 @@ import * as d3 from 'd3';
  * ----------------------------------|----------|------------
  * [name](#name)                     | String   | Name of plot
  * [legend](#legend)                 | String\|LegendItem | Name of legendItem or the legendItem itself (sets positive and negative legend)
- * [legendNegative](#legendNegative) | String\|LegendItem | Name of legendItem or the legendItem itself for the plot above the baseline
- * [legendPositive](#legendPositive) | String\|LegendItem | Name of legendItem or the legendItem itself for the plot below the baseline
+ * [legendNegative](#legendNegative) | String\|LegendItem | Name of legendItem or the legendItem itself for the plot below the baseline
+ * [legendPositive](#legendPositive) | String\|LegendItem | Name of legendItem or the legendItem itself for the plot above the baseline
  * [source](#source)                 | String   | Source of the plot
- * [positions](#positions)<sup>rc,iu</sup> | Array   | Array of base pair position on contig
+ * [positions](#positions)<sup>rc,iu</sup> | Array   | Array of map base-pair positions
  * [scores](#scores)<sup>rc,iu</sup> | Array    | Array of scores
  * [baseline](#baseline)             | Number   | Score where the plot goes from negative to positive (in terms of legend)
  * [axisMax](#axisMax)               | Number   | Maximum value for the plot axis
  * [axisMin](#axisMin)               | Number   | Minimum value for the plot axis
- * [favorite](#favorite)             | Boolean  | Plot is a favorite [Default: false]
+ * [favorite](#favorite)<sup>ic</sup> | Boolean  | Optional application flag set after creation with update(); does not affect drawing.
  * [visible](CGObject.html#visible)  | Boolean  | Plot is visible [Default: true]
  * [meta](CGObject.html#meta)        | Object   | [Meta data](../tutorials/details-meta-data.html) for Plot
  * 
  * <sup>rc</sup> Required on Plot creation
+ * <sup>ic</sup> Ignored on Plot creation, including when loading JSON
  * <sup>iu</sup> Ignored on Plot update
  *
  * ### Examples
@@ -79,9 +80,20 @@ class Plot extends CGObject {
     this.name = data.name;
     this.extractedFromSequence = utils.defaultFor(data.extractedFromSequence, false);
     this.positions = utils.defaultFor(data.positions, []);
+    /**
+     * Numeric values corresponding to [positions](#positions), used for drawing
+     * and JSON export. Values may be positive or negative.
+     * @member {Array<Number>} Plot#scores
+     * @default []
+     */
     this.scores = utils.defaultFor(data.scores, []);
     this.type = utils.defaultFor(data.type, 'line');
     this._renderer = new PlotRenderer(this);
+    /**
+     * Source identifier used to select this plot for tracks with dataMethod 'source'.
+     * @member {String} Plot#source
+     * @default ''
+     */
     this.source = utils.defaultFor(data.source, '');
     this.axisMin = utils.defaultFor(data.axisMin, d3.min([0, this.scoreMin]));
     this.axisMax = utils.defaultFor(data.axisMax, d3.max([0, this.scoreMax]));
@@ -107,6 +119,13 @@ class Plot extends CGObject {
   }
 
   /**
+   * Optional application flag accepted by [update()](#update) and included in
+   * JSON when set. It is not initialized from creation or JSON data and does
+   * not affect plot drawing.
+   * @member {Boolean|undefined} Plot#favorite
+   */
+
+  /**
    * Return the class name as a string.
    * @return {String} - 'Plot'
    */
@@ -126,7 +145,7 @@ class Plot extends CGObject {
   }
 
   /**
-   * @member {type} - Get or set the *type*
+   * @member {String} - Get or set the plot type: 'line' or 'bar'.
    */
   get type() {
     return this._type;
@@ -166,7 +185,8 @@ class Plot extends CGObject {
   }
 
   /**
-   * @member {CGArray} - Get or set the scores of the plot. Value should be between 0 and 1.
+   * @member {CGArray} - Get or set the separate singular score array. Plot drawing
+   * and JSON export use [scores](#scores).
    */
   get score() {
     return this._score || new CGArray();
@@ -214,7 +234,7 @@ class Plot extends CGObject {
   }
 
   /**
-   * @member {LegendItem} - Alias for [legendItem](plot.html#legendItem)
+   * @member {LegendItem} - Alias for [legendItem](Plot.html#legendItem)
    */
   get legend() {
     return this.legendItem;
@@ -259,7 +279,7 @@ class Plot extends CGObject {
   }
 
   /**
-   * @member {LegendItem} - Alias for [legendItemPositive](plot.html#legendItemPositive).
+   * @member {LegendItem} - Alias for [legendItemPositive](Plot.html#legendItemPositive).
    */
   get legendPositive() {
     return this.legendItemPositive;
@@ -270,7 +290,7 @@ class Plot extends CGObject {
   }
 
   /**
-   * @member {LegendItem} - Alias for [legendItemNegative](plot.html#legendItemNegative).
+   * @member {LegendItem} - Alias for [legendItemNegative](Plot.html#legendItemNegative).
    */
   get legendNegative() {
     return this.legendItemNegative;

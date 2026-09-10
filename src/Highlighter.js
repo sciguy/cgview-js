@@ -35,8 +35,8 @@ import utils from './Utils';
  *  ------------------------------|----------------------------|--------------------------
  *  [feature](#feature)           | {@link HighlighterElement} | Describes the highlightling options for features
  *  [plot](#plot)                 | {@link HighlighterElement} | Describes the highlightling options for plots
- *  [contig](#plot)               | {@link HighlighterElement} | Describes the highlightling options for contigs
- *  [backbone](#plot)             | {@link HighlighterElement} | Describes the highlightling options for the backbone
+ *  [contig](#contig)             | {@link HighlighterElement} | Describes the highlighting options for contigs
+ *  [backbone](#backbone)         | {@link HighlighterElement} | Describes the highlighting options for the backbone
  *  [showMetaData](#showMetaData) | true                       | Should meta data be shown in popovers
  *
  * @extends CGObject
@@ -51,6 +51,11 @@ class Highlighter extends CGObject {
   constructor(viewer, options = {}, meta = {}) {
     super(viewer, options, meta);
     this._viewer = viewer;
+    /**
+     * Include record meta data in the default hover popovers.
+     * @member {Boolean} Highlighter#showMetaData
+     * @default true
+     */
     this.showMetaData = utils.defaultFor(options.showMetaData, true);
     // this.popoverBox = viewer._container.append('div').attr('class', 'cgv-highlighter-popover-box').style('visibility', 'hidden');
     this.popoverBox = viewer._wrapper.append('div').attr('class', 'cgv-highlighter-popover-box').style('visibility', 'hidden');
@@ -338,6 +343,11 @@ class HighlighterElement {
   constructor(type, options = {}) {
     this.type = type;
     this.highlighting = utils.defaultFor(options.highlighting, true);
+    /**
+     * Show a popover when hovering over this element type.
+     * @member {Boolean} HighlighterElement#popovers
+     * @default true
+     */
     this.popovers = utils.defaultFor(options.popovers, true);
     this.popoverContents = options.popoverContents;
   }
@@ -365,7 +375,8 @@ class HighlighterElement {
   }
 
   /**
-   * @member {Boolean} - Get or set whether popovers should occur
+   * @member {Boolean} - Get or set the separate singular popover flag. Hover
+   * popovers are controlled by [popovers](#popovers).
    */
   get popover() {
     return this._popover;

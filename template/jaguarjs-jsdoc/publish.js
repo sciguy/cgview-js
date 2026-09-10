@@ -2,10 +2,9 @@
 var template = require('jsdoc/template'),
     fs = require('jsdoc/fs'),
     path = require('jsdoc/path'),
-    taffy = require('taffydb').taffy,
+    taffy = require('@jsdoc/salty').taffy,
     handle = require('jsdoc/util/error').handle,
     helper = require('jsdoc/util/templateHelper'),
-    _ = require('underscore'),
     htmlsafe = helper.htmlsafe,
     linkto = helper.linkto,
     resolveAuthorLinks = helper.resolveAuthorLinks,
@@ -69,8 +68,7 @@ function addSignatureReturns(f) {
     f.signature = '<span class="signature">'+(f.signature || '') + '</span>';
     
     if (returnTypes.length) {
-        // f.signature += '<span class="glyphicon glyphicon-circle-arrow-right"></span><span class="type-signature returnType">'+(returnTypes.length ? '{'+returnTypes.join('|')+'}' : '')+'</span>';
-        f.signature += '<span class="bi bi-arrow-right-circle-fill"></span><span class="type-signature returnType">'+(returnTypes.length ? '{'+returnTypes.join('|')+'}' : '')+'</span>';
+        f.signature += '<span class="return-arrow" aria-hidden="true">➜</span><span class="type-signature returnType">'+(returnTypes.length ? '{'+returnTypes.join('|')+'}' : '')+'</span>';
     }
 }
 
@@ -116,6 +114,11 @@ function getPathFromDoclet(doclet) {
     return filepath;
 }
     
+// Keep generated blank lines empty without changing source-page line numbers.
+function writeHtml(filename, html) {
+    fs.writeFileSync(filename, html.replace(/^[\t ]+$/gm, ''), 'utf8');
+}
+
 function generate(title, docs, filename, resolveLinks) {
     resolveLinks = resolveLinks === false ? false : true;
 
@@ -135,7 +138,7 @@ function generate(title, docs, filename, resolveLinks) {
         html = html.toString().replace(/<a\s+([^>]*href\s*=\s*['"]*[^\s'"]*:\/\/)/ig, '<a target="_blank" $1');
     }
 
-    fs.writeFileSync(outpath, html, 'utf8');
+    writeHtml(outpath, html);
 }
 
 function generateSourceFiles(sourceFiles) {
@@ -204,7 +207,7 @@ function buildNav(members) {
     var nav = [];
 
     if (members.namespaces.length) {
-        _.each(members.namespaces, function (v) {
+        members.namespaces.forEach(function (v) {
             nav.push({
                 type: 'namespace',
                 longname: v.longname,
@@ -230,7 +233,7 @@ function buildNav(members) {
     }
 
     if (members.classes.length) {
-        _.each(members.classes, function (v) {
+        members.classes.forEach(function (v) {
             nav.push({
                 type: 'class',
                 longname: v.longname,
@@ -260,7 +263,7 @@ function buildNav(members) {
 
 
 /**
-    @param {TAFFY} taffyData See <http://taffydb.com/>.
+    @param {TAFFY} taffyData JSDoc's Salty doclet collection.
     @param {object} opts
     @param {Tutorial} tutorials
  */
@@ -528,7 +531,7 @@ exports.publish = function(taffyData, opts, tutorials) {
         // yes, you can use {@link} in tutorials too!
         html = helper.resolveLinks(html); // turn {@link foo} into <a href="foodoc.html">foo</a>
         
-        fs.writeFileSync(tutorialPath, html, 'utf8');
+        writeHtml(tutorialPath, html);
     }
     
     // tutorials can have only one parent so there is no risk for loops

@@ -42,7 +42,7 @@ import utils from './Utils';
  * ----------------------------------|-----------|------------
  * [thickness](#thickness)           | Number    | Thickness of backbone [Default: 5]
  * [color](#color)                   | String    | A string describing the main backbone color [Default: 'grey']. See {@link Color} for details.
- * [colorAlternate](#alternateColor) | String    | A string describing the alternate color used for contigs [Default: 'rgb(200,200,200)']. See {@link Color} for details.
+ * [colorAlternate](#colorAlternate) | String    | A string describing the alternate color used for contigs [Default: 'rgb(200,200,200)']. See {@link Color} for details.
  * [decoration](#decoration)         | String    | How the bakcbone should be drawn. Choices: 'arc', 'arrow' [Default: arc for single contig, arrow for muliple contigs]
  * [showShading](#showShading)       | Boolean   | Override {@link Settings#showShading} for the backbone. When set, this value is used instead of the global setting. [Default: undefined]
  * [showBorder](#showBorder)         | Boolean   | Override {@link Settings#showBorder} for the backbone. When set, this value is used instead of the global setting. [Default: undefined]

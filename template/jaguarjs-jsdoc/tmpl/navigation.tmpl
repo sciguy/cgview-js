@@ -1,82 +1,44 @@
-<?js
-var self = this;
-?>
+<?js var self = this; ?>
 <div class="navigation">
-    <!-- <h3 class="applicationName"><a href="index.html"><?js= env.conf.templates.applicationName ?></a></h3> -->
-
-    <a id='nav-title-link' href='index.html'>API Home</a>
-
+    <a id="nav-title-link" href="index.html">API Home</a>
     <div class="search">
-        <input id="search" type="text" class="form-control input-sm" placeholder="Search API">
+        <label class="visually-hidden" for="search">Search API</label>
+        <input id="search" type="search" class="form-control" placeholder="Search API" autocomplete="off" spellcheck="false">
     </div>
     <ul class="list">
-    <?js
-    this.nav.forEach(function (item) {
+    <?js this.nav.forEach(function (item, index) {
+        var groups = [
+            ['members', 'Members'], ['typedefs', 'Typedefs'],
+            ['methods', 'Methods'], ['events', 'Events']
+        ].filter(function (group) { return item[group[0]].length; });
+        var groupId = 'api-members-' + index;
     ?>
-        <li class="item" data-name="<?js= item.longname ?>">
+        <li class="item" data-name="<?js= self.htmlsafe(item.longname) ?>">
             <span class="title">
                 <?js= self.linkto(item.longname, item.longname) ?>
                 <?js if (item.type === 'namespace') { ?>
                 <span class="static">static</span>
                 <?js } ?>
+                <?js if (groups.length) { ?>
+                <button type="button" class="members-toggle" aria-label="Toggle <?js= self.htmlsafe(item.longname) ?> members" aria-controls="<?js= groupId ?>" aria-expanded="true" hidden>
+                    <span aria-hidden="true">›</span>
+                </button>
+                <?js } ?>
             </span>
-            <ul class="members itemMembers">
-            <?js
-            if (item.members.length) {
-            ?>
-            <span class="subtitle">Members</span>
-            <?js
-                item.members.forEach(function (v) {
-            ?>
-                <li data-name="<?js= v.longname ?>"><?js= self.linkto(v.longname, v.name) ?></li>
-            <?js
-                });
-            }
-            ?>
-            </ul>
-            <ul class="typedefs itemMembers">
-            <?js
-            if (item.typedefs.length) {
-            ?>
-            <span class="subtitle">Typedefs</span>
-            <?js
-                item.typedefs.forEach(function (v) {
-            ?>
-                <li data-name="<?js= v.longname ?>"><?js= self.linkto(v.longname, v.name) ?></li>
-            <?js
-                });
-            }
-            ?>
-            </ul>
-            <ul class="methods itemMembers">
-            <?js
-            if (item.methods.length) {
-            ?>
-            <span class="subtitle">Methods</span>
-            <?js
-
-                item.methods.forEach(function (v) {
-            ?>
-                <li data-name="<?js= v.longname ?>"><?js= self.linkto(v.longname, v.name) ?></li>
-            <?js
-                });
-            }
-            ?>
-            </ul>
-            <ul class="events itemMembers">
-            <?js
-            if (item.events.length) {
-            ?>
-            <span class="subtitle">Events</span>
-            <?js
-                item.events.forEach(function (v) {
-            ?>
-                <li data-name="<?js= v.longname ?>"><?js= self.linkto(v.longname, v.name) ?></li>
-            <?js
-                });
-            }
-            ?>
-            </ul>
+            <?js if (groups.length) { ?>
+            <div class="itemMembers" id="<?js= groupId ?>">
+                <?js groups.forEach(function (group) { ?>
+                <div class="member-section">
+                    <h3 class="subtitle"><?js= group[1] ?></h3>
+                    <ul class="<?js= group[0] ?>">
+                        <?js item[group[0]].forEach(function (member) { ?>
+                        <li data-name="<?js= self.htmlsafe(member.longname) ?>"><?js= self.linkto(member.longname, member.name) ?></li>
+                        <?js }); ?>
+                    </ul>
+                </div>
+                <?js }); ?>
+            </div>
+            <?js } ?>
         </li>
     <?js }); ?>
     </ul>

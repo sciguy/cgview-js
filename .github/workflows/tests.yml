@@ -12,3 +12,20 @@ jobs:
           node-version: 24
       - run: yarn install --frozen-lockfile
       - run: yarn gh-test
+
+  docs:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: yarn
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3'
+      - run: yarn install --frozen-lockfile
+      - run: yarn docs:build
+      - run: yarn playwright install --with-deps chromium
+      - run: yarn docs:check

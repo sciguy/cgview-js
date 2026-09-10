@@ -1,70 +1,57 @@
-$(function () {
-    // Search Items
-    $('#search').on('keyup', function (e) {
-        var value = $(this).val();
-        var $el = $('.navigation');
+// API navigation: literal filtering and independent, keyboard-accessible sections.
+(() => {
+  'use strict';
 
-        if (value) {
-            var regexp = new RegExp(value, 'i');
-            $el.find('li, .itemMembers').hide();
-
-            $el.find('li').each(function (i, v) {
-                var $item = $(v);
-
-                if ($item.data('name') && regexp.test($item.data('name'))) {
-                    $item.show();
-                    $item.closest('.itemMembers').show();
-                    $item.closest('.item').show();
-                }
-            });
-        } else {
-            $el.find('.item, .itemMembers').show();
-        }
-
-        $el.find('.list').scrollTop(0);
-    });
-
-    // Toggle when click an item element
-    $('.navigation').on('click', '.title', function (e) {
-        $(this).parent().find('.itemMembers').toggle();
-    });
-
-    // Show an item related a current documentation automatically
-    var filename = $('.page-title').data('filename').replace(/\.[a-z]+$/, '');
-    var $currentItem = $('.navigation .item[data-name*="' + filename + '"]:eq(0)');
-
-    if ($currentItem.length) {
-        $currentItem
-            .remove()
-            .prependTo('.navigation .list')
-            .show()
-            .find('.itemMembers')
-                .show();
-    }
-
-    // Auto resizing on navigation
-    var _onResize = function () {
-        var height = $(window).height();
-        var $el = $('.navigation');
-
-        // $el.height(height).find('.list').height(height - 183);
-        $el.height(height-50).find('.list').height(height - 180); // JRG - Change height of side nav bar
+  const navigation = document.querySelector('.navigation');
+  if (!navigation) return;
+  const search = navigation.querySelector('#search');
+  const list = navigation.querySelector('.list');
+  const currentFilename = location.pathname.split('/').pop().replace(/\.js\.html$/, '.html');
+  const items = Array.from(list.querySelectorAll('.item'), (element) => {
+    const link = element.querySelector('.title a');
+    const current = new URL(link.href).pathname.split('/').pop() === currentFilename;
+    const group = element.querySelector('.itemMembers');
+    const toggle = element.querySelector('.members-toggle');
+    const item = {
+      element, group, toggle, expanded: current,
+      name: element.dataset.name.toLowerCase(),
+      members: Array.from(element.querySelectorAll('li[data-name]'))
     };
-
-    $(window).on('resize', _onResize);
-    _onResize();
-
-    // disqus code
-    if (config.disqus) {
-        $(window).on('load', function () {
-            var disqus_shortname = config.disqus; // required: replace example with your forum shortname
-            var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
-            dsq.src = 'http://' + disqus_shortname + '.disqus.com/embed.js';
-            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
-            var s = document.createElement('script'); s.async = true;
-            s.type = 'text/javascript';
-            s.src = 'http://' + disqus_shortname + '.disqus.com/count.js';
-            document.getElementsByTagName('BODY')[0].appendChild(s);
-        });
+    if (current) list.prepend(element);
+    if (toggle) {
+      toggle.hidden = false;
+      toggle.addEventListener('click', () => {
+        item.expanded = group.hidden;
+        group.hidden = !item.expanded;
+        toggle.setAttribute('aria-expanded', String(item.expanded));
+      });
     }
-});
+    return item;
+  });
+
+  const filter = () => {
+    const query = search.value.trim().toLowerCase();
+    for (const item of items) {
+      const matchesClass = item.name.includes(query);
+      let matchesMember = false;
+      for (const member of item.members) {
+        const matches = matchesClass || member.dataset.name.toLowerCase().includes(query);
+        member.hidden = !matches;
+        matchesMember ||= matches;
+      }
+      item.element.hidden = !matchesClass && !matchesMember;
+      if (item.group) {
+        // Restore the user's expanded sections after clearing the search.
+        item.group.hidden = query ? item.element.hidden : !item.expanded;
+        for (const section of item.group.querySelectorAll('.member-section')) {
+          section.hidden = !Array.from(section.querySelectorAll('li')).some((member) => !member.hidden);
+        }
+        item.toggle.setAttribute('aria-expanded', String(!item.group.hidden));
+      }
+    }
+    list.scrollTop = 0;
+  };
+
+  search.addEventListener('input', filter);
+  filter();
+})();
