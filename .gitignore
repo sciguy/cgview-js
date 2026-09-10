@@ -1,4 +1,5 @@
 .DS_Store
+.agents/
 OLD/
 node_modules/
 docs/.api-build-*/
