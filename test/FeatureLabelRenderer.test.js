@@ -211,11 +211,13 @@ describe('Inline feature labels', () => {
     ctx.measureText.mockImplementation(text => ({width: Array.from(String(text)).length * 10}));
     const measurement = renderer._measurementFor(feature);
     const targetWidth = measurement.prefixWidths[6] + measurement.ellipsisWidth;
+    const totalPadding = 8; // Inline labels reserve 4px on each side.
+    const slotThickness = feature.label.font.size + totalPadding;
     jest.spyOn(cgv.canvas, 'pixelsPerBp')
-      .mockReturnValue((targetWidth + 4) / feature.length);
+      .mockReturnValue((targetWidth + totalPadding) / feature.length);
     feature.label.width = 200;
 
-    const metrics = renderer.metricsFor(feature, 100, 20, fullRange(cgv));
+    const metrics = renderer.metricsFor(feature, 100, slotThickness, fullRange(cgv));
 
     expect(metrics.text).toBe('long d…');
     expect(metrics.characters).toEqual(Array.from('long d…'));
@@ -223,7 +225,7 @@ describe('Inline feature labels', () => {
     expect(metrics.textWidth).toBeLessThanOrEqual(metrics.availableWidth + 0.01);
 
     cgv.annotation.update({inlineLabelAllowTruncation: false});
-    expect(renderer.metricsFor(feature, 100, 20, fullRange(cgv))).toBeUndefined();
+    expect(renderer.metricsFor(feature, 100, slotThickness, fullRange(cgv))).toBeUndefined();
   });
 
   test('uses bpFloat to move clipped labels continuously above one pixel per bp', () => {

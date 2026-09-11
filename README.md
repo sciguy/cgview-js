@@ -41,7 +41,7 @@ The `v1.9-d3` Rollup build provides core and standalone variants. Run
 `cgview-run yarn gh-pages` to produce a minified browser script and a readable
 ES module for each, with source maps. Use `cgview.standalone.min.js` or
 `cgview.standalone.esm.js` for one file with D3, SVG export, and CSS included.
-See the [bundle filenames, requirements, and sizes](docs/bundles.md).
+See the [bundle filenames, requirements, and sizes](https://github.com/sciguy/cgview-js/blob/v1.9/docs/bundles.md).
 
 ## Usage
 
@@ -68,7 +68,7 @@ See the [tutorials](http://js.cgview.ca/tutorials/index.html) to learn how to ad
 
 ## Development
 
-Development uses the Node.js version in [`.nvmrc`](.nvmrc) (currently Node 24)
+Development uses the Node.js version in [`.nvmrc`](https://github.com/sciguy/cgview-js/blob/v1.9/.nvmrc) (currently Node 24)
 and Yarn Classic 1.22.22. CI reads the same version file. With
 [nvm](https://github.com/nvm-sh/nvm) installed, run these commands from the checkout:
 
