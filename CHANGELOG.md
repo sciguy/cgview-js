@@ -15,6 +15,7 @@
 - Added marquee selection with shift-drag.
 - Added a Selection checkbox to the test page options.
 - Added configurable ruler label positions and horizontal or curved presentations.
+- Added explicit single-color or per-base nucleotide coloring with per-contig light and dark backbone palettes, plus optional curved sequence text on circular maps.
 - Added `showTrackLabels` for compact feature and plot track identification at close zoom in circular and linear maps. Feature slots include strand, reading-frame, type, or legend details, based on work by @paulstothard.
 - Added `Annotation.labelPosition` modes for outside, inline, and automatic feature labels, with automatic placement as the default. Inline labels include smooth bounded font shrinking, optional ellipsis truncation, internal padding, contrast-aware colors, collision handling, and circular or linear text rendering, based on work by @paulstothard.
 - Fixed unnamed feature popovers showing `undefined`.

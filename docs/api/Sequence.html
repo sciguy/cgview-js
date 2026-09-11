@@ -2258,6 +2258,12 @@
                     <h3 class="subtitle">Members</h3>
                     <ul class="members">
 
+                        <li data-name="Sequence#baseColorMode"><a href="Sequence.html#baseColorMode">baseColorMode</a></li>
+
+                        <li data-name="Sequence#baseColors"><a href="Sequence.html#baseColors">baseColors</a></li>
+
+                        <li data-name="Sequence#baseTextOrientation"><a href="Sequence.html#baseTextOrientation">baseTextOrientation</a></li>
+
                         <li data-name="Sequence#canvas"><a href="Sequence.html#canvas">canvas</a></li>
 
                         <li data-name="Sequence#color"><a href="Sequence.html#color">color</a></li>
@@ -2817,6 +2823,22 @@ order, however, the seq and length property of each contig is still read only.</
 <p>CGView uses two coordinate systems: Contig space and map space. For features
 and plot, positions are relative to contigs. However, when drawing we use
 positions relative to the entire map.</p>
+<h3>Base Coloring</h3>
+<p>At readable sequence zoom, <a href="#baseColorMode">baseColorMode</a> controls how
+nucleotide characters are colored. The default <code>single</code> mode preserves the
+established behavior and renders every character with <a href="#color">color</a>. The
+<code>byBase</code> mode uses <a href="#baseColors">baseColors</a> for A, C, G, T/U, and
+ambiguous characters. U shares the T color; all other characters use the
+ambiguous color.</p>
+<p>Each contig independently selects <code>baseColors.onLight</code> or
+<code>baseColors.onDark</code> from the luminance of its rendered backbone. A
+translucent backbone is first composited over the map background. Changing
+<a href="#color">color</a> or <a href="#baseColors">baseColors</a> does not change
+<a href="#baseColorMode">baseColorMode</a>.</p>
+<p>In JSON, a missing <code>baseColorMode</code> means <code>single</code>, and that default is
+omitted when saving. The value <code>byBase</code> is serialized explicitly. Custom
+palettes are saved in <code>sequence.baseColors</code>; built-in palettes are omitted
+unless <code>includeDefaults</code> is requested.</p>
 <h3>Action and Events</h3>
 <table>
 <thead>
@@ -2879,6 +2901,21 @@ positions relative to the entire map.</p>
 <td>A string describing the sequence color [Default: 'black']. See <a href="Color.html"><code>Color</code></a> for details.</td>
 </tr>
 <tr>
+<td><a href="#baseColorMode">baseColorMode</a></td>
+<td>String</td>
+<td>Detailed base coloring: <code>single</code> or <code>byBase</code> [Default: <code>single</code>].</td>
+</tr>
+<tr>
+<td><a href="#baseTextOrientation">baseTextOrientation</a></td>
+<td>String</td>
+<td>Base presentation: <code>horizontal</code> or <code>curved</code> [Default: <code>horizontal</code>].</td>
+</tr>
+<tr>
+<td><a href="#baseColors">baseColors</a></td>
+<td>Object</td>
+<td>Nucleotide color palettes for light and dark backbone colors.</td>
+</tr>
+<tr>
 <td><a href="CGObject.html#visible">visible</a></td>
 <td>Boolean</td>
 <td>Sequence is visible when zoomed in enough [Default: true]</td>
@@ -2910,7 +2947,7 @@ positions relative to the entire map.</p>
 
 
         <div class="tag-source">
-            <a href="Sequence.js.html">Sequence.js</a>, <a href="Sequence.js.html#line79">line 79</a>
+            <a href="Sequence.js.html">Sequence.js</a>, <a href="Sequence.js.html#line112">line 112</a>
         </div>
 
     </div>
@@ -3101,6 +3138,148 @@ positions relative to the entire map.</p>
         <h3 class="subsection-title">Members</h3>
 
         <dl>
+
+<dt>
+    <div class="nameContainer">
+        <h4 class="name" id="baseColorMode">baseColorMode<span class="type-signature type 'single'">'single'</span> <span class="type-signature type 'bybase'">'byBase'</span> </h4>
+    </div>
+
+
+</dt>
+<dd>
+
+    <div class="description">
+        <p>Get or set detailed sequence base coloring.
+<code>single</code> always renders every base with <a href="#color">color</a>. <code>byBase</code> uses the
+configured base palettes and never changes <code>color</code>.</p>
+    </div>
+
+
+
+<dl class="details">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</dl>
+
+
+
+</dd>
+
+
+
+<dt>
+    <div class="nameContainer">
+        <h4 class="name" id="baseColors">baseColors<span class="type-signature type object">Object</span> </h4>
+    </div>
+
+
+</dt>
+<dd>
+
+    <div class="description">
+        <p>Get or update the semantic base palettes used at
+sequence detail. Palettes contain <code>onLight</code> and <code>onDark</code> entries, each
+with A, C, G, T, and <code>ambiguous</code> colors. U uses the T color. Partial
+updates preserve other entries. Custom palettes are saved in sequence JSON.</p>
+    </div>
+
+
+
+<dl class="details">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</dl>
+
+
+
+</dd>
+
+
+
+<dt>
+    <div class="nameContainer">
+        <h4 class="name" id="baseTextOrientation">baseTextOrientation<span class="type-signature type 'horizontal'">'horizontal'</span> <span class="type-signature type 'curved'">'curved'</span> </h4>
+    </div>
+
+
+</dt>
+<dd>
+
+    <div class="description">
+        <p>Get or set the sequence base text
+orientation. Curved bases follow circular-map tangents and fall back to
+horizontal text on linear maps.</p>
+    </div>
+
+
+
+<dl class="details">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</dl>
+
+
+
+</dd>
+
+
 
 <dt>
     <div class="nameContainer">
@@ -3704,7 +3883,7 @@ The Sequence.seq (or length) is the same as Sequence.mapContig.seq (or length).<
 
 
         <div class="tag-source">
-            <a href="Sequence.js.html">Sequence.js</a>, <a href="Sequence.js.html#line469">line 469</a>
+            <a href="Sequence.js.html">Sequence.js</a>, <a href="Sequence.js.html#line560">line 560</a>
         </div>
 
     </div>
@@ -3995,7 +4174,7 @@ See <a href="../docs.html#s.adding-records">adding records</a> for details.</p>
 
 
         <div class="tag-source">
-            <a href="Sequence.js.html">Sequence.js</a>, <a href="Sequence.js.html#line741">line 741</a>
+            <a href="Sequence.js.html">Sequence.js</a>, <a href="Sequence.js.html#line832">line 832</a>
         </div>
 
     </div>
@@ -4134,7 +4313,7 @@ See <a href="../docs.html#s.adding-records">adding records</a> for details.</p>
 
 
         <div class="tag-source">
-            <a href="Sequence.js.html">Sequence.js</a>, <a href="Sequence.js.html#line685">line 685</a>
+            <a href="Sequence.js.html">Sequence.js</a>, <a href="Sequence.js.html#line776">line 776</a>
         </div>
 
     </div>
@@ -4363,7 +4542,7 @@ See <a href="../docs.html#s.reading-records">reading records</a> for details.</p
 
 
         <div class="tag-source">
-            <a href="Sequence.js.html">Sequence.js</a>, <a href="Sequence.js.html#line810">line 810</a>
+            <a href="Sequence.js.html">Sequence.js</a>, <a href="Sequence.js.html#line901">line 901</a>
         </div>
 
     </div>
@@ -4682,7 +4861,7 @@ See <a href="../docs.html#s.reading-records">reading records</a> for details.</p
 
 
         <div class="tag-source">
-            <a href="Sequence.js.html">Sequence.js</a>, <a href="Sequence.js.html#line547">line 547</a>
+            <a href="Sequence.js.html">Sequence.js</a>, <a href="Sequence.js.html#line638">line 638</a>
         </div>
 
     </div>
@@ -4971,7 +5150,7 @@ See <a href="../docs.html#s.reading-records">reading records</a> for details.</p
 
 
         <div class="tag-source">
-            <a href="Sequence.js.html">Sequence.js</a>, <a href="Sequence.js.html#line496">line 496</a>
+            <a href="Sequence.js.html">Sequence.js</a>, <a href="Sequence.js.html#line587">line 587</a>
         </div>
 
     </div>
@@ -5097,7 +5276,7 @@ Notes:</p>
 
 
         <div class="tag-source">
-            <a href="Sequence.js.html">Sequence.js</a>, <a href="Sequence.js.html#line970">line 970</a>
+            <a href="Sequence.js.html">Sequence.js</a>, <a href="Sequence.js.html#line1155">line 1155</a>
         </div>
 
     </div>
@@ -5168,7 +5347,7 @@ Notes:</p>
 
 
         <div class="tag-source">
-            <a href="Sequence.js.html">Sequence.js</a>, <a href="Sequence.js.html#line283">line 283</a>
+            <a href="Sequence.js.html">Sequence.js</a>, <a href="Sequence.js.html#line325">line 325</a>
         </div>
 
     </div>
@@ -5271,7 +5450,7 @@ Notes:</p>
 
 
         <div class="tag-source">
-            <a href="Sequence.js.html">Sequence.js</a>, <a href="Sequence.js.html#line959">line 959</a>
+            <a href="Sequence.js.html">Sequence.js</a>, <a href="Sequence.js.html#line1137">line 1137</a>
         </div>
 
     </div>
@@ -5388,7 +5567,7 @@ See <a href="../docs.html#s.updating-records">updating records</a> for details.<
 
 
         <div class="tag-source">
-            <a href="Sequence.js.html">Sequence.js</a>, <a href="Sequence.js.html#line523">line 523</a>
+            <a href="Sequence.js.html">Sequence.js</a>, <a href="Sequence.js.html#line614">line 614</a>
         </div>
 
     </div>
@@ -5675,7 +5854,7 @@ See <a href="../docs.html#s.updating-records">updating records</a> for details.<
 
 
         <div class="tag-source">
-            <a href="Sequence.js.html">Sequence.js</a>, <a href="Sequence.js.html#line144">line 144</a>
+            <a href="Sequence.js.html">Sequence.js</a>, <a href="Sequence.js.html#line186">line 186</a>
         </div>
 
     </div>
@@ -5778,7 +5957,7 @@ See <a href="../docs.html#s.updating-records">updating records</a> for details.<
 
 
         <div class="tag-source">
-            <a href="Sequence.js.html">Sequence.js</a>, <a href="Sequence.js.html#line245">line 245</a>
+            <a href="Sequence.js.html">Sequence.js</a>, <a href="Sequence.js.html#line287">line 287</a>
         </div>
 
     </div>
@@ -5928,7 +6107,7 @@ See <a href="../docs.html#s.updating-records">updating records</a> for details.<
 
 
         <footer>
-           <!--  Documentation generated by <a target="_blank" href="https://github.com/jsdoc3/jsdoc">JSDoc 4.0.5</a> on Thu Sep 10 2026 19:36:12 GMT+0000 (Coordinated Universal Time) -->
+           <!--  Documentation generated by <a target="_blank" href="https://github.com/jsdoc3/jsdoc">JSDoc 4.0.5</a> on Fri Sep 11 2026 21:29:13 GMT+0000 (Coordinated Universal Time) -->
            Documentation generated by <a target="_blank" href="https://github.com/jsdoc3/jsdoc">JSDoc 4.0.5</a>. See <a href='index.html'>API Home</a> for documentation generation date.
         </footer>
     </div>

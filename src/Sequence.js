@@ -27,6 +27,17 @@ import SequenceExtractor from './SequenceExtractor';
 import Color from './Color';
 import Font from './Font';
 import utils from './Utils';
+import {
+  BASE_COLOR_MODES,
+  DEFAULT_BASE_COLORS,
+  colorForBase,
+  copyBaseColors,
+  hasBaseColors,
+  mergeBaseColors,
+} from './BaseColorPalette';
+
+const DARK_BACKBONE_LUMINANCE_THRESHOLD = 0.4;
+const BASE_TEXT_ORIENTATIONS = Object.freeze(['horizontal', 'curved']);
 
 /**
  * The CGView Sequence represents the sequence that makes up the map.
@@ -49,6 +60,25 @@ import utils from './Utils';
  * and plot, positions are relative to contigs. However, when drawing we use
  * positions relative to the entire map.
  *
+ * ### Base Coloring
+ * At readable sequence zoom, [baseColorMode](#baseColorMode) controls how
+ * nucleotide characters are colored. The default `single` mode preserves the
+ * established behavior and renders every character with [color](#color). The
+ * `byBase` mode uses [baseColors](#baseColors) for A, C, G, T/U, and
+ * ambiguous characters. U shares the T color; all other characters use the
+ * ambiguous color.
+ *
+ * Each contig independently selects `baseColors.onLight` or
+ * `baseColors.onDark` from the luminance of its rendered backbone. A
+ * translucent backbone is first composited over the map background. Changing
+ * [color](#color) or [baseColors](#baseColors) does not change
+ * [baseColorMode](#baseColorMode).
+ *
+ * In JSON, a missing `baseColorMode` means `single`, and that default is
+ * omitted when saving. The value `byBase` is serialized explicitly. Custom
+ * palettes are saved in `sequence.baseColors`; built-in palettes are omitted
+ * unless `includeDefaults` is requested.
+ *
  * ### Action and Events
  *
  * Action                                  | Viewer Method                    | Sequence Method     | Event
@@ -66,6 +96,9 @@ import utils from './Utils';
  * [contigs](#contigs)<sup>iu</sup> | Array     | Array of contigs. Contigs are ignored if a seq is provided.
  * [font](#font)                    | String    | A string describing the font [Default: 'SansSerif, plain, 14']. See {@link Font} for details.
  * [color](#color)                  | String    | A string describing the sequence color [Default: 'black']. See {@link Color} for details.
+ * [baseColorMode](#baseColorMode)  | String    | Detailed base coloring: `single` or `byBase` [Default: `single`].
+ * [baseTextOrientation](#baseTextOrientation) | String | Base presentation: `horizontal` or `curved` [Default: `horizontal`].
+ * [baseColors](#baseColors)        | Object    | Nucleotide color palettes for light and dark backbone colors.
  * [visible](CGObject.html#visible) | Boolean   | Sequence is visible when zoomed in enough [Default: true]
  * [meta](CGObject.html#meta)       | Object    | [Meta data](../tutorials/details-meta-data.html)
  * 
@@ -97,6 +130,15 @@ class Sequence extends CGObject {
     this._viewer = viewer;
     this.bpMargin = 2;
     this.color = utils.defaultFor(options.color, 'black');
+    this._baseTextOrientation = 'horizontal';
+    this.baseTextOrientation = utils.defaultFor(options.baseTextOrientation, 'horizontal');
+    this._baseColorMode = 'single';
+    this.baseColorMode = utils.defaultFor(options.baseColorMode, 'single');
+    this._baseColorVariantCache = new Map();
+    this._baseColors = copyBaseColors(DEFAULT_BASE_COLORS);
+    if (hasBaseColors(options.baseColors)) {
+      this.baseColors = options.baseColors;
+    }
     this.font = utils.defaultFor(options.font, 'sans-serif, plain, 14');
 
     this._contigs = new CGArray();
@@ -363,6 +405,55 @@ class Sequence extends CGObject {
     } else {
       this._color = new Color(value);
     }
+  }
+
+  /**
+   * @member {'single'|'byBase'} - Get or set detailed sequence base coloring.
+   * `single` always renders every base with [color](#color). `byBase` uses the
+   * configured base palettes and never changes `color`.
+   */
+  get baseColorMode() {
+    return this._baseColorMode;
+  }
+
+  set baseColorMode(value) {
+    if (utils.validate(value, BASE_COLOR_MODES)) {
+      this._baseColorMode = value;
+    }
+  }
+
+  /**
+   * @member {'horizontal'|'curved'} - Get or set the sequence base text
+   * orientation. Curved bases follow circular-map tangents and fall back to
+   * horizontal text on linear maps.
+   */
+  get baseTextOrientation() {
+    return this._baseTextOrientation;
+  }
+
+  set baseTextOrientation(value) {
+    if (utils.validate(value, BASE_TEXT_ORIENTATIONS)) {
+      this._baseTextOrientation = value;
+    }
+  }
+
+  /**
+   * @member {Object} - Get or update the semantic base palettes used at
+   * sequence detail. Palettes contain `onLight` and `onDark` entries, each
+   * with A, C, G, T, and `ambiguous` colors. U uses the T color. Partial
+   * updates preserve other entries. Custom palettes are saved in sequence JSON.
+   */
+  get baseColors() {
+    return copyBaseColors(this._baseColors);
+  }
+
+  set baseColors(value) {
+    if (!value || typeof value !== 'object' || Array.isArray(value)) {
+      console.error('Sequence baseColors must be an object.');
+      return;
+    }
+    this._baseColors = mergeBaseColors(this._baseColors || DEFAULT_BASE_COLORS, value);
+    this._baseColorVariantCache?.clear();
   }
 
   /**
@@ -899,6 +990,74 @@ class Sequence extends CGObject {
     return Array(length + 1).join('•');
   }
 
+  /**
+   * Return the palette variant suited to the rendered backbone at a map bp.
+   * Translucent backbone colors are composited over the map background before
+   * luminance is evaluated.
+   * @param {Number} bp - Map base-pair position.
+   * @returns {'onLight'|'onDark'} Palette variant name.
+   * @private
+   */
+  _baseColorVariantForBp(bp) {
+    const mapBp = ((((Math.round(bp) - 1) % this.length) + this.length) % this.length) + 1;
+    const contig = this.hasMultipleContigs ? this.contigForBp(mapBp) : this.mapContig;
+    const backboneColor = this.viewer.backbone.colorForContig(contig);
+    const mapBackground = this.viewer.settings.backgroundColor;
+    const cacheKey = `${backboneColor.rgbaString}|${mapBackground.rgbaString}`;
+    let variant = this._baseColorVariantCache.get(cacheKey);
+    if (!variant) {
+      const renderedColor = backboneColor.opacity < 1
+        ? backboneColor.compositeOver(mapBackground)
+        : backboneColor;
+      variant = renderedColor.relativeLuminance < DARK_BACKBONE_LUMINANCE_THRESHOLD
+        ? 'onDark'
+        : 'onLight';
+      this._baseColorVariantCache.set(cacheKey, variant);
+    }
+    return variant;
+  }
+
+  /**
+   * Return the detailed-sequence text color for one base.
+   * @param {String} base - Sequence character.
+   * @param {Number} bp - Map base-pair position.
+   * @returns {*} Configured single or semantic base color.
+   * @private
+   */
+  _colorForBase(base, bp) {
+    if (this.baseColorMode === 'single') {
+      return this.color.rgbaString;
+    }
+    return colorForBase(this._baseColors, base, this._baseColorVariantForBp(bp));
+  }
+
+  /**
+   * Draw one zoom-detail base. Curved circular glyphs follow the readable
+   * local tangent; horizontal and linear glyphs retain their current baseline.
+   * @param {CanvasRenderingContext2D} ctx - Map canvas context.
+   * @param {String} base - Sequence character to draw.
+   * @param {Number} bp - Map base-pair position.
+   * @param {Number} centerOffset - Distance from the map center.
+   * @param {Number} baselineOffset - Font baseline adjustment.
+   * @param {Number} [tangentialAngle] - Reusable circular tangent angle.
+   * @private
+   */
+  _drawBase(ctx, base, bp, centerOffset, baselineOffset, tangentialAngle) {
+    const origin = this.canvas.pointForBp(bp, centerOffset);
+    if (this.baseTextOrientation === 'curved' && this.viewer.format === 'circular') {
+      const angle = tangentialAngle === undefined
+        ? this.canvas.tangentialTextOrientationForBp(bp).angle
+        : tangentialAngle;
+      ctx.save();
+      ctx.translate(origin.x, origin.y);
+      ctx.rotate(angle);
+      ctx.fillText(base, 0, baselineOffset);
+      ctx.restore();
+    } else {
+      ctx.fillText(base, origin.x, origin.y + baselineOffset);
+    }
+  }
+
   draw() {
     if (this.viewer.backbone.pixelsPerBp() < 1) { return; }
     if (!this.visible) { return; }
@@ -931,14 +1090,33 @@ class Sequence extends CGObject {
       const yOffset = (this.font.height * scaleFactor / 2) - 1;
       // Distance from the center of the backbone to place sequence text
       const centerOffsetDiff = ((this.bpSpacing / 2) + this.bpMargin) * scaleFactor;
+      this._baseColorVariantCache.clear();
       for (let i = 0, len = range.length; i < len; i++) {
-        let origin = this.canvas.pointForBp(bp, centerOffset + centerOffsetDiff);
-        // if (i == 0) { console.log(bp, origin)}
-        // ctx.fillText(seq[i], origin.x, origin.y);
-        ctx.fillText(seq[i], origin.x, origin.y + yOffset);
-        origin = this.canvas.pointForBp(bp, centerOffset - centerOffsetDiff);
-        // ctx.fillText(complement[i], origin.x, origin.y);
-        ctx.fillText(complement[i], origin.x, origin.y + yOffset);
+        const tangentialAngle = (
+          this.baseTextOrientation === 'curved' && this.viewer.format === 'circular'
+        ) ? this.canvas.tangentialTextOrientationForBp(bp).angle : undefined;
+        if (this.baseColorMode === 'byBase') {
+          ctx.fillStyle = this._colorForBase(seq[i], bp);
+        }
+        this._drawBase(
+          ctx,
+          seq[i],
+          bp,
+          centerOffset + centerOffsetDiff,
+          yOffset,
+          tangentialAngle,
+        );
+        if (this.baseColorMode === 'byBase') {
+          ctx.fillStyle = this._colorForBase(complement[i], bp);
+        }
+        this._drawBase(
+          ctx,
+          complement[i],
+          bp,
+          centerOffset - centerOffsetDiff,
+          yOffset,
+          tangentialAngle,
+        );
         bp++;
       }
       ctx.restore();
@@ -959,7 +1137,14 @@ class Sequence extends CGObject {
   update(attributes) {
     this.viewer.updateRecords(this, attributes, {
       recordClass: 'Sequence',
-      validKeys: ['color', 'font', 'visible']
+      validKeys: [
+        'color',
+        'baseColorMode',
+        'baseTextOrientation',
+        'baseColors',
+        'font',
+        'visible',
+      ],
     });
     this.viewer.trigger('sequence-update', { attributes });
   }
@@ -976,6 +1161,15 @@ class Sequence extends CGObject {
     // Optionally add default values
     if (!this.visible || options.includeDefaults) {
       json.visible = this.visible;
+    }
+    if (this.baseColorMode === 'byBase') {
+      json.baseColorMode = this.baseColorMode;
+    }
+    if (this.baseTextOrientation !== 'horizontal' || options.includeDefaults) {
+      json.baseTextOrientation = this.baseTextOrientation;
+    }
+    if (options.includeDefaults || JSON.stringify(this._baseColors) !== JSON.stringify(DEFAULT_BASE_COLORS)) {
+      json.baseColors = this.baseColors;
     }
     return json;
   }

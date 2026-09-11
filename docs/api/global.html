@@ -2258,6 +2258,12 @@
                     <h3 class="subtitle">Members</h3>
                     <ul class="members">
 
+                        <li data-name="Sequence#baseColorMode"><a href="Sequence.html#baseColorMode">baseColorMode</a></li>
+
+                        <li data-name="Sequence#baseColors"><a href="Sequence.html#baseColors">baseColors</a></li>
+
+                        <li data-name="Sequence#baseTextOrientation"><a href="Sequence.html#baseTextOrientation">baseTextOrientation</a></li>
+
                         <li data-name="Sequence#canvas"><a href="Sequence.html#canvas">canvas</a></li>
 
                         <li data-name="Sequence#color"><a href="Sequence.html#color">color</a></li>
@@ -2855,6 +2861,141 @@
 
 <dt>
     <div class="nameContainer">
+        <h4 class="name" id="BASE_COLOR_KEYS"><span class="type-signature ">constant</span>BASE_COLOR_KEYS</h4>
+    </div>
+
+
+</dt>
+<dd>
+
+    <div class="description">
+        <p>Semantic entries required by each base-color palette. U uses the T entry.</p>
+    </div>
+
+
+
+<dl class="details">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</dl>
+
+
+
+</dd>
+
+
+
+<dt>
+    <div class="nameContainer">
+        <h4 class="name" id="BASE_COLOR_MODES"><span class="type-signature ">constant</span>BASE_COLOR_MODES</h4>
+    </div>
+
+
+</dt>
+<dd>
+
+    <div class="description">
+        <p>Supported sequence base-rendering modes.</p>
+    </div>
+
+
+
+<dl class="details">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</dl>
+
+
+
+</dd>
+
+
+
+<dt>
+    <div class="nameContainer">
+        <h4 class="name" id="BASE_COLOR_VARIANTS"><span class="type-signature ">constant</span>BASE_COLOR_VARIANTS</h4>
+    </div>
+
+
+</dt>
+<dd>
+
+    <div class="description">
+        <p>Palette variants selected from the rendered backbone luminance.</p>
+    </div>
+
+
+
+<dl class="details">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</dl>
+
+
+
+</dd>
+
+
+
+<dt>
+    <div class="nameContainer">
         <h4 class="name" id="CaptionTrackList"><span class="type-signature ">constant</span>CaptionTrackList</h4>
     </div>
 
@@ -2935,6 +3076,53 @@ startFrom: 'outside',
 
 <dt>
     <div class="nameContainer">
+        <h4 class="name" id="DEFAULT_BASE_COLORS"><span class="type-signature ">constant</span>DEFAULT_BASE_COLORS</h4>
+    </div>
+
+
+</dt>
+<dd>
+
+    <div class="description">
+        <p>Restrained semantic nucleotide colors based on the behavior introduced in
+paul-cgview-js commit 4a4bb32. Each variant retains the same base-to-hue
+mapping while remaining legible on light or dark backbones.</p>
+    </div>
+
+
+
+<dl class="details">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</dl>
+
+
+
+</dd>
+
+
+
+<dt>
+    <div class="nameContainer">
         <h4 class="name" id="PluginsStandard"><span class="type-signature ">constant</span>PluginsStandard</h4>
     </div>
 
@@ -2976,6 +3164,211 @@ These plugins are installed when the CGview is created.</p>
 
 
 </dl>
+
+
+
+</dd>
+
+
+
+<dt>
+    <div class="nameContainer">
+        <h4 class="name" id="colorForBase"><span class="type-signature ">constant</span>colorForBase</h4>
+    </div>
+
+
+</dt>
+<dd>
+
+    <div class="description">
+        <p>Resolve a sequence character to its semantic color. U shares T's color and
+all other IUPAC, gap, placeholder, or unknown characters are ambiguous.</p>
+    </div>
+
+
+
+<dl class="details">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</dl>
+
+
+
+        <h5>Example</h5>
+
+
+
+    <pre class="language-javascript"><code><p>colorForBase(DEFAULT_BASE_COLORS, 'U', 'onDark');</p></code></pre>
+
+
+
+</dd>
+
+
+
+<dt>
+    <div class="nameContainer">
+        <h4 class="name" id="copyBaseColors"><span class="type-signature ">constant</span>copyBaseColors</h4>
+    </div>
+
+
+</dt>
+<dd>
+
+    <div class="description">
+        <p>Copy recognized base-color palette entries into a JSON-safe object.</p>
+    </div>
+
+
+
+<dl class="details">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</dl>
+
+
+
+        <h5>Example</h5>
+
+
+
+    <pre class="language-javascript"><code><p>copyBaseColors({onLight: {A: '#008000'}});</p></code></pre>
+
+
+
+</dd>
+
+
+
+<dt>
+    <div class="nameContainer">
+        <h4 class="name" id="hasBaseColors"><span class="type-signature ">constant</span>hasBaseColors</h4>
+    </div>
+
+
+</dt>
+<dd>
+
+    <div class="description">
+        <p>Return whether a complete or partial palette contains any supported color.</p>
+    </div>
+
+
+
+<dl class="details">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</dl>
+
+
+
+</dd>
+
+
+
+<dt>
+    <div class="nameContainer">
+        <h4 class="name" id="mergeBaseColors"><span class="type-signature ">constant</span>mergeBaseColors</h4>
+    </div>
+
+
+</dt>
+<dd>
+
+    <div class="description">
+        <p>Deeply merge partial base-color palettes without modifying either input.</p>
+    </div>
+
+
+
+<dl class="details">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</dl>
+
+
+
+        <h5>Example</h5>
+
+
+
+    <pre class="language-javascript"><code><p>mergeBaseColors(DEFAULT_BASE_COLORS, {onLight: {A: '#006400'}});</p></code></pre>
 
 
 
@@ -3117,7 +3510,7 @@ These plugins are installed when the CGview is created.</p>
 
 
         <footer>
-           <!--  Documentation generated by <a target="_blank" href="https://github.com/jsdoc3/jsdoc">JSDoc 4.0.5</a> on Thu Sep 10 2026 19:36:12 GMT+0000 (Coordinated Universal Time) -->
+           <!--  Documentation generated by <a target="_blank" href="https://github.com/jsdoc3/jsdoc">JSDoc 4.0.5</a> on Fri Sep 11 2026 21:29:13 GMT+0000 (Coordinated Universal Time) -->
            Documentation generated by <a target="_blank" href="https://github.com/jsdoc3/jsdoc">JSDoc 4.0.5</a>. See <a href='index.html'>API Home</a> for documentation generation date.
         </footer>
     </div>

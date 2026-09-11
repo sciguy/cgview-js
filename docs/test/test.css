@@ -111,6 +111,45 @@ hr {
   overflow: auto;
 }
 
+.sequence-options {
+  align-items: center;
+  display: flex;
+  font-size: 14px;
+  gap: 8px;
+}
+
+#sequence-base-color-mode {
+  width: auto;
+}
+
+.sequence-orientation-options {
+  align-items: center;
+  border: 0;
+  display: flex;
+  font-size: 14px;
+  gap: 8px;
+  margin: 8px 0 0;
+  padding: 0;
+}
+
+.sequence-orientation-options legend {
+  float: none;
+  font-size: 14px;
+  margin: 0;
+  width: auto;
+}
+
+.sequence-orientation-options label {
+  align-items: center;
+  display: flex;
+  gap: 3px;
+  margin: 0;
+}
+
+.sequence-orientation-options input {
+  margin: 0;
+}
+
 .ruler-options {
   display: flex;
   justify-content: space-around;

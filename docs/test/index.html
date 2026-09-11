@@ -27,7 +27,7 @@
     <script src="../scripts/d3.min.js"></script>
     <script src="../scripts/svgcanvas.iife.js"></script>
     <!-- CGView -->
-    <script src='../dist/cgview.min.js?v=core-and-standalone'></script>
+    <script src='../dist/cgview.min.js?v=sequence-settings'></script>
 
     <link rel="stylesheet" href="../dist/cgview.css" />
     <link rel="stylesheet" href="../styles/controls.css" />
@@ -37,7 +37,7 @@
 
     <!-- Dev Page -->
     <script src='performance.js'></script>
-    <link rel="stylesheet" href="test.css?v=track-sizing-section" />
+    <link rel="stylesheet" href="test.css?v=sequence-settings" />
     <!-- Test Map Data -->
     <script src='maps.js'></script>
 
@@ -132,6 +132,7 @@
             </div>
             <div>
               <div><label><input id='option-show-plots' type='checkbox' /> Plots</label></div>
+              <div><label><input id='option-show-sequence' type='checkbox' /> Sequence</label></div>
               <div><label><input id='option-show-labels' type='checkbox' /> Labels Testing</label></div>
               <div><label><input id='option-show-ruler' type='checkbox' /> Ruler Testing</label></div>
               <div><label><input id='option-show-performance' type='checkbox' /> Performance Testing</label></div>
@@ -156,6 +157,22 @@
             </label>
           </div>
 
+          <hr />
+        </div>
+        <div class='section-sequence'>
+          <div class='test-heading'>Sequence Testing</div>
+          <div class='sequence-options'>
+            <label for='sequence-base-color-mode'>Base coloring:</label>
+            <select id='sequence-base-color-mode' class='form-select form-select-sm'>
+              <option value='single'>Single color</option>
+              <option value='byBase'>Color by base</option>
+            </select>
+          </div>
+          <fieldset class='sequence-orientation-options'>
+            <legend>Base orientation:</legend>
+            <label><input type='radio' name='sequence-base-text-orientation' value='horizontal' /> Horizontal</label>
+            <label><input type='radio' name='sequence-base-text-orientation' value='curved' /> Curved</label>
+          </fieldset>
           <hr />
         </div>
         <section id='track-sizing' class='section-track-sizing' aria-labelledby='track-sizing-heading'>
@@ -280,7 +297,7 @@
     <!-- Bootstrap JavaScript -->
     <script src="../scripts/bootstrap.min.js"></script>
 
-    <script src='test.js?v=plots-and-track-sizing-sections'></script>
+    <script src='test.js?v=sequence-settings'></script>
     <script src='track-sizing.js?v=3'></script>
     <script src='../scripts/controls.js'></script>
 

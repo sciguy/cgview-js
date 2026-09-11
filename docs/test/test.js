@@ -30,6 +30,7 @@ const drawRange = false;
 const selection = false;
 const showTrackLabels = true;
 const showPlotsSettings = false;
+const showSequenceTest = false;
 const showTrackSizingTest = false;
 const showPerformanceTest = false;
 const showLabelsTest = false;
@@ -108,6 +109,9 @@ function setTrackLabelsEnabled(enabled) {
 // Toggle Plots Settings
 const plotsCheckbox = document.getElementById('option-show-plots');
 plotsCheckbox.checked = showPlotsSettings;
+// Toggle Sequence Testing
+const sequenceCheckbox = document.getElementById('option-show-sequence');
+sequenceCheckbox.checked = showSequenceTest;
 // Plot rendering experiment
 const plotRendererSelect = document.getElementById('plot-renderer');
 const plotOutlineCheckbox = document.getElementById('plot-outline');
@@ -157,6 +161,33 @@ rulerLabelOrientationRadios.forEach((radio) => {
 });
 cgv.on('ruler-update.ruler-label-options', syncRulerLabelOptions);
 syncRulerLabelOptions();
+// Sequence detail
+const baseColorModeSelect = document.getElementById('sequence-base-color-mode');
+const baseTextOrientationRadios = document.querySelectorAll(
+  'input[name="sequence-base-text-orientation"]',
+);
+function syncSequenceControls() {
+  baseColorModeSelect.value = cgv.sequence.baseColorMode;
+  syncRadioGroup(baseTextOrientationRadios, cgv.sequence.baseTextOrientation);
+}
+baseColorModeSelect.addEventListener('change', (e) => {
+  cgv.sequence.update({baseColorMode: e.target.value});
+  cgv.draw();
+});
+baseTextOrientationRadios.forEach((radio) => {
+  radio.addEventListener('change', (e) => {
+    if (e.target.checked) {
+      cgv.sequence.update({baseTextOrientation: e.target.value});
+      cgv.draw();
+    }
+  });
+});
+cgv.on('sequence-update.sequence-testing', () => {
+  if (!cgv.loading) {
+    syncSequenceControls();
+  }
+});
+syncSequenceControls();
 // Toggle Track Sizing Test
 const trackSizingCheckbox = document.getElementById('option-show-track-sizing');
 trackSizingCheckbox.checked = showTrackSizingTest;
@@ -299,6 +330,7 @@ function loadMapJSON(json, name) {
   syncPlotOptions();
   setTrackLabelsEnabled(trackLabelsCheckbox.checked);
   syncRulerLabelOptions();
+  syncSequenceControls();
 
   // Default label placement
   cgv.annotation.labelPlacement = labelPlacement;
@@ -326,6 +358,9 @@ function loadMapJSON(json, name) {
 plotsCheckbox.addEventListener('click', () => {
   updatePageLayout();
 });
+sequenceCheckbox.addEventListener('click', () => {
+  updatePageLayout();
+});
 trackSizingCheckbox.addEventListener('click', () => {
   updatePageLayout();
 });
@@ -343,6 +378,9 @@ function updatePageLayout() {
   // Plots
   const plotsDiv = document.querySelector('.section-plots');
   plotsDiv.style.display = plotsCheckbox.checked ? 'block' : 'none';
+  // Sequence
+  const sequenceDiv = document.querySelector('.section-sequence');
+  sequenceDiv.style.display = sequenceCheckbox.checked ? 'block' : 'none';
   // Track Sizing
   const trackSizingDiv = document.querySelector('.section-track-sizing');
   trackSizingDiv.style.display = trackSizingCheckbox.checked ? 'block' : 'none';
