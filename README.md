@@ -37,6 +37,12 @@ npm install cgview
 See [Installation Instructions](http://js.cgview.ca/tutorials/tutorial-installation.html)
 for additional ways to setup CGView.js.
 
+The `v1.9-d3` Rollup build provides core and standalone variants. Run
+`cgview-run yarn gh-pages` to produce a minified browser script and a readable
+ES module for each, with source maps. Use `cgview.standalone.min.js` or
+`cgview.standalone.esm.js` for one file with D3, SVG export, and CSS included.
+See the [bundle filenames, requirements, and sizes](docs/bundles.md).
+
 ## Usage
 
 ```js
@@ -91,7 +97,5 @@ toolchain target; browser use of the built CGView bundles does not require Node.
 ## License
 
 CGView.js is distributed under the [Apache Version 2.0 License](https://github.com/sciguy/cgview-js/blob/main/LICENSE).
-
-
 
 

@@ -62,7 +62,7 @@ async function runScenario(browser, scenario, scenarioIndex) {
     await page.setContent('<!doctype html><html><body><div id="map"></div></body></html>');
     await page.addStyleTag({path: path.join(root, 'docs/dist/cgview.css')});
     for (const file of ['docs/scripts/d3.min.js', 'docs/scripts/svgcanvas.iife.js',
-      'docs/dist/cgview.js', 'docs/test/performance.js']) {
+      'docs/dist/cgview.min.js', 'docs/test/performance.js']) {
       await page.addScriptTag({path: path.join(root, file)});
     }
     const fixture = scenario.fixture ? JSON.parse(await readFile(path.join(root, scenario.fixture), 'utf8')) : undefined;
@@ -141,7 +141,7 @@ async function runScenario(browser, scenario, scenarioIndex) {
 }
 
 async function main() {
-  const bundle = await readFile(path.join(root, 'docs/dist/cgview.js'));
+  const bundle = await readFile(path.join(root, 'docs/dist/cgview.min.js'));
   const browser = await chromium.launch({headless: true});
   const report = {schemaVersion: 1, generatedAt: new Date().toISOString(), options, variants,
     environment: {node: process.version, chromium: browser.version(), platform: process.platform,

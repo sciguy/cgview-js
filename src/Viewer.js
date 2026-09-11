@@ -56,6 +56,7 @@ import { PluginsStandard } from './Plugins';
 import Bookmark from './Bookmark';
 import CGRange from './CGRange';
 import initializeZooming from './Viewer-Zoom';
+import DefaultSVGContext from './SVGContext';
 import * as d3 from 'd3';
 
 console.log(`CGView.js Version: ${version}`)
@@ -222,7 +223,7 @@ class Viewer {
     this.externals = {};
     // Adding SVG using svgcanvas
     // https://github.com/zenozeng/svgcanvas
-    this.externals.SVGContext = options.SVGContext;
+    this.externals.SVGContext = options.SVGContext === undefined ? DefaultSVGContext : options.SVGContext;
 
     // Plugins
     this.plugins = new Plugins(this, PluginsStandard);

@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" href="data:,">
+    <title>CGView single-file demonstration</title>
+    <style>
+      body { margin: 24px; font: 16px system-ui, sans-serif; color: #243540; }
+      main { max-width: 760px; margin: auto; }
+      h1 { font-size: 26px; }
+      p { line-height: 1.5; }
+      nav { display: flex; flex-wrap: wrap; gap: 8px; margin: 16px 0; }
+      button { font: inherit; padding: 6px 12px; cursor: pointer; }
+      #my-viewer { max-width: 100%; overflow: auto; }
+      code { font-size: 14px; }
+    </style>
+    <script src="../dist/cgview.standalone.min.js"></script>
+  </head>
+  <body>
+    <main>
+      <h1>CGView from one JavaScript file</h1>
+      <p>This demonstration includes the D3 code used by CGView, SVG export,
+        and viewer styles in <a href="../dist/cgview.standalone.min.js"><code>cgview.standalone.min.js</code></a>.
+        The sample map is defined directly in this page.</p>
+      <nav aria-label="Map controls">
+        <button id="format" type="button">Switch to linear</button>
+        <button id="zoom-in" type="button">Zoom in</button>
+        <button id="reset" type="button">Reset</button>
+        <button id="color" type="button">Color picker</button>
+        <button id="svg" type="button">Download SVG</button>
+        <button id="png" type="button">Download PNG</button>
+      </nav>
+      <div id="my-viewer"></div>
+      <p>Use the mouse wheel to zoom and drag to pan. This bundle is generated
+        by the normal Rollup build on <code>v1.9-d3</code>.</p>
+    </main>
+    <script>
+      const cgv = window.cgv = new CGView.Viewer('#my-viewer', {
+        width: Math.min(700, document.querySelector('main').clientWidth),
+        height: 560,
+        sequence: {length: 12000},
+        legend: {items: [
+          {name: 'Forward', swatchColor: '#287a80', decoration: 'arrow'},
+          {name: 'Reverse', swatchColor: '#c2693c', decoration: 'arrow'},
+          {name: 'Signal', swatchColor: '#788b9c'}
+        ]}
+      });
+      cgv.addFeatures([
+        {name: 'repA', start: 300, stop: 2200, strand: 1, legend: 'Forward', source: 'demo'},
+        {name: 'dnaA', start: 2600, stop: 4800, strand: 1, legend: 'Forward', source: 'demo'},
+        {name: 'recA', start: 5200, stop: 7100, strand: -1, legend: 'Reverse', source: 'demo'},
+        {name: 'oriT', start: 7500, stop: 8200, strand: 1, legend: 'Forward', source: 'demo'},
+        {name: 'traA', start: 8700, stop: 11200, strand: -1, legend: 'Reverse', source: 'demo'}
+      ]);
+      cgv.addPlots({
+        name: 'Example signal', source: 'signal', legend: 'Signal', baseline: 0,
+        axisMin: -1, axisMax: 1,
+        positions: Array.from({length: 120}, (_, i) => i * 100 + 1),
+        scores: Array.from({length: 120}, (_, i) => Math.sin(i / 8) * 0.8)
+      });
+      cgv.addTracks([
+        {name: 'Genes', dataType: 'feature', dataMethod: 'source', dataKeys: 'demo', separateFeaturesBy: 'strand'},
+        {name: 'Signal', dataType: 'plot', dataMethod: 'source', dataKeys: 'signal', position: 'inside'}
+      ]);
+      cgv.addCaptions({name: 'Single-file CGView', position: 'top-center', font: 'sans-serif,bold,18'});
+      cgv.draw();
+      document.getElementById('format').onclick = event => {
+        cgv.settings.update({format: cgv.format === 'circular' ? 'linear' : 'circular'});
+        event.target.textContent = `Switch to ${cgv.format === 'circular' ? 'linear' : 'circular'}`;
+      };
+      document.getElementById('zoom-in').onclick = () => cgv.zoomIn();
+      document.getElementById('reset').onclick = () => cgv.reset();
+      document.getElementById('color').onclick = () => cgv.colorPicker.open();
+      document.getElementById('svg').onclick = () => cgv.io.downloadSVG();
+      document.getElementById('png').onclick = () => cgv.io.downloadImage();
+    </script>
+  </body>
+</html>

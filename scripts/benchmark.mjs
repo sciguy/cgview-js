@@ -225,7 +225,7 @@ orders to reduce execution-order bias.`);
  */
 async function verifyTarget(targetRoot) {
   const requiredFiles = [
-    'docs/dist/cgview.js',
+    'docs/dist/cgview.min.js',
     'docs/dist/cgview.css',
     'docs/scripts/d3.min.js',
     'docs/scripts/svgcanvas.iife.js'
@@ -288,7 +288,7 @@ async function runScenario(browser, target, scenario, options) {
     await page.addStyleTag({path: path.join(target.root, 'docs/dist/cgview.css')});
     await page.addScriptTag({path: path.join(target.root, 'docs/scripts/d3.min.js')});
     await page.addScriptTag({path: path.join(target.root, 'docs/scripts/svgcanvas.iife.js')});
-    await page.addScriptTag({path: path.join(target.root, 'docs/dist/cgview.js')});
+    await page.addScriptTag({path: path.join(target.root, 'docs/dist/cgview.min.js')});
     await page.addScriptTag({path: path.join(repositoryRoot, 'docs/test/performance.js')});
 
     const result = await page.evaluate(async ({

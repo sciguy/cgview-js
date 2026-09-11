@@ -1,5 +1,6 @@
 import json from '@rollup/plugin-json';
 import {terser} from 'rollup-plugin-terser';
+import {bundleVariants, bundleFormats, bundleDependencies, bundleInput, bundledNotices, dependencySideEffects} from './scripts/build/bundles.mjs';
 
 const banner_license = `/*!
  * CGView.js – Interactive Circular Genome Viewer
@@ -47,47 +48,23 @@ const banner_license = `/*!
 })();
 `;
 
-export default {
-  input: 'src/index.js',
-  watch: true,
-  external: ['d3', 'svgcanvas'],
-  output: [
-    {
-      file: 'docs/dist/cgview.js',
-      format: 'iife',
-      name: 'CGView',
-      globals: {d3: 'd3', svgcanvas: 'svgcanvas'},
-      banner: banner_cgview,
-      footer: cgv_deprecation_warning,
-      sourcemap: true,
-    },
-    {
-      file: 'docs/dist/cgview.min.js',
-      format: 'iife',
-      name: 'CGView',
-      globals: {d3: 'd3', svgcanvas: 'svgcanvas'},
-      plugins: [terser()],
-      banner: banner_license,
-      footer: cgv_deprecation_warning,
-      sourcemap: true,
-    },
-    {
-      file: 'docs/dist/cgview.esm.min.js',
-      format: 'es',
-      globals: {d3: 'd3', svgcanvas: 'svgcanvas'},
-      plugins: [terser()],
-      banner: banner_license,
-      sourcemap: true,
-    },
-    {
-      file: 'docs/dist/cgview.esm.js',
-      globals: {d3: 'd3', svgcanvas: 'svgcanvas'},
-      format: 'es',
-      banner: banner_cgview,
-      sourcemap: true,
-    },
-  ],
-  plugins: [ json() ]
-};
-
-
+export default bundleVariants.map(variant => ({
+  input: bundleInput(variant),
+  external: variant.d3 ? [] : ['d3'],
+  treeshake: {moduleSideEffects: dependencySideEffects},
+  plugins: [json(), bundleDependencies(variant)],
+  onwarn(warning, warn) {
+    if (warning.code === 'UNRESOLVED_IMPORT') { throw new Error(warning.message); }
+    warn(warning);
+  },
+  output: bundleFormats.map(({format, minified}) => ({
+    file: `docs/dist/${variant.stem}${format === 'es' ? '.esm' : ''}${minified ? '.min' : ''}.js`,
+    format,
+    name: 'CGView',
+    globals: {d3: 'd3'},
+    plugins: minified ? [terser({numWorkers: 1})] : [],
+    banner: chunk => (minified ? banner_license : banner_cgview) + bundledNotices(chunk),
+    footer: format === 'iife' ? cgv_deprecation_warning : undefined,
+    sourcemap: true,
+  }))
+}));
