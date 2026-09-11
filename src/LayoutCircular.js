@@ -19,7 +19,6 @@
  * limitations under the License.
  */
 
-import { line } from 'd3';
 import CGRange from './CGRange';
 import utils from './Utils';
 
