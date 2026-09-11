@@ -60,6 +60,34 @@ cgv.draw()
 
 See the [tutorials](http://js.cgview.ca/tutorials/index.html) to learn how to add features and plots, including [how](https://js.cgview.ca/tutorials/tutorial-cgparse.html) to use [CGParse.js](https://parse.cgview.ca) to convert GenBank and EMBL files into maps.
 
+## Development
+
+Development uses the Node.js version in [`.nvmrc`](.nvmrc) (currently Node 24)
+and Yarn Classic 1.22.22. CI reads the same version file. With
+[nvm](https://github.com/nvm-sh/nvm) installed, run these commands from the checkout:
+
+```bash
+nvm install
+nvm use
+yarn install --frozen-lockfile
+yarn gh-test --runInBand
+yarn gh-pages
+```
+
+Run `nvm use` in each new shell before installing dependencies or running tests,
+builds, documentation commands, or benchmarks. Automated shells must load nvm
+explicitly and stop if runtime selection fails, for example:
+
+```bash
+. "${NVM_DIR:-$HOME/.nvm}/nvm.sh" --no-use &&
+  nvm use &&
+  yarn gh-test --runInBand
+```
+
+Use the selected runtime for dependency installation instead of bypassing
+compatibility checks with `--ignore-engines`. This Node version is the development
+toolchain target; browser use of the built CGView bundles does not require Node.
+
 ## License
 
 CGView.js is distributed under the [Apache Version 2.0 License](https://github.com/sciguy/cgview-js/blob/main/LICENSE).

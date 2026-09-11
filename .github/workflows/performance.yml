@@ -36,7 +36,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           cache: yarn
-          node-version: 24
+          node-version-file: .nvmrc
 
       - name: Install candidate dependencies
         run: yarn install --frozen-lockfile
