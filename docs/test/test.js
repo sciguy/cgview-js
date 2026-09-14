@@ -31,7 +31,7 @@ const selection = false;
 const showTrackLabels = true;
 const showPlotsSettings = false;
 const showSequenceTest = false;
-const showTranslationTest = false;
+const showTranslationTest = true;
 const showTrackSizingTest = false;
 const showPerformanceTest = false;
 const showLabelsTest = false;
@@ -251,10 +251,17 @@ cgv.on('sequence-translation-update.translation-testing', () => {
 cgv.on('settings-update.translation-testing', () => {
   if (!cgv.loading) { syncTranslationControls(); }
 });
-cgv.on('cgv-json-load.translation-testing', () => {
+cgv.on('cgv-json-load.translation-testing', (data) => {
   // This event fires before replacement records are constructed.
-  queueMicrotask(syncTranslationControls);
+  queueMicrotask(() => {
+    // Enable translation for testing while respecting saved visibility choices.
+    if (data.sequence?.translation?.visible === undefined) {
+      updateTranslation({visible: true});
+    }
+    syncTranslationControls();
+  });
 });
+updateTranslation({visible: true});
 syncTranslationControls();
 // Toggle Track Sizing Test
 const trackSizingCheckbox = document.getElementById('option-show-track-sizing');

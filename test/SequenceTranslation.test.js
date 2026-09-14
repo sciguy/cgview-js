@@ -217,40 +217,35 @@ describe('SequenceTranslation', () => {
     expect(translation.startTextColor.rgbaString).toBe('rgba(6,95,70,1)');
     expect(translation.stopTextColor.rgbaString).toBe('rgba(153,27,27,1)');
 
-    const drawElement = jest.spyOn(cgv.canvas, 'drawElement').mockImplementation(() => {});
     const pointForBp = jest.spyOn(cgv.canvas, 'pointForBp').mockReturnValue({x: 12, y: 34});
     const ctx = cgv.canvas.context('map');
+    const fills = [];
+    const borders = [];
+    jest.spyOn(ctx, 'fill').mockImplementation(() => fills.push(ctx.fillStyle));
+    jest.spyOn(ctx, 'stroke').mockImplementation(() => borders.push({color: ctx.strokeStyle, width: ctx.lineWidth}));
     const fillText = jest.spyOn(ctx, 'fillText');
-    const translate = jest.spyOn(ctx, 'translate');
     const rotate = jest.spyOn(ctx, 'rotate');
     const layout = translation._layoutForScale(0.6);
-    translation._drawCodon(codons[0].start, codons[0].aminoAcid, codons[0].isStart, codons[0].isStop, 100, layout);
-    expect(drawElement).toHaveBeenNthCalledWith(1, expect.objectContaining({
-      color: 'rgba(209,250,229,1)',
-      width: layout.highlightHeight,
-      showBorder: true,
-      borderColor: 'rgba(5,150,105,1)',
-      borderThickness: layout.highlightBorderWidth,
-    }));
-    expect(pointForBp).toHaveBeenLastCalledWith(codons[0].start + 1, 100);
-    expect(translate).toHaveBeenLastCalledWith(12, 34);
+    const draw = codon => translation._drawCodon(codon.start, codon.aminoAcid, codon.isStart, codon.isStop, 100, layout);
+    draw(codons[0]);
+    expect(fills.at(-1)).toBe('#d1fae5');
+    expect(borders.at(-1)).toEqual({color: '#059669', width: 0.6});
+    expect(pointForBp).toHaveBeenCalledWith(codons[0].start + 1, 100);
+    expect(ctx.translate).toHaveBeenLastCalledWith(12, 34);
     expect(rotate).toHaveBeenCalled();
     expect(fillText).toHaveBeenLastCalledWith(codons[0].aminoAcid, 0, 0);
-    translation._drawCodon(codons[1].start, codons[1].aminoAcid, codons[1].isStart, codons[1].isStop, 100, layout);
-    expect(drawElement).toHaveBeenLastCalledWith(expect.objectContaining({
-      color: 'rgba(254,226,226,1)',
-      showBorder: true,
-      borderColor: 'rgba(220,38,38,1)',
-    }));
+    draw(codons[1]);
+    expect(fills.at(-1)).toBe('#fee2e2');
+    expect(borders.at(-1)).toEqual({color: '#dc2626', width: 0.6});
 
     translation.update({highlightStartCodons: false, highlightStopCodons: false});
-    const drawCountBeforeDisabledHighlight = drawElement.mock.calls.length;
-    translation._drawCodon(codons[0].start, codons[0].aminoAcid, codons[0].isStart, codons[0].isStop, 100, layout);
-    expect(drawElement).toHaveBeenCalledTimes(drawCountBeforeDisabledHighlight);
+    for (const codon of codons) { draw(codon); }
+    expect(fills.slice(-3)).toEqual(['#e5e7eb', '#e5e7eb', '#e5e7eb']);
+    expect(borders.slice(-3).every(border => border.color === '#9ca3af')).toBe(true);
 
     const circularRotateCount = rotate.mock.calls.length;
     cgv.format = 'linear';
-    translation._drawCodon(codons[0].start, codons[0].aminoAcid, false, false, 100, layout);
+    draw(codons[0]);
     expect(rotate).toHaveBeenCalledTimes(circularRotateCount);
     expect(fillText).toHaveBeenLastCalledWith(codons[0].aminoAcid, 12, 34);
   });
@@ -263,20 +258,94 @@ describe('SequenceTranslation', () => {
     const visibleRange = new CGRange(cgv.sequence.mapContig, 150001, 150090);
     const materializeCodons = jest.spyOn(translation, 'codonsForRange');
     const visitCodons = jest.spyOn(translation, '_forEachCodon');
-    const drawElement = jest.spyOn(cgv.canvas, 'drawElement').mockImplementation(() => {});
-    jest.spyOn(cgv.canvas, 'pointForBp').mockReturnValue({x: 0, y: 0});
+    const drawCodon = jest.spyOn(translation, '_drawCodon');
+    const geometry = jest.spyOn(translation, '_cellGeometry');
+    const ctx = cgv.canvas.context('map');
+    ctx.fill.mockClear();
+    ctx.stroke.mockClear();
 
     translation.draw(visibleRange, 100, 20);
 
     expect(materializeCodons).not.toHaveBeenCalled();
     expect(visitCodons).toHaveBeenCalledTimes(6);
-    expect(drawElement.mock.calls.length).toBeGreaterThan(0);
-    expect(drawElement.mock.calls.length).toBeLessThanOrEqual(192);
-    expect(drawElement.mock.calls.filter(call =>
-      call[0].color === translation.backgroundColor.rgbaString
-    )).toHaveLength(6);
+    expect(geometry).toHaveBeenCalledTimes(6);
+    expect(drawCodon.mock.calls.length).toBeGreaterThan(0);
+    expect(drawCodon.mock.calls.length).toBeLessThanOrEqual(2 * (visibleRange.length + 4));
+    expect(ctx.fill).toHaveBeenCalledTimes(drawCodon.mock.calls.length);
+    expect(ctx.stroke).toHaveBeenCalledTimes(drawCodon.mock.calls.length);
   });
 
+  test('points each cell along its strand in every circular quadrant without reversing glyphs', () => {
+    const cgv = new Viewer('#map', {sequence: {seq: 'ATG'.repeat(1000)}});
+    const translation = cgv.sequence.translation;
+    const ctx = cgv.canvas.context('map');
+    const layout = translation._layoutForScale(1);
+    const radius = 5000;
+    expect(translation._cellGeometry(layout, radius).curved).toBe(false);
+    for (const start of [100, 850, 1600, 2350]) {
+      for (const strand of [1, -1]) {
+        ctx.lineTo.mockClear();
+        ctx.rotate.mockClear();
+        translation._drawCodon(start, 'K', false, false, radius, layout, strand);
+        const [tipX, tipY] = ctx.lineTo.mock.calls[1];
+        const angle = ctx.rotate.mock.calls[0][0];
+        const origin = cgv.canvas.pointForBp(start + 1, radius);
+        const ahead = cgv.canvas.pointForBp(start + 1 + strand * 0.1, radius);
+        const dx = tipX * Math.cos(angle) - tipY * Math.sin(angle);
+        const dy = tipX * Math.sin(angle) + tipY * Math.cos(angle);
+        expect(dx * (ahead.x - origin.x) + dy * (ahead.y - origin.y)).toBeGreaterThan(0);
+        expect(Math.abs(angle)).toBeLessThanOrEqual(Math.PI / 2);
+      }
+    }
+  });
+
+  test('draws opposite chevrons on linear strands inside each three-base cell', () => {
+    const cgv = new Viewer('#map', {sequence: {seq: 'ATG'.repeat(100)}});
+    cgv.format = 'linear';
+    const translation = cgv.sequence.translation;
+    const ctx = cgv.canvas.context('map');
+    const layout = translation._layoutForScale(1);
+    const origin = cgv.canvas.pointForBp(11, 100);
+    const lower = cgv.canvas.pointForBp(9.5, 100).x;
+    const upper = cgv.canvas.pointForBp(12.5, 100).x;
+    for (const strand of [1, -1]) {
+      ctx.lineTo.mockClear();
+      ctx.rotate.mockClear();
+      translation._drawCodon(10, 'K', false, false, 100, layout, strand);
+      const [tipX, tipY] = ctx.lineTo.mock.calls[1];
+      const [notchX] = ctx.lineTo.mock.calls[4];
+      expect((tipX - origin.x) * strand).toBeGreaterThan(0);
+      expect((notchX - origin.x) * strand).toBeLessThan(0);
+      expect(tipY).toBe(origin.y);
+      for (const [x] of ctx.lineTo.mock.calls) {
+        expect(x).toBeGreaterThan(lower);
+        expect(x).toBeLessThan(upper);
+      }
+      expect(ctx.rotate).not.toHaveBeenCalled();
+    }
+  });
+
+  test('retains curved cell edges for short circular maps on both strands', () => {
+    const cgv = new Viewer('#map', {sequence: {seq: 'ATG'.repeat(20)}});
+    const translation = cgv.sequence.translation;
+    const ctx = cgv.canvas.context('map');
+    const layout = translation._layoutForScale(1);
+    const cell = translation._cellGeometry(layout, 100);
+    const curve = jest.spyOn(translation, '_traceCurvedCell');
+    const straight = jest.spyOn(translation, '_traceCell');
+    const path = jest.spyOn(cgv.canvas, 'path');
+    expect(cell.curved).toBe(true);
+    for (const strand of [1, -1]) {
+      ctx.arc.mockClear();
+      path.mockClear();
+      translation._drawCodon(10, 'K', false, false, 100, layout, strand, cell);
+      expect(ctx.arc).toHaveBeenCalledTimes(2);
+      expect(path.mock.calls[0][4]).toBe(strand === -1);
+      expect(path.mock.calls[1][4]).toBe(strand === 1);
+    }
+    expect(curve).toHaveBeenCalledTimes(2);
+    expect(straight).not.toHaveBeenCalled();
+  });
 
   test('grows continuously from zero and reverses without retained animation state', () => {
     const cgv = new Viewer('#map', {sequence: {seq: 'ATG'.repeat(100), translation: {visible: true}}});
@@ -306,7 +375,8 @@ describe('SequenceTranslation', () => {
     const opacities = [];
     const fonts = [];
     ctx.globalAlpha = 0.8;
-    jest.spyOn(cgv.canvas, 'drawElement').mockImplementation(() => opacities.push(ctx.globalAlpha));
+    jest.spyOn(ctx, 'fill').mockImplementation(() => opacities.push(ctx.globalAlpha));
+    jest.spyOn(ctx, 'stroke').mockImplementation(() => opacities.push(ctx.globalAlpha));
     jest.spyOn(ctx, 'fillText').mockImplementation(() => {
       opacities.push(ctx.globalAlpha);
       fonts.push(ctx.font);
@@ -386,6 +456,8 @@ describe('SequenceTranslation', () => {
       highlightStopCodons: false,
       startColor: '#123456',
       stopColor: '#abcdef',
+      backgroundColor: '#d0d0d0',
+      borderColor: '#777777',
     });
     cgv.settings.update({geneticCode: 2});
     const json = cgv.io.toJSON();

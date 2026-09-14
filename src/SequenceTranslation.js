@@ -57,7 +57,8 @@ const LANE_VERTICAL_PADDING = 3.5;
  * ----------------------------------|---------|------------
  * [font](#font)                     | String  | Amino-acid font [Default: 'monospace, plain, 11']
  * [color](#color)                   | String  | Amino-acid text color [Default: 'black']
- * [backgroundColor](#backgroundColor) | String | Normal codon background color
+ * [backgroundColor](#backgroundColor) | String | Normal codon fill color
+ * [borderColor](#borderColor)       | String  | Normal codon border color
  * [startColor](#startColor)         | String  | Start-codon background color
  * [startBorderColor](#startBorderColor) | String | Start-codon border color
  * [startTextColor](#startTextColor) | String  | Start-codon amino-acid color
@@ -85,11 +86,12 @@ class SequenceTranslation extends CGObject {
     this._configured = Object.keys(options).length > 0;
     this.font = utils.defaultFor(options.font, 'monospace, plain, 11');
     this.color = utils.defaultFor(options.color, 'black');
-    this.backgroundColor = utils.defaultFor(options.backgroundColor, 'rgba(120,120,120,0.14)');
-    this.startColor = utils.defaultFor(options.startColor, '#dcfce7');
+    this.backgroundColor = utils.defaultFor(options.backgroundColor, '#e5e7eb');
+    this.borderColor = utils.defaultFor(options.borderColor, '#9ca3af');
+    this.startColor = utils.defaultFor(options.startColor, '#86efac');
     this.startBorderColor = utils.defaultFor(options.startBorderColor, '#16a34a');
     this.startTextColor = utils.defaultFor(options.startTextColor, '#166534');
-    this.stopColor = utils.defaultFor(options.stopColor, '#fee2e2');
+    this.stopColor = utils.defaultFor(options.stopColor, '#fca5a5');
     this.stopBorderColor = utils.defaultFor(options.stopBorderColor, '#b91c1c');
     this.stopTextColor = utils.defaultFor(options.stopTextColor, '#b91c1c');
     this.highlightStartCodons = utils.defaultFor(options.highlightStartCodons, true);
@@ -144,6 +146,14 @@ class SequenceTranslation extends CGObject {
 
   set backgroundColor(value) {
     this._backgroundColor = value.toString() === 'Color' ? value : new Color(value);
+  }
+
+  get borderColor() {
+    return this._borderColor;
+  }
+
+  set borderColor(value) {
+    this._borderColor = value.toString() === 'Color' ? value : new Color(value);
   }
 
   get startColor() {
@@ -442,70 +452,132 @@ class SequenceTranslation extends CGObject {
     return codons;
   }
 
-  _drawLaneBackground(contig, segments, centerOffset, width) {
-    for (const [localStart, localStop] of segments) {
-      this.canvas.drawElement({
-        layer: 'map',
-        start: contig.lengthOffset + localStart,
-        stop: contig.lengthOffset + localStop,
-        centerOffset,
-        color: this.backgroundColor.rgbaString,
-        width,
-        decoration: 'arc',
-        showShading: false,
-        showBorder: false,
-        minArcLength: 0,
-      });
-    }
+  /**
+   * Calculate shared cell geometry once for each lane in a draw. A tangent
+   * polygon is sufficient when its maximum deviation is below 0.25 pixels;
+   * short circular sequences retain curved edges at their exact map positions.
+   * @param {Object} layout - Scaled translation-lane geometry.
+   * @param {Number} centerOffset - Lane position in screen pixels.
+   * @returns {Object} Cell dimensions, direction-independent bounds, and curve mode.
+   * @private
+   */
+  _cellGeometry(layout, centerOffset) {
+    const pixelsPerBp = this.canvas.pixelsPerBp(centerOffset);
+    const span = 3 * pixelsPerBp;
+    const borderWidth = layout.highlightBorderWidth;
+    const gap = Math.min(0.5 * borderWidth, span * 0.05);
+    const halfWidth = Math.max(0, (span - gap - borderWidth) / 2);
+    const halfHeight = (layout.highlightHeight - borderWidth) / 2;
+    const tipLength = Math.min(halfHeight * 0.4, halfWidth * 0.25);
+    const curveError = (span * span / 8 + span * layout.highlightHeight / 4) / centerOffset;
+    return {
+      halfWidth,
+      halfHeight,
+      tipLength,
+      borderWidth,
+      pixelsPerBp,
+      curved: this.viewer.format === 'circular' && curveError > 0.25,
+    };
   }
 
-  _drawCodon(start, aminoAcid, isStart, isStop, centerOffset, layout) {
-    let highlightColor;
+  /**
+   * Trace a compact chevron about a glyph's center. The caller fills and strokes
+   * the same path, then draws the glyph using the same coordinate transform.
+   * @param {CanvasRenderingContext2D} ctx - Map canvas context.
+   * @param {Number} x - Glyph center in the current coordinate system.
+   * @param {Number} y - Glyph center in the current coordinate system.
+   * @param {Number} direction - Reading direction along the local x axis (1 or -1).
+   * @param {Object} cell - Lane cell geometry.
+   * @returns {undefined} Replaces the current canvas path.
+   * @private
+   */
+  _traceCell(ctx, x, y, direction, cell) {
+    const tail = x - direction * cell.halfWidth;
+    const tip = x + direction * cell.halfWidth;
+    const shoulder = tip - direction * cell.tipLength;
+    ctx.beginPath();
+    ctx.moveTo(tail, y - cell.halfHeight);
+    ctx.lineTo(shoulder, y - cell.halfHeight);
+    ctx.lineTo(tip, y);
+    ctx.lineTo(shoulder, y + cell.halfHeight);
+    ctx.lineTo(tail, y + cell.halfHeight);
+    ctx.lineTo(tail + direction * cell.tipLength, y);
+    ctx.closePath();
+  }
+
+  /**
+   * Trace the same chevron with curved edges for short circular sequences.
+   * @param {CanvasRenderingContext2D} ctx - Map canvas context.
+   * @param {Number} middle - Map position at the center of the codon.
+   * @param {Number} centerOffset - Lane radius in screen pixels.
+   * @param {Number} strand - Forward (1) or reverse (-1) reading direction.
+   * @param {Object} cell - Lane cell geometry.
+   * @returns {undefined} Replaces the current canvas path in map coordinates.
+   * @private
+   */
+  _traceCurvedCell(ctx, middle, centerOffset, strand, cell) {
+    const halfBp = cell.halfWidth / cell.pixelsPerBp;
+    const tipBp = cell.tipLength / cell.pixelsPerBp;
+    const tail = middle - strand * halfBp;
+    const tip = middle + strand * halfBp;
+    const shoulder = tip - strand * tipBp;
+    const tipPoint = this.canvas.pointForBp(tip, centerOffset);
+    const innerShoulder = this.canvas.pointForBp(shoulder, centerOffset - cell.halfHeight);
+    const notchPoint = this.canvas.pointForBp(tail + strand * tipBp, centerOffset);
+    ctx.beginPath();
+    this.canvas.path('map', centerOffset + cell.halfHeight, tail, shoulder, strand === -1);
+    ctx.lineTo(tipPoint.x, tipPoint.y);
+    ctx.lineTo(innerShoulder.x, innerShoulder.y);
+    this.canvas.path('map', centerOffset - cell.halfHeight, shoulder, tail, strand === 1, 'noMoveTo');
+    ctx.lineTo(notchPoint.x, notchPoint.y);
+    ctx.closePath();
+  }
+
+  _drawCodon(start, aminoAcid, isStart, isStop, centerOffset, layout, strand = 1, cell = this._cellGeometry(layout, centerOffset)) {
+    let fillColor = this.backgroundColor;
     let textColor = this.color;
-    let borderColor;
+    let borderColor = this.borderColor;
     // Stop styling takes precedence for any unusual table that classifies a
     // codon as both a start and a stop.
     if (isStop && this.highlightStopCodons) {
-      highlightColor = this.stopColor;
+      fillColor = this.stopColor;
       textColor = this.stopTextColor;
       borderColor = this.stopBorderColor;
     } else if (isStart && this.highlightStartCodons) {
-      highlightColor = this.startColor;
+      fillColor = this.startColor;
       textColor = this.startTextColor;
       borderColor = this.startBorderColor;
-    }
-
-    if (highlightColor) {
-      this.canvas.drawElement({
-        layer: 'map',
-        start,
-        stop: start + 2,
-        centerOffset,
-        color: highlightColor.rgbaString,
-        width: layout.highlightHeight,
-        decoration: 'arc',
-        showShading: false,
-        showBorder: true,
-        borderColor: borderColor.rgbaString,
-        borderThickness: layout.highlightBorderWidth,
-        minArcLength: 0,
-      });
     }
 
     const ctx = this.canvas.context('map');
     const middle = start + 1;
     const origin = this.canvas.pointForBp(middle, centerOffset);
-    ctx.fillStyle = textColor.rgbaString;
-    if (this.viewer.format === 'circular') {
-      const {angle} = this.canvas.tangentialTextOrientationForBp(middle);
+    const circular = this.viewer.format === 'circular';
+    const orientation = circular ? this.canvas.tangentialTextOrientationForBp(middle) : undefined;
+    const direction = orientation?.flipped ? -strand : strand;
+    ctx.fillStyle = fillColor.rgbaString;
+    ctx.strokeStyle = borderColor.rgbaString;
+    ctx.lineWidth = cell.borderWidth;
+    if (cell.curved) {
+      this._traceCurvedCell(ctx, middle, centerOffset, strand, cell);
+      ctx.fill();
+      ctx.stroke();
+    }
+    if (circular) {
       ctx.save();
       ctx.translate(origin.x, origin.y);
-      ctx.rotate(angle);
-      ctx.fillText(aminoAcid, 0, 0);
-      ctx.restore();
-    } else {
-      ctx.fillText(aminoAcid, origin.x, origin.y);
+      ctx.rotate(orientation.angle);
     }
+    const x = circular ? 0 : origin.x;
+    const y = circular ? 0 : origin.y;
+    if (!cell.curved) {
+      this._traceCell(ctx, x, y, direction, cell);
+      ctx.fill();
+      ctx.stroke();
+    }
+    ctx.fillStyle = textColor.rgbaString;
+    ctx.fillText(aminoAcid, x, y);
+    if (circular) { ctx.restore(); }
   }
 
   /**
@@ -534,15 +606,22 @@ class SequenceTranslation extends CGObject {
     ctx.font = this.font.cssScaled(scaleFactor);
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
+    ctx.lineJoin = 'round';
+    const laneGeometry = new Map();
     for (const contig of contigs) {
       const segments = this._visibleContigSegments(contig, visibleRange);
       for (const strand of [1, -1]) {
         for (let frame = 1; frame <= this.lanesPerStrand; frame++) {
           const laneCenterOffset = layout.firstLaneCenterOffset + ((frame - 1) * layout.laneStep);
           const centerOffset = backboneCenterOffset + (strand * laneCenterOffset);
-          this._drawLaneBackground(contig, segments, centerOffset, layout.laneHeight);
+          const lane = strand * frame;
+          let cell = laneGeometry.get(lane);
+          if (!cell) {
+            cell = this._cellGeometry(layout, centerOffset);
+            laneGeometry.set(lane, cell);
+          }
           this._forEachCodon(contig, segments, strand, frame, codonTable, (start, codon, aminoAcid, isStart, isStop) => {
-            this._drawCodon(start, aminoAcid, isStart, isStop, centerOffset, layout);
+            this._drawCodon(start, aminoAcid, isStart, isStop, centerOffset, layout, strand, cell);
           });
         }
       }
@@ -585,7 +664,7 @@ class SequenceTranslation extends CGObject {
       this.viewer.updateRecords(this, attributes, {
         recordClass: 'SequenceTranslation',
         validKeys: [
-          'font', 'color', 'backgroundColor',
+          'font', 'color', 'backgroundColor', 'borderColor',
           'startColor', 'startBorderColor', 'startTextColor',
           'stopColor', 'stopBorderColor', 'stopTextColor',
           'highlightStartCodons', 'highlightStopCodons',
@@ -606,6 +685,7 @@ class SequenceTranslation extends CGObject {
     this.update({
       color: this.color.invert().rgbaString,
       backgroundColor: this.backgroundColor.invert().rgbaString,
+      borderColor: this.borderColor.invert().rgbaString,
       startColor: this.startColor.invert().rgbaString,
       startBorderColor: this.startBorderColor.invert().rgbaString,
       startTextColor: this.startTextColor.invert().rgbaString,
@@ -620,6 +700,7 @@ class SequenceTranslation extends CGObject {
       font: this.font.string,
       color: this.color.rgbaString,
       backgroundColor: this.backgroundColor.rgbaString,
+      borderColor: this.borderColor.rgbaString,
       startColor: this.startColor.rgbaString,
       startBorderColor: this.startBorderColor.rgbaString,
       startTextColor: this.startTextColor.rgbaString,
