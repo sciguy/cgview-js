@@ -42,6 +42,7 @@ import Position from './Position';
 import Rect from './Rect';
 import Ruler from './Ruler';
 import Sequence from './Sequence';
+import SequenceTranslation from './SequenceTranslation';
 import SequenceExtractor from './SequenceExtractor';
 import Settings from './Settings';
 import Slot from './Slot';
@@ -97,6 +98,7 @@ export {
   Rect,
   Ruler,
   Sequence,
+  SequenceTranslation,
   SequenceExtractor,
   Settings,
   Slot,

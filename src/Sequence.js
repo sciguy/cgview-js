@@ -24,6 +24,7 @@ import CGArray from './CGArray';
 import CGRange from './CGRange';
 import Contig from './Contig';
 import SequenceExtractor from './SequenceExtractor';
+import SequenceTranslation from './SequenceTranslation';
 import Color from './Color';
 import Font from './Font';
 import utils from './Utils';
@@ -99,6 +100,7 @@ const BASE_TEXT_ORIENTATIONS = Object.freeze(['horizontal', 'curved']);
  * [baseColorMode](#baseColorMode)  | String    | Detailed base coloring: `single` or `byBase` [Default: `single`].
  * [baseTextOrientation](#baseTextOrientation) | String | Base presentation: `horizontal` or `curved` [Default: `horizontal`].
  * [baseColors](#baseColors)        | Object    | Nucleotide color palettes for light and dark backbone colors.
+ * [translation](#translation)    | Object    | Six-frame translation options. See {@link SequenceTranslation}. Hidden by default.
  * [visible](CGObject.html#visible) | Boolean   | Sequence is visible when zoomed in enough [Default: true]
  * [meta](CGObject.html#meta)       | Object    | [Meta data](../tutorials/details-meta-data.html)
  * 
@@ -144,6 +146,7 @@ class Sequence extends CGObject {
     this._contigs = new CGArray();
 
     this.createMapContig(options);
+    this._translation = new SequenceTranslation(this, options.translation);
 
     this.viewer.trigger('sequence-update', { attributes: this.toJSON({includeDefaults: true}) });
   }
@@ -502,7 +505,29 @@ class Sequence extends CGObject {
    * @private
    */
   get thickness() {
+    return this.baseThickness + this.translation.thickness;
+  }
+
+  /** Nucleotide-row thickness before adding translation lanes. @private */
+  get baseThickness() {
     return (this.bpSpacing * 2) + (this.bpMargin * 8);
+  }
+
+  /** @member {SequenceTranslation} - Six-frame translation settings and renderer. */
+  get translation() {
+    return this._translation;
+  }
+
+  /**
+   * Return the nucleotide-detail scale without changing layout or drawing.
+   * @param {Number} pixelsPerBp - Backbone pixels per base pair.
+   * @returns {Number} Scale from 0 to 1.
+   * @private
+   */
+  detailScaleFactor(pixelsPerBp) {
+    const baseWidth = this.bpSpacing - this.bpMargin;
+    if (!Number.isFinite(pixelsPerBp) || baseWidth <= 0) { return 0; }
+    return Math.max(0, Math.min(1, pixelsPerBp / baseWidth));
   }
 
   /**
@@ -1059,15 +1084,14 @@ class Sequence extends CGObject {
   }
 
   draw() {
-    if (this.viewer.backbone.pixelsPerBp() < 1) { return; }
-    if (!this.visible) { return; }
-    const ctx = this.canvas.context('map');
     const backbone = this.viewer.backbone;
     const pixelsPerBp = backbone.pixelsPerBp();
+    if (!this.visible || pixelsPerBp < 1) { return; }
+    const ctx = this.canvas.context('map');
     const seqZoomFactor = 0.25; // The scale at which the sequence will first appear.
     if (pixelsPerBp < (this.bpSpacing - this.bpMargin) * seqZoomFactor) { return; }
 
-    const scaleFactor = Math.min(1, pixelsPerBp / (this.bpSpacing - this.bpMargin));
+    const scaleFactor = this.detailScaleFactor(pixelsPerBp);
 
     const centerOffset = backbone.adjustedCenterOffset;
     const range = backbone.visibleRange;
@@ -1120,6 +1144,7 @@ class Sequence extends CGObject {
         bp++;
       }
       ctx.restore();
+      this.translation.draw(range, centerOffset, pixelsPerBp);
     }
   }
 
@@ -1127,6 +1152,9 @@ class Sequence extends CGObject {
     this.update({
       color: this.color.invert().rgbaString
     });
+    if (this.translation.visible || this.translation._configured) {
+      this.translation.invertColors();
+    }
   }
 
   /**
@@ -1170,6 +1198,9 @@ class Sequence extends CGObject {
     }
     if (options.includeDefaults || JSON.stringify(this._baseColors) !== JSON.stringify(DEFAULT_BASE_COLORS)) {
       json.baseColors = this.baseColors;
+    }
+    if (this.translation.visible || this.translation._configured || options.includeDefaults) {
+      json.translation = this.translation.toJSON(options);
     }
     return json;
   }

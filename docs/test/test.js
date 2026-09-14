@@ -31,6 +31,7 @@ const selection = false;
 const showTrackLabels = true;
 const showPlotsSettings = false;
 const showSequenceTest = false;
+const showTranslationTest = false;
 const showTrackSizingTest = false;
 const showPerformanceTest = false;
 const showLabelsTest = false;
@@ -112,6 +113,9 @@ plotsCheckbox.checked = showPlotsSettings;
 // Toggle Sequence Testing
 const sequenceCheckbox = document.getElementById('option-show-sequence');
 sequenceCheckbox.checked = showSequenceTest;
+// Toggle Translation Testing
+const translationCheckbox = document.getElementById('option-show-translation');
+translationCheckbox.checked = showTranslationTest;
 // Plot rendering experiment
 const plotRendererSelect = document.getElementById('plot-renderer');
 const plotOutlineCheckbox = document.getElementById('plot-outline');
@@ -188,6 +192,70 @@ cgv.on('sequence-update.sequence-testing', () => {
   }
 });
 syncSequenceControls();
+// Translation detail
+const translationVisibleCheckbox = document.getElementById('translation-visible');
+const translationStartsCheckbox = document.getElementById('translation-highlight-starts');
+const translationStopsCheckbox = document.getElementById('translation-highlight-stops');
+const translationGeneticCodeSelect = document.getElementById('translation-genetic-code');
+const translationStartColorInput = document.getElementById('translation-start-color');
+const translationStopColorInput = document.getElementById('translation-stop-color');
+for (const [id, name] of Object.entries(cgv.codonTables.names())) {
+  translationGeneticCodeSelect.add(new Option(`${id}: ${name}`, id));
+}
+
+function syncTranslationControls() {
+  const translation = cgv.sequence.translation;
+  translationVisibleCheckbox.checked = translation.visible;
+  translationStartsCheckbox.checked = translation.highlightStartCodons;
+  translationStopsCheckbox.checked = translation.highlightStopCodons;
+  translationGeneticCodeSelect.value = String(cgv.geneticCode);
+  translationStartColorInput.value = `#${translation.startColor.hex}`;
+  translationStopColorInput.value = `#${translation.stopColor.hex}`;
+}
+
+// Avoid redrawing overview maps for changes that cannot affect visible detail.
+function updateTranslation(attributes) {
+  const translation = cgv.sequence.translation;
+  const pixelsPerBp = cgv.backbone.pixelsPerBp();
+  const wasDrawn = translation.scaleFactor(pixelsPerBp) > 0;
+  translation.update(attributes);
+  if (wasDrawn || translation.scaleFactor(pixelsPerBp) > 0) {
+    cgv.draw();
+  }
+}
+
+translationVisibleCheckbox.addEventListener('change', (e) => {
+  updateTranslation({visible: e.target.checked});
+});
+translationStartsCheckbox.addEventListener('change', (e) => {
+  updateTranslation({highlightStartCodons: e.target.checked});
+});
+translationStopsCheckbox.addEventListener('change', (e) => {
+  updateTranslation({highlightStopCodons: e.target.checked});
+});
+translationStartColorInput.addEventListener('input', (e) => {
+  updateTranslation({startColor: e.target.value});
+});
+translationStopColorInput.addEventListener('input', (e) => {
+  updateTranslation({stopColor: e.target.value});
+});
+translationGeneticCodeSelect.addEventListener('change', (e) => {
+  cgv.settings.update({geneticCode: Number(e.target.value)});
+  if (cgv.sequence.translation.scaleFactor(cgv.backbone.pixelsPerBp()) > 0) {
+    cgv.draw();
+  }
+});
+cgv.on('sequence-translation-update.translation-testing', () => {
+  if (!cgv.loading) { syncTranslationControls(); }
+});
+cgv.on('settings-update.translation-testing', () => {
+  if (!cgv.loading) { syncTranslationControls(); }
+});
+cgv.on('cgv-json-load.translation-testing', () => {
+  // This event fires before replacement records are constructed.
+  queueMicrotask(syncTranslationControls);
+});
+syncTranslationControls();
 // Toggle Track Sizing Test
 const trackSizingCheckbox = document.getElementById('option-show-track-sizing');
 trackSizingCheckbox.checked = showTrackSizingTest;
@@ -331,6 +399,7 @@ function loadMapJSON(json, name) {
   setTrackLabelsEnabled(trackLabelsCheckbox.checked);
   syncRulerLabelOptions();
   syncSequenceControls();
+  syncTranslationControls();
 
   // Default label placement
   cgv.annotation.labelPlacement = labelPlacement;
@@ -361,6 +430,7 @@ plotsCheckbox.addEventListener('click', () => {
 sequenceCheckbox.addEventListener('click', () => {
   updatePageLayout();
 });
+translationCheckbox.addEventListener('click', updatePageLayout);
 trackSizingCheckbox.addEventListener('click', () => {
   updatePageLayout();
 });
@@ -381,6 +451,8 @@ function updatePageLayout() {
   // Sequence
   const sequenceDiv = document.querySelector('.section-sequence');
   sequenceDiv.style.display = sequenceCheckbox.checked ? 'block' : 'none';
+  // Translation
+  document.getElementById('translation-testing').hidden = !translationCheckbox.checked;
   // Track Sizing
   const trackSizingDiv = document.querySelector('.section-track-sizing');
   trackSizingDiv.style.display = trackSizingCheckbox.checked ? 'block' : 'none';

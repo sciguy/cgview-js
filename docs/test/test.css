@@ -150,6 +150,37 @@ hr {
   margin: 0;
 }
 
+.translation-options {
+  display: grid;
+  font-size: 14px;
+  gap: 6px;
+}
+
+.translation-options label {
+  align-items: center;
+  display: flex;
+  gap: 5px;
+}
+
+.translation-colors {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-top: 4px;
+}
+
+.translation-colors input {
+  height: 26px;
+  padding: 2px;
+  width: 40px;
+}
+
+.translation-help {
+  color: #555;
+  font-size: 12px;
+  margin: 8px 0 0;
+}
+
 .ruler-options {
   display: flex;
   justify-content: space-around;
