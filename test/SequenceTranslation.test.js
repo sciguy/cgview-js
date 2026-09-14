@@ -481,6 +481,110 @@ describe('SequenceTranslation', () => {
     expect(codons(2)[1]).toEqual(expect.objectContaining({codon: 'TGA', aminoAcid: 'W', isStop: false}));
   });
 
+  test.each(['circular', 'linear'])('matches hovered codons to all six drawn lanes throughout the fade in %s maps', (format) => {
+    const cgv = new Viewer('#map', {sequence: {seq: 'ATGAAATAACCC', translation: {visible: true}}});
+    cgv.format = format;
+    const translation = cgv.sequence.translation;
+    const pixelsPerBp = jest.spyOn(cgv.backbone, 'pixelsPerBp');
+    const drawCodon = jest.spyOn(translation, '_drawCodon').mockImplementation(() => {});
+    const range = new CGRange(cgv.sequence.mapContig, 1, 12);
+    const baseWidth = cgv.sequence.bpSpacing - cgv.sequence.bpMargin;
+
+    for (const fraction of [0.5, 0.625, 1]) {
+      pixelsPerBp.mockReturnValue(baseWidth * fraction);
+      drawCodon.mockClear();
+      translation.draw(range, cgv.backbone.adjustedCenterOffset, baseWidth * fraction);
+      const laneOffsets = [...new Set(drawCodon.mock.calls.map(call => call[4]))];
+      expect(laneOffsets).toHaveLength(6);
+      for (const [start, aminoAcid, isStart, isStop, offset, , strand] of drawCodon.mock.calls) {
+        const laneIndex = laneOffsets.indexOf(offset);
+        const frame = laneIndex % 3 + 1;
+        expect(translation.hitTest(start + 1, offset)).toEqual(expect.objectContaining({
+          start, stop: start + 2, aminoAcid, isStart, isStop, strand, frame, signedFrame: strand * frame,
+        }));
+      }
+    }
+  });
+
+  test('resolves only the hovered codon without materializing frames', () => {
+    const cgv = new Viewer('#map', {sequence: {seq: 'ATG'.repeat(100000), translation: {visible: true}}});
+    const translation = cgv.sequence.translation;
+    jest.spyOn(cgv.backbone, 'pixelsPerBp').mockReturnValue(20);
+    const visit = jest.spyOn(translation, '_forEachCodon');
+    const materialize = jest.spyOn(translation, 'codonsForRange');
+    const offset = cgv.backbone.adjustedCenterOffset + translation._layoutForScale(1).firstLaneCenterOffset;
+    expect(translation.hitTest(150002.2, offset)).toEqual(expect.objectContaining({
+      start: 150001, stop: 150003, codon: 'ATG', aminoAcid: 'M', aminoAcidName: 'Methionine',
+      signedFrame: 1, isStart: true, isStop: false,
+      geneticCode: 11, geneticCodeName: 'Bacterial and Plant Plastid',
+    }));
+    expect(visit).toHaveBeenCalledTimes(1);
+    expect(visit.mock.calls[0][1]).toEqual([[150002, 150002]]);
+    expect(materialize).not.toHaveBeenCalled();
+  });
+
+  test('ignores DNA rows, lane gaps, out-of-range positions, and hidden translation detail', () => {
+    const cgv = new Viewer('#map', {sequence: {seq: 'ATGAAATAACCC', translation: {visible: true}}});
+    const translation = cgv.sequence.translation;
+    const pixels = jest.spyOn(cgv.backbone, 'pixelsPerBp').mockReturnValue(20);
+    const visit = jest.spyOn(translation, '_forEachCodon');
+    const layout = translation._layoutForScale(1);
+    const center = cgv.backbone.adjustedCenterOffset;
+    const offset = center + layout.firstLaneCenterOffset;
+    const expectMiss = (bp, laneOffset = offset) => {
+      visit.mockClear();
+      expect(translation.hitTest(bp, laneOffset)).toBeUndefined();
+      expect(visit).not.toHaveBeenCalled();
+    };
+    expectMiss(2, center);
+    expectMiss(2, offset + layout.laneStep / 2);
+    for (const bp of [NaN, Infinity, 0, 13]) { expectMiss(bp); }
+    expectMiss(2, NaN);
+    pixels.mockReturnValue(1);
+    expectMiss(2);
+    pixels.mockReturnValue(20);
+    translation.visible = false;
+    expectMiss(2);
+    translation.visible = true;
+    cgv.sequence.visible = false;
+    expectMiss(2);
+  });
+
+  test('anchors hover frames within visible contigs and excludes incomplete boundary codons', () => {
+    const cgv = new Viewer('#map', {sequence: {
+      contigs: [{name: 'one', seq: 'ATGAA'}, {name: 'two', seq: 'TAACCATG'}], translation: {visible: true},
+    }});
+    const translation = cgv.sequence.translation;
+    jest.spyOn(cgv.backbone, 'pixelsPerBp').mockReturnValue(20);
+    const center = cgv.backbone.adjustedCenterOffset;
+    const lane = translation._layoutForScale(1).firstLaneCenterOffset;
+    expect(translation.hitTest(5, center + lane)).toBeUndefined();
+    expect(translation.hitTest(7, center + lane)).toEqual(expect.objectContaining({
+      start: 6, stop: 8, codon: 'TAA', signedFrame: 1, isStop: true, contig: cgv.contigs(2),
+    }));
+    expect(translation.hitTest(12, center - lane)).toEqual(expect.objectContaining({
+      start: 11, stop: 13, codon: 'CAT', signedFrame: -1, aminoAcidName: 'Histidine', contig: cgv.contigs(2),
+    }));
+    cgv.contigs(2).visible = false;
+    expect(translation.hitTest(7, center + lane)).toBeUndefined();
+  });
+
+  test('hover status follows the genetic code independently of highlight colors', () => {
+    const cgv = new Viewer('#map', {sequence: {seq: 'TTGTGA', translation: {
+      visible: true, highlightStartCodons: false, highlightStopCodons: false,
+    }}});
+    const translation = cgv.sequence.translation;
+    jest.spyOn(cgv.backbone, 'pixelsPerBp').mockReturnValue(20);
+    const offset = cgv.backbone.adjustedCenterOffset + translation._layoutForScale(1).firstLaneCenterOffset;
+    expect(translation.hitTest(2, offset)).toEqual(expect.objectContaining({isStart: true, aminoAcidName: 'Leucine'}));
+    expect(translation.hitTest(5, offset)).toEqual(expect.objectContaining({isStop: true, aminoAcidName: 'Stop', geneticCode: 11}));
+    cgv.settings.update({geneticCode: 2});
+    expect(translation.hitTest(5, offset)).toEqual(expect.objectContaining({
+      codon: 'TGA', aminoAcid: 'W', aminoAcidName: 'Tryptophan', isStop: false,
+      geneticCode: 2, geneticCodeName: 'Vertebrate Mitochondrial',
+    }));
+  });
+
   test('normalizes RNA and keeps ambiguous codons unknown on both strands', () => {
     const cgv = new Viewer('#map', {sequence: {seq: 'AUGNNN'}});
     const range = new CGRange(cgv.sequence.mapContig, 1, 6);

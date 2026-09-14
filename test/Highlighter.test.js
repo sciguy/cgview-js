@@ -10,6 +10,69 @@ describe('Highlighter', () => {
     cgv.highlighter.feature.popovers = false;
   });
 
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  test('shows amino-acid, codon, range, signed frame, status, and genetic-code details', () => {
+    cgv = new Viewer('#map', {sequence: {seq: 'ATGAAATAACCC', translation: {visible: true}}});
+    jest.spyOn(cgv.backbone, 'pixelsPerBp').mockReturnValue(20);
+    const translation = cgv.sequence.translation;
+    const lane = translation._layoutForScale(1).firstLaneCenterOffset;
+    const draw = jest.spyOn(cgv, 'draw');
+    const drawFast = jest.spyOn(cgv, 'drawFast');
+    for (const [bp, strand, title, codon, position, status] of [
+      [2, 1, 'M (Methionine)', 'ATG', '1–3', 'Start codon'],
+      [5, 1, 'K (Lysine)', 'AAA', '4–6', undefined],
+      [8, 1, '* (Stop)', 'TAA', '7–9', 'Stop codon'],
+      [2, -1, 'H (Histidine)', 'CAT', '1–3', undefined],
+    ]) {
+      const element = translation.hitTest(bp, cgv.backbone.adjustedCenterOffset + strand * lane);
+      cgv.highlighter.mouseOver({elementType: 'translation', element, canvasX: 10, canvasY: 10});
+      const text = cgv.highlighter.popoverBox.text();
+      expect(text).toContain(title);
+      expect(text).toContain(`Codon: ${codon}`);
+      expect(text).toContain(`Position: ${position} bp`);
+      expect(text).toContain(`Frame: ${strand === 1 ? '+1' : '-1'}`);
+      expect(text).toContain('Genetic code: 11 (Bacterial and Plant Plastid)');
+      if (status) { expect(text).toContain(`Status: ${status}`); }
+      else { expect(text).not.toContain('Status:'); }
+      expect(cgv.highlighter.popoverBox.style('visibility')).toBe('visible');
+    }
+    expect(draw).not.toHaveBeenCalled();
+    expect(drawFast).not.toHaveBeenCalled();
+  });
+
+  test('supports custom translation popovers and independent visibility controls', () => {
+    const popoverContents = jest.fn(() => '<div>Custom translation</div>');
+    cgv = new Viewer('#map', {highlighter: {translation: {popoverContents}}});
+    const highlighter = cgv.highlighter;
+    const event = {elementType: 'translation', element: {codon: 'ATG'}, canvasX: 10, canvasY: 10};
+    expect(highlighter.translation.highlighting).toBe(false);
+    highlighter.mouseOver(event);
+    expect(popoverContents).toHaveBeenCalledWith(event);
+    expect(highlighter.popoverBox.text()).toBe('Custom translation');
+    highlighter.translation.popovers = false;
+    highlighter.mouseOver(event);
+    expect(highlighter.popoverBox.style('visibility')).toBe('hidden');
+    highlighter.translation.popovers = true;
+    highlighter.visible = false;
+    highlighter.mouseOver(event);
+    expect(highlighter.popoverBox.style('visibility')).toBe('hidden');
+  });
+
+  test('displays unrecognized codon characters as text', () => {
+    cgv = new Viewer('#map', {sequence: {seq: '<G>', translation: {visible: true}}});
+    jest.spyOn(cgv.backbone, 'pixelsPerBp').mockReturnValue(20);
+    const translation = cgv.sequence.translation;
+    const offset = cgv.backbone.adjustedCenterOffset + translation._layoutForScale(1).firstLaneCenterOffset;
+    const element = translation.hitTest(2, offset);
+    cgv.highlighter.mouseOver({elementType: 'translation', element, canvasX: 10, canvasY: 10});
+    expect(cgv.highlighter.popoverBox.text()).toContain('X (Unknown)');
+    expect(cgv.highlighter.popoverBox.text()).toContain('Codon: <G>');
+    expect(cgv.highlighter.popoverBox.node().querySelector('g')).toBeNull();
+  });
+
   test('keeps visible legends and captions above feature highlights', () => {
     cgv.legend.addItems({name: 'Feature'});
     cgv.legend.refresh();

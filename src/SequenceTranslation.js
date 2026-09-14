@@ -31,6 +31,17 @@ const COMPLEMENT = {
   '-': '-', '.': '.',
 };
 
+const AMINO_ACID_NAMES = {
+  A: 'Alanine', R: 'Arginine', N: 'Asparagine', D: 'Aspartic acid',
+  C: 'Cysteine', E: 'Glutamic acid', Q: 'Glutamine', G: 'Glycine',
+  H: 'Histidine', I: 'Isoleucine', L: 'Leucine', K: 'Lysine',
+  M: 'Methionine', F: 'Phenylalanine', P: 'Proline', S: 'Serine',
+  T: 'Threonine', W: 'Tryptophan', Y: 'Tyrosine', V: 'Valine',
+  B: 'Asparagine or aspartic acid', Z: 'Glutamine or glutamic acid',
+  J: 'Leucine or isoleucine', U: 'Selenocysteine', O: 'Pyrrolysine',
+  '*': 'Stop', X: 'Unknown',
+};
+
 const DETAIL_FADE_START = 0.25;
 const FULL_OPACITY_SCALE = 0.5;
 
@@ -450,6 +461,64 @@ class SequenceTranslation extends CGObject {
       });
     });
     return codons;
+  }
+
+  /**
+   * Resolve the single codon under a pointer in a visible translation lane.
+   * Uses the drawing layout at the current zoom, including the distinct DNA
+   * and translation scales during the fade. No protein arrays are constructed.
+   * @param {Number} bp - Map base-pair position under the pointer.
+   * @param {Number} centerOffset - Pointer radius or linear map offset in pixels.
+   * @returns {Object|undefined} New codon details, including its map range,
+   * signed frame, amino-acid name, genetic code, and contig. Does not change the map.
+   * @private
+   */
+  hitTest(bp, centerOffset) {
+    if (!Number.isFinite(bp) || !Number.isFinite(centerOffset)) { return; }
+    const backbone = this.viewer.backbone;
+    const pixelsPerBp = backbone.pixelsPerBp();
+    const scaleFactor = this.scaleFactor(pixelsPerBp);
+    if (!scaleFactor) { return; }
+
+    const layout = this._layoutForScale(scaleFactor, this.sequence.detailScaleFactor(pixelsPerBp));
+    const signedOffset = centerOffset - backbone.adjustedCenterOffset;
+    const strand = signedOffset >= 0 ? 1 : -1;
+    const radialOffset = Math.abs(signedOffset);
+    const frameIndex = Math.round((radialOffset - layout.firstLaneCenterOffset) / layout.laneStep);
+    if (frameIndex < 0 || frameIndex >= this.lanesPerStrand) { return; }
+    const laneCenterOffset = layout.firstLaneCenterOffset + frameIndex * layout.laneStep;
+    if (Math.abs(radialOffset - laneCenterOffset) > layout.laneHeight / 2) { return; }
+
+    const mapBp = Math.round(bp);
+    if (mapBp < 1 || mapBp > this.sequence.length) { return; }
+    const contig = this.sequence.hasMultipleContigs ? this.sequence.contigForBp(mapBp) : this.sequence.mapContig;
+    if (!contig?.visible) { return; }
+
+    const localBp = mapBp - contig.lengthOffset;
+    const frame = frameIndex + 1;
+    const codonTable = this.viewer.codonTables.byID(this.geneticCode) || this.viewer.codonTables.byID(11);
+    let result;
+    this._forEachCodon(contig, [[localBp, localBp]], strand, frame, codonTable,
+      (start, codon, aminoAcid, isStart, isStop) => {
+        result = {
+          start,
+          stop: start + 2,
+          middle: start + 1,
+          strand,
+          frame,
+          signedFrame: strand * frame,
+          codon,
+          aminoAcid,
+          aminoAcidName: AMINO_ACID_NAMES[aminoAcid] || 'Unknown',
+          isStart,
+          isStop,
+          geneticCode: Number(codonTable.geneticCodeID),
+          geneticCodeName: codonTable.name,
+          contig,
+        };
+      }
+    );
+    return result;
   }
 
   /**

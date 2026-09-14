@@ -37,6 +37,7 @@ import utils from './Utils';
  *  [plot](#plot)                 | {@link HighlighterElement} | Describes the highlightling options for plots
  *  [contig](#contig)             | {@link HighlighterElement} | Describes the highlighting options for contigs
  *  [backbone](#backbone)         | {@link HighlighterElement} | Describes the highlighting options for the backbone
+ *  [translation](#translation)   | {@link HighlighterElement} | Describes popovers for translated codons
  *  [showMetaData](#showMetaData) | true                       | Should meta data be shown in popovers
  *
  * @extends CGObject
@@ -63,6 +64,10 @@ class Highlighter extends CGObject {
     this._plot = new HighlighterElement('plot', options.plot);
     this._contig = new HighlighterElement('contig', options.contig);
     this._backbone = new HighlighterElement('backbone', options.backbone);
+    this._translation = new HighlighterElement('translation', {
+      highlighting: false,
+      ...options.translation,
+    });
     this.initializeEvents();
 
     // Set up position constants (Distance from mouse pointer to top-left of popup)
@@ -103,6 +108,14 @@ class Highlighter extends CGObject {
    */
   get backbone() {
     return this._backbone;
+  }
+
+  /**
+   * @member {HighlighterElement} - Get the translation HighlighterElement.
+   * Popovers are enabled by default; additional hover highlighting is disabled.
+   */
+  get translation() {
+    return this._translation;
   }
 
   position(e) {
@@ -239,6 +252,33 @@ class Highlighter extends CGObject {
     `);
   }
 
+  /**
+   * Build the default popover for a translated codon without modifying the map.
+   * @param {Object} e - Viewer event whose element contains translated-codon details.
+   * @returns {String} HTML containing the amino acid, codon, range, frame, status,
+   * and active genetic code.
+   */
+  translationPopoverContentsDefault(e) {
+    const codon = e.element;
+    const frame = codon.signedFrame > 0 ? `+${codon.signedFrame}` : `${codon.signedFrame}`;
+    const statuses = [];
+    if (codon.isStart) { statuses.push('Start codon'); }
+    if (codon.isStop) { statuses.push('Stop codon'); }
+    const statusDiv = statuses.length > 0 ?
+      `<div class='track-data'>Status: ${statuses.join(' / ')}</div>` : '';
+    const codonText = codon.codon.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    return (`
+      <div style='margin: 0 5px; font-size: 14px'>
+        <div>${codon.aminoAcid} (${codon.aminoAcidName})</div>
+        <div class='track-data'>Codon: ${codonText}</div>
+        <div class='track-data'>Position: ${utils.commaNumber(codon.start)}–${utils.commaNumber(codon.stop)} bp</div>
+        <div class='track-data'>Frame: ${frame}</div>
+        ${statusDiv}
+        <div class='track-data'>Genetic code: ${codon.geneticCode} (${codon.geneticCodeName})</div>
+      </div>
+    `);
+  }
+
   highlightFeature(e) {
     e.element.highlight(e.slot);
   }
@@ -272,6 +312,10 @@ class Highlighter extends CGObject {
 
   highlightContig(e) {
     // e.element.highlight(e.slot);
+  }
+
+  highlightTranslation(e) {
+    // Translation hover provides codon details without additional canvas drawing.
   }
 
   /**
@@ -337,7 +381,7 @@ class HighlighterElement {
 
   /**
    * Create a HighlighterElement
-   * @param {String} type - The element type: 'feature', 'plot', 'contig', 'backbone'.
+   * @param {String} type - The element type: 'feature', 'plot', 'contig', 'backbone', 'translation'.
    * @param {Object} options - [Attributes](#attributes) used to create the highlighter element.
    */
   constructor(type, options = {}) {
@@ -353,7 +397,7 @@ class HighlighterElement {
   }
 
   /**
-   * @member {String} - Get or set the type (e.g. 'feature', 'plot', 'contig', 'backbone')
+   * @member {String} - Get or set the type (e.g. 'feature', 'plot', 'contig', 'backbone', 'translation')
    */
   get type() {
     return this._type;
@@ -401,4 +445,3 @@ class HighlighterElement {
 }
 
 export { Highlighter, HighlighterElement };
-
