@@ -32,6 +32,7 @@ const COMPLEMENT = {
 };
 
 const DETAIL_FADE_START = 0.25;
+const FULL_OPACITY_SCALE = 0.5;
 
 // Translation cells need enough room for both the nominal font box and their
 // inset border. Keeping these values in unscaled screen pixels makes the cell,
@@ -324,11 +325,11 @@ class SequenceTranslation extends CGObject {
   }
 
   /**
-   * Grow and fade lanes continuously over the nucleotide-detail zoom range.
+   * Grow lanes continuously over the nucleotide-detail zoom range.
    * Smoothstep has zero slope at both ends, including when zooming back out.
    * No timers or per-frame animation state are needed.
    * @param {Number} pixelsPerBp - Backbone pixels per base pair.
-   * @returns {Number} Translation size and opacity in the range 0 to 1.
+   * @returns {Number} Translation size in the range 0 to 1.
    * @private
    */
   scaleFactor(pixelsPerBp) {
@@ -526,7 +527,10 @@ class SequenceTranslation extends CGObject {
     const ctx = this.canvas.context('map');
 
     ctx.save();
-    ctx.globalAlpha *= scaleFactor;
+    // Finish fading at half size, then let the solid letters and cells grow.
+    // Ease out to full opacity without changing lane geometry or zoom timing.
+    const opacityProgress = Math.min(1, scaleFactor / FULL_OPACITY_SCALE);
+    ctx.globalAlpha *= opacityProgress * (2 - opacityProgress);
     ctx.font = this.font.cssScaled(scaleFactor);
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';

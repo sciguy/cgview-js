@@ -298,23 +298,42 @@ describe('SequenceTranslation', () => {
     expect(translation.scaleFactor(NaN)).toBe(0);
   });
 
-  test('fades every drawing operation and restores canvas opacity afterwards', () => {
+  test('fades all drawing operations to full opacity at half size and restores canvas state', () => {
     const cgv = new Viewer('#map', {sequence: {seq: 'ATGTAACCC', translation: {visible: true}}});
     const translation = cgv.sequence.translation;
     const range = new CGRange(cgv.sequence.mapContig, 1, 9);
     const ctx = cgv.canvas.context('map');
     const opacities = [];
+    const fonts = [];
     ctx.globalAlpha = 0.8;
     jest.spyOn(cgv.canvas, 'drawElement').mockImplementation(() => opacities.push(ctx.globalAlpha));
-    jest.spyOn(ctx, 'fillText').mockImplementation(() => opacities.push(ctx.globalAlpha));
+    jest.spyOn(ctx, 'fillText').mockImplementation(() => {
+      opacities.push(ctx.globalAlpha);
+      fonts.push(ctx.font);
+    });
 
-    translation.draw(range, 100, 6);
+    // These zoom levels produce small, half-size, and full-size translations.
+    for (const pixelsPerBp of [4.5, 7.5, 12]) {
+      opacities.length = 0;
+      fonts.length = 0;
+      translation.draw(range, 100, pixelsPerBp);
 
-    expect(opacities.length).toBeGreaterThan(6);
-    for (const opacity of opacities) {
-      expect(opacity).toBeCloseTo(0.8 * translation.scaleFactor(6));
+      expect(opacities.length).toBeGreaterThan(6);
+      expect(opacities.every(opacity => opacity === opacities[0])).toBe(true);
+      if (pixelsPerBp === 4.5) {
+        expect(opacities[0]).toBeGreaterThan(0.8 * translation.scaleFactor(pixelsPerBp));
+        expect(opacities[0]).toBeLessThan(0.8);
+      } else {
+        expect(opacities[0]).toBe(0.8);
+      }
+      if (pixelsPerBp === 7.5) {
+        expect(translation.scaleFactor(pixelsPerBp)).toBe(0.5);
+        for (const font of fonts) {
+          expect(Number(font.match(/([\d.]+)px/)[1])).toBe(translation.font.size / 2);
+        }
+      }
+      expect(ctx.globalAlpha).toBe(0.8);
     }
-    expect(ctx.globalAlpha).toBe(0.8);
   });
 
   test('does no codon or range work for hidden, distant, or length-only sequence', () => {
