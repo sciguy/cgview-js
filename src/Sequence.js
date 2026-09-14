@@ -25,6 +25,8 @@ import CGRange from './CGRange';
 import Contig from './Contig';
 import SequenceExtractor from './SequenceExtractor';
 import SequenceTranslation from './SequenceTranslation';
+import SequenceGlyphCache from './SequenceGlyphCache';
+import {traceChevron, traceCurvedChevron} from './SequenceCell';
 import Color from './Color';
 import Font from './Font';
 import utils from './Utils';
@@ -63,11 +65,12 @@ const BASE_TEXT_ORIENTATIONS = Object.freeze(['horizontal', 'curved']);
  *
  * ### Base Coloring
  * At readable sequence zoom, [baseColorMode](#baseColorMode) controls how
- * nucleotide characters are colored. The default `single` mode preserves the
- * established behavior and renders every character with [color](#color). The
- * `byBase` mode uses [baseColors](#baseColors) for A, C, G, T/U, and
- * ambiguous characters. U shares the T color; all other characters use the
- * ambiguous color.
+ * nucleotide arrow boxes are colored. Adjacent boxes have a 1 px gap and follow
+ * the strand's reading direction. The default `single` mode uses neutral fills
+ * with [color](#color) for every letter. The `byBase` mode fills the boxes using
+ * [baseColors](#baseColors) for A, C, G, T/U, and ambiguous characters, with
+ * contrasting black or white letters. U shares the T color; all other
+ * characters use the ambiguous color.
  *
  * Each contig independently selects `baseColors.onLight` or
  * `baseColors.onDark` from the luminance of its rendered backbone. A
@@ -99,7 +102,7 @@ const BASE_TEXT_ORIENTATIONS = Object.freeze(['horizontal', 'curved']);
  * [color](#color)                  | String    | A string describing the sequence color [Default: 'black']. See {@link Color} for details.
  * [baseColorMode](#baseColorMode)  | String    | Detailed base coloring: `single` or `byBase` [Default: `single`].
  * [baseTextOrientation](#baseTextOrientation) | String | Base presentation: `horizontal` or `curved` [Default: `horizontal`].
- * [baseColors](#baseColors)        | Object    | Nucleotide color palettes for light and dark backbone colors.
+ * [baseColors](#baseColors)        | Object    | Nucleotide box-fill palettes for light and dark backbone colors.
  * [translation](#translation)    | Object    | Six-frame translation options. See {@link SequenceTranslation}. Hidden by default.
  * [visible](CGObject.html#visible) | Boolean   | Sequence is visible when zoomed in enough [Default: true]
  * [meta](CGObject.html#meta)       | Object    | [Meta data](../tutorials/details-meta-data.html)
@@ -137,6 +140,7 @@ class Sequence extends CGObject {
     this._baseColorMode = 'single';
     this.baseColorMode = utils.defaultFor(options.baseColorMode, 'single');
     this._baseColorVariantCache = new Map();
+    this._baseCellStyleCache = new Map();
     this._baseColors = copyBaseColors(DEFAULT_BASE_COLORS);
     if (hasBaseColors(options.baseColors)) {
       this.baseColors = options.baseColors;
@@ -412,8 +416,9 @@ class Sequence extends CGObject {
 
   /**
    * @member {'single'|'byBase'} - Get or set detailed sequence base coloring.
-   * `single` always renders every base with [color](#color). `byBase` uses the
-   * configured base palettes and never changes `color`.
+   * `single` renders every letter with [color](#color) on a neutral box.
+   * `byBase` fills boxes with the base palettes and uses contrasting letters.
+   * Neither mode changes `color`.
    */
   get baseColorMode() {
     return this._baseColorMode;
@@ -457,6 +462,7 @@ class Sequence extends CGObject {
     }
     this._baseColors = mergeBaseColors(this._baseColors || DEFAULT_BASE_COLORS, value);
     this._baseColorVariantCache?.clear();
+    this._baseCellStyleCache?.clear();
   }
 
   /**
@@ -1043,7 +1049,7 @@ class Sequence extends CGObject {
   }
 
   /**
-   * Return the detailed-sequence text color for one base.
+   * Return the single-mode text color or by-base box fill for one base.
    * @param {String} base - Sequence character.
    * @param {Number} bp - Map base-pair position.
    * @returns {*} Configured single or semantic base color.
@@ -1057,30 +1063,166 @@ class Sequence extends CGObject {
   }
 
   /**
-   * Draw one zoom-detail base. Curved circular glyphs follow the readable
-   * local tangent; horizontal and linear glyphs retain their current baseline.
+   * Resolve and cache a box fill and contrasting letter color. Palette colors
+   * are parsed only on cache misses; translucent fills use the rendered backbone.
+   * @param {String} base - Sequence character.
+   * @param {Number} bp - Map base-pair position.
+   * @param {String} variant - Precomputed onLight/onDark palette variant.
+   * @returns {Object} Cached fill and text styles; does not change the palette.
+   * @private
+   */
+  _baseCellStyleForBase(base, bp, variant = this._baseColorVariantForBp(bp)) {
+    const fill = colorForBase(this._baseColors, base, variant);
+    let style = this._baseCellStyleCache.get(fill);
+    if (!style) {
+      const color = new Color(fill);
+      style = {fill: color.rgbaString, text: color.contrastColor().rgbaString, color};
+      this._baseCellStyleCache.set(fill, style);
+    }
+    if (style.color.opacity === 1) { return style; }
+
+    const mapBp = ((((Math.round(bp) - 1) % this.length) + this.length) % this.length) + 1;
+    const contig = this.hasMultipleContigs ? this.contigForBp(mapBp) : this.mapContig;
+    const background = this.viewer.settings.backgroundColor;
+    const backboneColor = this.viewer.backbone.visible && contig.visible
+      ? this.viewer.backbone.colorForContig(contig) : background;
+    const key = `${fill}|${backboneColor.rgbaString}|${background.rgbaString}`;
+    let compositeStyle = this._baseCellStyleCache.get(key);
+    if (!compositeStyle) {
+      const rendered = style.color.compositeOver(backboneColor.compositeOver(background));
+      compositeStyle = {fill: style.fill, text: rendered.contrastColor().rgbaString};
+      this._baseCellStyleCache.set(key, compositeStyle);
+    }
+    return compositeStyle;
+  }
+
+  /** Neutral base boxes preserve the configured single-mode letter color. @private */
+  _singleBaseCellStyle() {
+    return {
+      fill: this.color.relativeLuminance < DARK_BACKBONE_LUMINANCE_THRESHOLD ? '#e5e7eb' : '#334155',
+      text: this.color.rgbaString,
+    };
+  }
+
+  /**
+   * Calculate geometry once per nucleotide row. Allow for the pointed/notched
+   * edges and their outlines to leave a 1 px gap between adjoining boxes.
+   * @param {Number} scaleFactor - Nucleotide-detail size from 0 to 1.
+   * @param {Number} centerOffset - Row radius or linear offset in pixels.
+   * @returns {Object} Cell dimensions and curved-edge mode, without drawing.
+   * @private
+   */
+  _baseCellGeometry(scaleFactor, centerOffset) {
+    const pixelsPerBp = this.canvas.pixelsPerBp(centerOffset);
+    const halfHeight = (this.font.height + this.bpMargin) * scaleFactor / 2;
+    const tipLength = Math.min(halfHeight * 0.2, pixelsPerBp * 0.125);
+    const borderWidth = 0.5 * scaleFactor;
+    const halfWidth = Math.max(0, (pixelsPerBp + tipLength - 1 - borderWidth) / 2);
+    const curveError = (pixelsPerBp * pixelsPerBp / 8 + pixelsPerBp * halfHeight / 2) / centerOffset;
+    return {halfWidth, halfHeight, tipLength, pixelsPerBp, scaleFactor,
+      tipCenterOffset: 0.25 * scaleFactor, borderWidth,
+      curved: this.viewer.format === 'circular' && curveError > 0.25};
+  }
+
+  /**
+   * Center capital bases on the box using the font's cap height.
+   * Measure once per font, then scale the cached alphabetic baseline while zooming.
+   * @param {CanvasRenderingContext2D} ctx - Context using an alphabetic baseline.
+   * @param {Number} scaleFactor - Nucleotide-detail size from 0 to 1.
+   * @returns {Number} Baseline offset in pixels; preserves the context font.
+   * @private
+   */
+  _baseTextBaselineOffset(ctx, scaleFactor) {
+    const font = this.font.css;
+    if (this._baseTextMetrics?.font !== font) {
+      const previousFont = ctx.font;
+      ctx.font = font;
+      // A flat cap avoids the optical overshoot of rounded letters such as C/G.
+      const {actualBoundingBoxAscent: ascent, actualBoundingBoxDescent: descent} = ctx.measureText('H');
+      ctx.font = previousFont;
+      const offset = Number.isFinite(ascent) && Number.isFinite(descent) && ascent + descent > 0
+        ? (ascent - descent) / 2
+        : this.font.height * 0.35;
+      this._baseTextMetrics = {font, offset};
+    }
+    return this._baseTextMetrics.offset * scaleFactor;
+  }
+
+  /**
+   * Prepare horizontal glyphs once per draw. SVG retains native, editable text;
+   * raster exports use their own resolution to keep the glyphs sharp.
+   * @param {CanvasRenderingContext2D} ctx - Current map drawing context.
+   * @returns {SequenceGlyphCache|undefined} Reused cache, or undefined for native text.
+   * @private
+   */
+  _baseGlyphsForContext(ctx) {
+    if ((this.viewer.format === 'circular' && this.baseTextOrientation === 'curved') || ctx.getSerializedSvg) {
+      return;
+    }
+    const transform = ctx.getTransform();
+    const pixelRatio = Math.max(2, Math.abs(transform.a), Math.abs(transform.d));
+    if (this._baseGlyphCache?.font !== this.font.css || this._baseGlyphCache.pixelRatio !== pixelRatio) {
+      this._baseGlyphCache = new SequenceGlyphCache(this.font, pixelRatio, this._baseTextMetrics.offset);
+    }
+    return this._baseGlyphCache;
+  }
+
+  /**
+   * Draw one directional base box and its letter. Circular cells follow the
+   * backbone independently of the selected glyph orientation.
    * @param {CanvasRenderingContext2D} ctx - Map canvas context.
    * @param {String} base - Sequence character to draw.
    * @param {Number} bp - Map base-pair position.
    * @param {Number} centerOffset - Distance from the map center.
    * @param {Number} baselineOffset - Font baseline adjustment.
-   * @param {Number} [tangentialAngle] - Reusable circular tangent angle.
+   * @param {Object} [orientation] - Reusable readable tangent, flip flag, cosine, and sine.
+   * @param {Number} [strand=1] - Reading direction (1 or -1).
+   * @param {Object} [cell] - Precomputed row geometry.
+   * @param {Object} [style] - Precomputed fill and text colors.
+   * @param {SequenceGlyphCache} [glyphCache] - Cached images for horizontal raster text.
+   * @returns {undefined} Paints one box and glyph, restoring any glyph transform.
    * @private
    */
-  _drawBase(ctx, base, bp, centerOffset, baselineOffset, tangentialAngle) {
+  _drawBase(ctx, base, bp, centerOffset, baselineOffset, orientation, strand = 1, cell, style, glyphCache) {
+    cell = cell || this._baseCellGeometry(this.detailScaleFactor(this.viewer.backbone.pixelsPerBp()), centerOffset);
+    style = style || (this.baseColorMode === 'byBase' ? this._baseCellStyleForBase(base, bp) : this._singleBaseCellStyle());
     const origin = this.canvas.pointForBp(bp, centerOffset);
-    if (this.baseTextOrientation === 'curved' && this.viewer.format === 'circular') {
-      const angle = tangentialAngle === undefined
-        ? this.canvas.tangentialTextOrientationForBp(bp).angle
-        : tangentialAngle;
+    const circular = this.viewer.format === 'circular';
+    const curvedText = circular && this.baseTextOrientation === 'curved';
+    orientation = orientation || (circular ? this.canvas.tangentialTextOrientationForBp(bp) : undefined);
+    const direction = orientation?.flipped ? -strand : strand;
+    ctx.fillStyle = style.fill;
+    ctx.lineWidth = cell.borderWidth;
+    if (cell.curved) {
+      traceCurvedChevron(this.canvas, ctx, bp, centerOffset, strand, cell);
+      ctx.fill();
+      ctx.stroke();
+    }
+    if (curvedText) {
       ctx.save();
       ctx.translate(origin.x, origin.y);
-      ctx.rotate(angle);
-      ctx.fillText(base, 0, baselineOffset);
-      ctx.restore();
-    } else {
-      ctx.fillText(base, origin.x, origin.y + baselineOffset);
+      ctx.rotate(orientation.angle);
     }
+    const x = curvedText ? 0 : origin.x;
+    const y = curvedText ? 0 : origin.y;
+    if (!cell.curved) {
+      const cos = !circular || curvedText ? 1 : orientation.cos ?? Math.cos(orientation.angle);
+      const sin = !circular || curvedText ? 0 : orientation.sin ?? Math.sin(orientation.angle);
+      traceChevron(ctx, x, y, direction, cell, cos, sin);
+      ctx.fill();
+      ctx.stroke();
+    }
+    ctx.fillStyle = style.text;
+    if (glyphCache) {
+      const glyph = glyphCache.get(base, style.text);
+      const width = glyph.width * cell.scaleFactor;
+      const height = glyph.height * cell.scaleFactor;
+      ctx.drawImage(glyph.image, glyph.sourceX, glyph.sourceY, glyph.sourceWidth, glyph.sourceHeight,
+        x - width / 2, y - height / 2, width, height);
+    } else {
+      ctx.fillText(base, x, y + baselineOffset);
+    }
+    if (curvedText) { ctx.restore(); }
   }
 
   draw() {
@@ -1106,40 +1248,55 @@ class Sequence extends CGObject {
       }
       let bp = range.start;
       ctx.save();
-      ctx.fillStyle = this.color.rgbaString;
+      ctx.strokeStyle = '#9ca3af';
+      ctx.lineJoin = 'round';
       ctx.font = this.font.cssScaled(scaleFactor);
       ctx.textAlign = 'center';
-      // ctx.textBaseline = 'middle';
       ctx.textBaseline = 'alphabetic'; // The default baseline works best across canvas and svg
-      const yOffset = (this.font.height * scaleFactor / 2) - 1;
+      const yOffset = this._baseTextBaselineOffset(ctx, scaleFactor);
+      const glyphCache = this._baseGlyphsForContext(ctx);
+      if (glyphCache) {
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
+      }
       // Distance from the center of the backbone to place sequence text
       const centerOffsetDiff = ((this.bpSpacing / 2) + this.bpMargin) * scaleFactor;
+      const directCell = this._baseCellGeometry(scaleFactor, centerOffset + centerOffsetDiff);
+      const reverseCell = this._baseCellGeometry(scaleFactor, centerOffset - centerOffsetDiff);
+      const singleStyle = this._singleBaseCellStyle();
+      const byBase = this.baseColorMode === 'byBase';
+      const circular = this.viewer.format === 'circular';
       this._baseColorVariantCache.clear();
       for (let i = 0, len = range.length; i < len; i++) {
-        const tangentialAngle = (
-          this.baseTextOrientation === 'curved' && this.viewer.format === 'circular'
-        ) ? this.canvas.tangentialTextOrientationForBp(bp).angle : undefined;
-        if (this.baseColorMode === 'byBase') {
-          ctx.fillStyle = this._colorForBase(seq[i], bp);
+        const orientation = circular ? this.canvas.tangentialTextOrientationForBp(bp) : undefined;
+        if (orientation) {
+          orientation.cos = Math.cos(orientation.angle);
+          orientation.sin = Math.sin(orientation.angle);
         }
+        const variant = byBase ? this._baseColorVariantForBp(bp) : undefined;
         this._drawBase(
           ctx,
           seq[i],
           bp,
           centerOffset + centerOffsetDiff,
           yOffset,
-          tangentialAngle,
+          orientation,
+          1,
+          directCell,
+          byBase ? this._baseCellStyleForBase(seq[i], bp, variant) : singleStyle,
+          glyphCache,
         );
-        if (this.baseColorMode === 'byBase') {
-          ctx.fillStyle = this._colorForBase(complement[i], bp);
-        }
         this._drawBase(
           ctx,
           complement[i],
           bp,
           centerOffset - centerOffsetDiff,
           yOffset,
-          tangentialAngle,
+          orientation,
+          -1,
+          reverseCell,
+          byBase ? this._baseCellStyleForBase(complement[i], bp, variant) : singleStyle,
+          glyphCache,
         );
         bp++;
       }

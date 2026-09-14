@@ -22,6 +22,7 @@
 import CGObject from './CGObject';
 import Color from './Color';
 import Font from './Font';
+import {traceChevron, traceCurvedChevron} from './SequenceCell';
 import utils from './Utils';
 
 const COMPLEMENT = {
@@ -561,17 +562,7 @@ class SequenceTranslation extends CGObject {
    * @private
    */
   _traceCell(ctx, x, y, direction, cell) {
-    const tail = x - direction * cell.halfWidth;
-    const tip = x + direction * cell.halfWidth;
-    const shoulder = tip - direction * cell.tipLength;
-    ctx.beginPath();
-    ctx.moveTo(tail, y - cell.halfHeight);
-    ctx.lineTo(shoulder, y - cell.halfHeight);
-    ctx.lineTo(tip, y);
-    ctx.lineTo(shoulder, y + cell.halfHeight);
-    ctx.lineTo(tail, y + cell.halfHeight);
-    ctx.lineTo(tail + direction * cell.tipLength, y);
-    ctx.closePath();
+    traceChevron(ctx, x, y, direction, cell);
   }
 
   /**
@@ -585,21 +576,7 @@ class SequenceTranslation extends CGObject {
    * @private
    */
   _traceCurvedCell(ctx, middle, centerOffset, strand, cell) {
-    const halfBp = cell.halfWidth / cell.pixelsPerBp;
-    const tipBp = cell.tipLength / cell.pixelsPerBp;
-    const tail = middle - strand * halfBp;
-    const tip = middle + strand * halfBp;
-    const shoulder = tip - strand * tipBp;
-    const tipPoint = this.canvas.pointForBp(tip, centerOffset);
-    const innerShoulder = this.canvas.pointForBp(shoulder, centerOffset - cell.halfHeight);
-    const notchPoint = this.canvas.pointForBp(tail + strand * tipBp, centerOffset);
-    ctx.beginPath();
-    this.canvas.path('map', centerOffset + cell.halfHeight, tail, shoulder, strand === -1);
-    ctx.lineTo(tipPoint.x, tipPoint.y);
-    ctx.lineTo(innerShoulder.x, innerShoulder.y);
-    this.canvas.path('map', centerOffset - cell.halfHeight, shoulder, tail, strand === 1, 'noMoveTo');
-    ctx.lineTo(notchPoint.x, notchPoint.y);
-    ctx.closePath();
+    traceCurvedChevron(this.canvas, ctx, middle, centerOffset, strand, cell);
   }
 
   _drawCodon(start, aminoAcid, isStart, isStop, centerOffset, layout, strand = 1, cell = this._cellGeometry(layout, centerOffset)) {
