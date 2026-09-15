@@ -22,7 +22,8 @@
 import CGObject from './CGObject';
 import Color from './Color';
 import Font from './Font';
-import {traceChevron, traceCurvedChevron} from './SequenceCell';
+import SequenceGlyphCache from './SequenceGlyphCache';
+import {CELL_VERTICAL_PADDING, traceChevron, traceCurvedChevron} from './SequenceCell';
 import utils from './Utils';
 
 const COMPLEMENT = {
@@ -45,11 +46,11 @@ const AMINO_ACID_NAMES = {
 
 const DETAIL_FADE_START = 0.25;
 const FULL_OPACITY_SCALE = 0.5;
+const AMINO_ACID_ALPHABET = 'ACDEFGHIKLMNPQRSTVWYBXZJUO*';
 
 // Translation cells need enough room for both the nominal font box and their
 // inset border. Keeping these values in unscaled screen pixels makes the cell,
 // lane, and glyph proportions remain stable through the detail transition.
-const HIGHLIGHT_VERTICAL_PADDING = 2.5;
 const LANE_VERTICAL_PADDING = 3.5;
 
 /**
@@ -299,7 +300,7 @@ class SequenceTranslation extends CGObject {
    * @private
    */
   _layoutForScale(scaleFactor, baseScaleFactor = scaleFactor) {
-    const highlightPadding = HIGHLIGHT_VERTICAL_PADDING * scaleFactor;
+    const highlightPadding = CELL_VERTICAL_PADDING * scaleFactor;
     const laneHeight = this.laneHeight * scaleFactor;
     const laneSpacing = this.laneSpacing * scaleFactor;
     const edgePadding = this.edgePadding * scaleFactor;
@@ -316,6 +317,7 @@ class SequenceTranslation extends CGObject {
     const outerLaneEdgeOffset = firstLaneCenterOffset + ((this.lanesPerStrand - 1) * laneStep) + (laneHeight / 2);
     const backboneEdgeOffset = sequenceHalfThickness + (this.strandThickness * scaleFactor);
     return {
+      scaleFactor,
       laneHeight,
       laneSpacing,
       edgePadding,
@@ -579,7 +581,20 @@ class SequenceTranslation extends CGObject {
     traceCurvedChevron(this.canvas, ctx, middle, centerOffset, strand, cell);
   }
 
-  _drawCodon(start, aminoAcid, isStart, isStop, centerOffset, layout, strand = 1, cell = this._cellGeometry(layout, centerOffset)) {
+  /** Prepare the shared cap-height baseline once per font. @private */
+  _textBaselineOffset(ctx, scaleFactor) {
+    return SequenceGlyphCache.baselineOffsetForFont(ctx, this.font) * scaleFactor;
+  }
+
+  /** Reuse amino-acid glyph sheets for all six lanes; SVG uses native text. @private */
+  _glyphsForContext(ctx) {
+    if (ctx.getSerializedSvg) { return; }
+    this._glyphCache = SequenceGlyphCache.forContext(ctx, this.font, this._glyphCache, AMINO_ACID_ALPHABET);
+    return this._glyphCache;
+  }
+
+  _drawCodon(start, aminoAcid, isStart, isStop, centerOffset, layout, strand = 1,
+    cell = this._cellGeometry(layout, centerOffset), glyphCache, baselineOffset = 0) {
     let fillColor = this.backgroundColor;
     let textColor = this.color;
     let borderColor = this.borderColor;
@@ -622,7 +637,11 @@ class SequenceTranslation extends CGObject {
       ctx.stroke();
     }
     ctx.fillStyle = textColor.rgbaString;
-    ctx.fillText(aminoAcid, x, y);
+    if (glyphCache) {
+      glyphCache.draw(ctx, aminoAcid, textColor.rgbaString, x, y, layout.scaleFactor);
+    } else {
+      ctx.fillText(aminoAcid, x, y + baselineOffset);
+    }
     if (circular) { ctx.restore(); }
   }
 
@@ -651,8 +670,14 @@ class SequenceTranslation extends CGObject {
     ctx.globalAlpha *= opacityProgress * (2 - opacityProgress);
     ctx.font = this.font.cssScaled(scaleFactor);
     ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
+    ctx.textBaseline = 'alphabetic';
     ctx.lineJoin = 'round';
+    const baselineOffset = this._textBaselineOffset(ctx, scaleFactor);
+    const glyphCache = this._glyphsForContext(ctx);
+    if (glyphCache) {
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = 'high';
+    }
     const laneGeometry = new Map();
     for (const contig of contigs) {
       const segments = this._visibleContigSegments(contig, visibleRange);
@@ -667,7 +692,7 @@ class SequenceTranslation extends CGObject {
             laneGeometry.set(lane, cell);
           }
           this._forEachCodon(contig, segments, strand, frame, codonTable, (start, codon, aminoAcid, isStart, isStop) => {
-            this._drawCodon(start, aminoAcid, isStart, isStop, centerOffset, layout, strand, cell);
+            this._drawCodon(start, aminoAcid, isStart, isStop, centerOffset, layout, strand, cell, glyphCache, baselineOffset);
           });
         }
       }

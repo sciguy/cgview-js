@@ -19,6 +19,37 @@ describe('Sequence zoom detail', () => {
       .toBe('horizontal');
   });
 
+  test('lets smaller bases match amino-acid height without changing their saved font', () => {
+    const cgv = new Viewer('#map', {sequence: {
+      seq: 'ATG'.repeat(100), font: 'sans-serif,plain,10', translation: {visible: true},
+    }});
+    const sequence = cgv.sequence;
+    const translation = sequence.translation;
+    const ctx = cgv.canvas.context('map');
+    const baseWidth = sequence.bpSpacing - sequence.bpMargin;
+
+    for (const size of [11, 13]) {
+      translation.font = `monospace,bold,${size}`;
+      const cell = sequence._baseCellGeometry(1, 100);
+      const layout = translation._layoutForScale(1);
+      expect(sequence._baseGlyphsForContext(ctx).fontSize).toBe(size);
+      expect(sequence._baseDetailFont.family).toBe('sans-serif');
+      expect(sequence._baseDetailFont.style).toBe('plain');
+      expect(2 * cell.halfHeight + cell.borderWidth).toBe(layout.highlightHeight);
+      expect(2 * sequence._baseRowCenterOffset - layout.highlightHeight).toBe(sequence.bpMargin);
+      expect(sequence._baseRowCenterOffset + layout.highlightHeight / 2).toBeLessThan(sequence.baseThickness / 2);
+      expect(sequence.detailScaleFactor(baseWidth)).toBe(1);
+    }
+
+    expect(sequence.font.string).toBe('sans-serif,plain,10');
+    expect(sequence.toJSON().font).toBe('sans-serif,plain,10');
+    translation.visible = false;
+    expect(sequence._baseGlyphsForContext(ctx).fontSize).toBe(10);
+    sequence.font = 'sans-serif,plain,16';
+    translation.visible = true;
+    expect(sequence._baseGlyphsForContext(ctx).fontSize).toBe(16);
+  });
+
   test('draws curved circular bases on the readable local tangent', () => {
     const cgv = new Viewer('#map', {
       sequence: {seq: 'ATGC', baseTextOrientation: 'curved'},

@@ -363,10 +363,13 @@ class Backbone extends CGObject {
       // const zoomedThicknessWithoutAddition = Math.min(this.adjustedCenterOffset, this.viewer.maxZoomedRadius()) * (this.thickness / this.centerOffset);
       // FIXME: see adjustedThickness for note. Use 4 for now.
       const zoomedThicknessWithoutAddition = Math.min(this.viewer.zoomFactor, 4) * this.thickness;
-      const baseAddition = Math.max(0, Math.min(
-        pixelsPerBp * 2,
-        this.sequence.baseThickness - zoomedThicknessWithoutAddition,
-      ));
+      const baseThickness = this.sequence.baseThickness;
+      // Larger nucleotide cells must fit even when their configured spacing
+      // reaches full detail before the old pixels-per-bp expansion does.
+      const baseAddition = Math.max(0,
+        Math.min(pixelsPerBp * 2, baseThickness - zoomedThicknessWithoutAddition),
+        baseThickness * this.sequence.detailScaleFactor(pixelsPerBp) - zoomedThicknessWithoutAddition,
+      );
       this._bpThicknessAddition = baseAddition + this.sequence.translation.scaledThickness(pixelsPerBp);
     } else {
       this._bpThicknessAddition = 0;

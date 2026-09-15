@@ -381,6 +381,10 @@ describe('SequenceTranslation', () => {
       opacities.push(ctx.globalAlpha);
       fonts.push(ctx.font);
     });
+    jest.spyOn(ctx, 'drawImage').mockImplementation(() => {
+      opacities.push(ctx.globalAlpha);
+      fonts.push(ctx.font);
+    });
 
     // These zoom levels produce small, half-size, and full-size translations.
     for (const pixelsPerBp of [4.5, 7.5, 12]) {
@@ -398,6 +402,7 @@ describe('SequenceTranslation', () => {
       }
       if (pixelsPerBp === 7.5) {
         expect(translation.scaleFactor(pixelsPerBp)).toBe(0.5);
+        expect(fonts.length).toBeGreaterThan(0);
         for (const font of fonts) {
           expect(Number(font.match(/([\d.]+)px/)[1])).toBe(translation.font.size / 2);
         }
@@ -445,6 +450,25 @@ describe('SequenceTranslation', () => {
     pixelsPerBp.mockReturnValue(20);
     translation.visible = false;
     expect(cgv.backbone.adjustedThickness).toBe(cgv.sequence.baseThickness);
+  });
+
+  test('reserves backbone space when a smaller base font grows to match translation', () => {
+    const cgv = new Viewer('#map', {sequence: {
+      seq: 'ATG'.repeat(100), font: 'sans-serif,plain,10', translation: {visible: true},
+    }});
+    const sequence = cgv.sequence;
+    const translation = sequence.translation;
+    cgv._zoomFactor = 4;
+    const pixelsPerBp = jest.spyOn(cgv.backbone, 'pixelsPerBp');
+    for (const fontSize of [11, 13]) {
+      translation.font = `monospace,plain,${fontSize}`;
+      for (const pixels of [2, 4, 5, 6, 8, 10, 14]) {
+        pixelsPerBp.mockReturnValue(pixels);
+        cgv.backbone.refreshThickness();
+        const layout = translation._layoutForScale(translation.scaleFactor(pixels), sequence.detailScaleFactor(pixels));
+        expect(cgv.backbone.adjustedThickness).toBeGreaterThanOrEqual(2 * layout.backboneEdgeOffset);
+      }
+    }
   });
 
   test('round trips all testing controls and resets them when loading an unconfigured map', () => {

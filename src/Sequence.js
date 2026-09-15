@@ -26,7 +26,7 @@ import Contig from './Contig';
 import SequenceExtractor from './SequenceExtractor';
 import SequenceTranslation from './SequenceTranslation';
 import SequenceGlyphCache from './SequenceGlyphCache';
-import {traceChevron, traceCurvedChevron} from './SequenceCell';
+import {CELL_VERTICAL_PADDING, traceChevron, traceCurvedChevron} from './SequenceCell';
 import Color from './Color';
 import Font from './Font';
 import utils from './Utils';
@@ -74,6 +74,9 @@ const BASE_TEXT_ORIENTATIONS = Object.freeze(['horizontal', 'curved']);
  *
  * Letters, fills, and outlines fade in together before quarter-size detail,
  * reaching full opacity at the zoom where bases previously first appeared.
+ * When translations are shown, smaller base fonts grow to the amino-acid font
+ * size, retaining their configured family and style. Both use the same vertical
+ * cell padding, with separate space reserved for the nucleotide rows.
  *
  * Each contig independently selects `baseColors.onLight` or
  * `baseColors.onDark` from the luminance of its rendered backbone. A
@@ -519,7 +522,30 @@ class Sequence extends CGObject {
 
   /** Nucleotide-row thickness before adding translation lanes. @private */
   get baseThickness() {
-    return (this.bpSpacing * 2) + (this.bpMargin * 8);
+    return (2 * this._baseCellHeight) + (3 * this.bpMargin);
+  }
+
+  /** Full-size base font, large enough to match visible amino acids. @private */
+  get _baseDetailFont() {
+    const size = this.translation?.visible && this.hasSeq
+      ? Math.max(this.font.size, this.translation.font.size)
+      : this.font.size;
+    if (size === this.font.size) { return this.font; }
+    if (this._enlargedBaseFont?.source !== this.font.css || this._enlargedBaseFont.font.size !== size) {
+      this._enlargedBaseFont = {source: this.font.css,
+        font: new Font({family: this.font.family, style: this.font.style, size})};
+    }
+    return this._enlargedBaseFont.font;
+  }
+
+  /** Full outer cell height, including its inset stroke. @private */
+  get _baseCellHeight() {
+    return this._baseDetailFont.height + (2 * CELL_VERTICAL_PADDING);
+  }
+
+  /** Center of either nucleotide row, leaving one margin between them. @private */
+  get _baseRowCenterOffset() {
+    return (this._baseCellHeight + this.bpMargin) / 2;
   }
 
   /** @member {SequenceTranslation} - Six-frame translation settings and renderer. */
@@ -1117,9 +1143,9 @@ class Sequence extends CGObject {
    */
   _baseCellGeometry(scaleFactor, centerOffset) {
     const pixelsPerBp = this.canvas.pixelsPerBp(centerOffset);
-    const halfHeight = (this.font.height + this.bpMargin) * scaleFactor / 2;
-    const tipLength = Math.min(halfHeight * 0.2, pixelsPerBp * 0.125);
     const borderWidth = 0.5 * scaleFactor;
+    const halfHeight = (this._baseCellHeight * scaleFactor - borderWidth) / 2;
+    const tipLength = Math.min(halfHeight * 0.2, pixelsPerBp * 0.125);
     const halfWidth = Math.max(0, (pixelsPerBp + tipLength - 1 - borderWidth) / 2);
     const curveError = (pixelsPerBp * pixelsPerBp / 8 + pixelsPerBp * halfHeight / 2) / centerOffset;
     return {halfWidth, halfHeight, tipLength, pixelsPerBp, scaleFactor,
@@ -1136,19 +1162,7 @@ class Sequence extends CGObject {
    * @private
    */
   _baseTextBaselineOffset(ctx, scaleFactor) {
-    const font = this.font.css;
-    if (this._baseTextMetrics?.font !== font) {
-      const previousFont = ctx.font;
-      ctx.font = font;
-      // A flat cap avoids the optical overshoot of rounded letters such as C/G.
-      const {actualBoundingBoxAscent: ascent, actualBoundingBoxDescent: descent} = ctx.measureText('H');
-      ctx.font = previousFont;
-      const offset = Number.isFinite(ascent) && Number.isFinite(descent) && ascent + descent > 0
-        ? (ascent - descent) / 2
-        : this.font.height * 0.35;
-      this._baseTextMetrics = {font, offset};
-    }
-    return this._baseTextMetrics.offset * scaleFactor;
+    return SequenceGlyphCache.baselineOffsetForFont(ctx, this._baseDetailFont) * scaleFactor;
   }
 
   /**
@@ -1162,11 +1176,7 @@ class Sequence extends CGObject {
     if ((this.viewer.format === 'circular' && this.baseTextOrientation === 'curved') || ctx.getSerializedSvg) {
       return;
     }
-    const transform = ctx.getTransform();
-    const pixelRatio = Math.max(2, Math.abs(transform.a), Math.abs(transform.d));
-    if (this._baseGlyphCache?.font !== this.font.css || this._baseGlyphCache.pixelRatio !== pixelRatio) {
-      this._baseGlyphCache = new SequenceGlyphCache(this.font, pixelRatio, this._baseTextMetrics.offset);
-    }
+    this._baseGlyphCache = SequenceGlyphCache.forContext(ctx, this._baseDetailFont, this._baseGlyphCache);
     return this._baseGlyphCache;
   }
 
@@ -1217,11 +1227,7 @@ class Sequence extends CGObject {
     }
     ctx.fillStyle = style.text;
     if (glyphCache) {
-      const glyph = glyphCache.get(base, style.text);
-      const width = glyph.width * cell.scaleFactor;
-      const height = glyph.height * cell.scaleFactor;
-      ctx.drawImage(glyph.image, glyph.sourceX, glyph.sourceY, glyph.sourceWidth, glyph.sourceHeight,
-        x - width / 2, y - height / 2, width, height);
+      glyphCache.draw(ctx, base, style.text, x, y, cell.scaleFactor);
     } else {
       ctx.fillText(base, x, y + baselineOffset);
     }
@@ -1257,7 +1263,7 @@ class Sequence extends CGObject {
       ctx.globalAlpha *= opacityProgress * opacityProgress * (3 - 2 * opacityProgress);
       ctx.strokeStyle = '#9ca3af';
       ctx.lineJoin = 'round';
-      ctx.font = this.font.cssScaled(scaleFactor);
+      ctx.font = this._baseDetailFont.cssScaled(scaleFactor);
       ctx.textAlign = 'center';
       ctx.textBaseline = 'alphabetic'; // The default baseline works best across canvas and svg
       const yOffset = this._baseTextBaselineOffset(ctx, scaleFactor);
@@ -1267,7 +1273,7 @@ class Sequence extends CGObject {
         ctx.imageSmoothingQuality = 'high';
       }
       // Distance from the center of the backbone to place sequence text
-      const centerOffsetDiff = ((this.bpSpacing / 2) + this.bpMargin) * scaleFactor;
+      const centerOffsetDiff = this._baseRowCenterOffset * scaleFactor;
       const directCell = this._baseCellGeometry(scaleFactor, centerOffset + centerOffsetDiff);
       const reverseCell = this._baseCellGeometry(scaleFactor, centerOffset - centerOffsetDiff);
       const singleStyle = this._singleBaseCellStyle();

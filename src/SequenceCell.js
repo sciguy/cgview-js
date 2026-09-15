@@ -3,6 +3,9 @@
  * Callers supply geometry, colors, and any glyph transforms.
  */
 
+/** Unscaled vertical padding around nucleotide and amino-acid fonts. */
+export const CELL_VERTICAL_PADDING = 2.5;
+
 /**
  * Trace a chevron, optionally rotating its vertices without changing the canvas
  * transform. This lets horizontal letters sit inside directional circular cells.
