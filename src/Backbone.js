@@ -314,12 +314,15 @@ class Backbone extends CGObject {
     this._visibleRange = this.canvas.visibleRangeForCenterOffset( this.adjustedCenterOffset, { margin: 100 });
     if (this.visibleRange && this.visible) {
       this.refreshThickness();
+      // Translation adds drawing space without enlarging decorative edge shading.
+      const shadingWidth = (this.adjustedThickness -
+        this.sequence.translation.scaledThickness(this.pixelsPerBp())) * 0.10;
 
       if (this.sequence.hasMultipleContigs) {
         const contigs = this.sequence.contigsForMapRange(this.visibleRange);
         if (fast && contigs.length > this._maxContigsForFastDraw) {
           // Use fast drawing method when too many contigs
-          this.viewer.canvas.drawElement({layer: 'map', start: this.visibleRange.start, stop: this.visibleRange.stop, centerOffset: this.adjustedCenterOffset, color: this.color.rgbaString, width: this.adjustedThickness, decoration: this.directionalDecorationForContig(this.sequence.mapContig), showShading: this.showShading, showBorder: this.showBorder});
+          this.viewer.canvas.drawElement({layer: 'map', start: this.visibleRange.start, stop: this.visibleRange.stop, centerOffset: this.adjustedCenterOffset, color: this.color.rgbaString, width: this.adjustedThickness, decoration: this.directionalDecorationForContig(this.sequence.mapContig), showShading: this.showShading, shadingWidth, showBorder: this.showBorder});
           return;
         }
         for (let i = 0, len = contigs.length; i < len; i++) {
@@ -336,14 +339,14 @@ class Backbone extends CGObject {
             stop = this.visibleRange.stop;
           }
           const color = this.colorForContig(contig);
-          this.viewer.canvas.drawElement({layer: 'map', start, stop, centerOffset: this.adjustedCenterOffset, color: color.rgbaString, width: this.adjustedThickness, decoration: this.directionalDecorationForContig(contig), showShading: this.showShading, showBorder: this.showBorder});
+          this.viewer.canvas.drawElement({layer: 'map', start, stop, centerOffset: this.adjustedCenterOffset, color: color.rgbaString, width: this.adjustedThickness, decoration: this.directionalDecorationForContig(contig), showShading: this.showShading, shadingWidth, showBorder: this.showBorder});
         }
       } else {
         if (this.visibleRange.isWrapped() && this.decoration === 'arrow') {
-          this.viewer.canvas.drawElement({layer: 'map', start: this.visibleRange.start, stop: this.sequence.length, centerOffset: this.adjustedCenterOffset, color: this.color.rgbaString, width: this.adjustedThickness, decoration: this.directionalDecorationForContig(this.sequence.mapContig), showShading: this.showShading, showBorder: this.showBorder});
-          this.viewer.canvas.drawElement({layer: 'map', start: 1, stop: this.visibleRange.stop, centerOffset: this.adjustedCenterOffset, color: this.color.rgbaString, width: this.adjustedThickness, decoration: this.directionalDecorationForContig(this.sequence.mapContig), showShading: this.showShading, showBorder: this.showBorder});
+          this.viewer.canvas.drawElement({layer: 'map', start: this.visibleRange.start, stop: this.sequence.length, centerOffset: this.adjustedCenterOffset, color: this.color.rgbaString, width: this.adjustedThickness, decoration: this.directionalDecorationForContig(this.sequence.mapContig), showShading: this.showShading, shadingWidth, showBorder: this.showBorder});
+          this.viewer.canvas.drawElement({layer: 'map', start: 1, stop: this.visibleRange.stop, centerOffset: this.adjustedCenterOffset, color: this.color.rgbaString, width: this.adjustedThickness, decoration: this.directionalDecorationForContig(this.sequence.mapContig), showShading: this.showShading, shadingWidth, showBorder: this.showBorder});
         } else {
-          this.viewer.canvas.drawElement({layer: 'map', start: this.visibleRange.start, stop: this.visibleRange.stop, centerOffset: this.adjustedCenterOffset, color: this.color.rgbaString, width: this.adjustedThickness, decoration: this.directionalDecorationForContig(this.sequence.mapContig), showShading: this.showShading, showBorder: this.showBorder});
+          this.viewer.canvas.drawElement({layer: 'map', start: this.visibleRange.start, stop: this.visibleRange.stop, centerOffset: this.adjustedCenterOffset, color: this.color.rgbaString, width: this.adjustedThickness, decoration: this.directionalDecorationForContig(this.sequence.mapContig), showShading: this.showShading, shadingWidth, showBorder: this.showBorder});
         }
       }
 
@@ -360,12 +363,14 @@ class Backbone extends CGObject {
       // const zoomedThicknessWithoutAddition = Math.min(this.adjustedCenterOffset, this.viewer.maxZoomedRadius()) * (this.thickness / this.centerOffset);
       // FIXME: see adjustedThickness for note. Use 4 for now.
       const zoomedThicknessWithoutAddition = Math.min(this.viewer.zoomFactor, 4) * this.thickness;
-      const addition = pixelsPerBp * 2;
-      if ( (zoomedThicknessWithoutAddition + addition ) >= this.maxThickness) {
-        this._bpThicknessAddition = this.maxThickness - zoomedThicknessWithoutAddition;
-      } else {
-        this._bpThicknessAddition = addition;
-      }
+      const baseThickness = this.sequence.baseThickness;
+      // Larger nucleotide cells must fit even when their configured spacing
+      // reaches full detail before the old pixels-per-bp expansion does.
+      const baseAddition = Math.max(0,
+        Math.min(pixelsPerBp * 2, baseThickness - zoomedThicknessWithoutAddition),
+        baseThickness * this.sequence.detailScaleFactor(pixelsPerBp) - zoomedThicknessWithoutAddition,
+      );
+      this._bpThicknessAddition = baseAddition + this.sequence.translation.scaledThickness(pixelsPerBp);
     } else {
       this._bpThicknessAddition = 0;
     }

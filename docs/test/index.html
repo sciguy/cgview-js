@@ -27,7 +27,7 @@
     <script src="../scripts/d3.min.js"></script>
     <script src="../scripts/svgcanvas.iife.js"></script>
     <!-- CGView -->
-    <script src='../dist/cgview.min.js?v=sequence-settings'></script>
+    <script src='../dist/cgview.min.js?v=amino-glyph-centering-base-size'></script>
 
     <link rel="stylesheet" href="../dist/cgview.css" />
     <link rel="stylesheet" href="../styles/controls.css" />
@@ -37,7 +37,7 @@
 
     <!-- Dev Page -->
     <script src='performance.js'></script>
-    <link rel="stylesheet" href="test.css?v=sequence-settings" />
+    <link rel="stylesheet" href="test.css?v=translation-testing" />
     <!-- Test Map Data -->
     <script src='maps.js'></script>
 
@@ -133,6 +133,7 @@
             <div>
               <div><label><input id='option-show-plots' type='checkbox' /> Plots</label></div>
               <div><label><input id='option-show-sequence' type='checkbox' /> Sequence</label></div>
+              <div><label><input id='option-show-translation' type='checkbox' aria-controls='translation-testing' /> Translation</label></div>
               <div><label><input id='option-show-labels' type='checkbox' /> Labels Testing</label></div>
               <div><label><input id='option-show-ruler' type='checkbox' /> Ruler Testing</label></div>
               <div><label><input id='option-show-performance' type='checkbox' /> Performance Testing</label></div>
@@ -175,6 +176,22 @@
           </fieldset>
           <hr />
         </div>
+        <section id='translation-testing' class='section-translation' aria-labelledby='translation-testing-heading' hidden>
+          <div class='test-heading' id='translation-testing-heading'>Translation Testing</div>
+          <div class='translation-options'>
+            <label><input id='translation-visible' type='checkbox' /> Six-frame translation</label>
+            <label><input id='translation-highlight-starts' type='checkbox' /> Highlight start codons</label>
+            <label><input id='translation-highlight-stops' type='checkbox' /> Highlight stop codons</label>
+            <label for='translation-genetic-code'>Genetic code</label>
+            <select id='translation-genetic-code' class='form-select form-select-sm'></select>
+            <div class='translation-colors'>
+              <label for='translation-start-color'>Start fill <input id='translation-start-color' type='color' /></label>
+              <label for='translation-stop-color'>Stop fill <input id='translation-stop-color' type='color' /></label>
+            </div>
+          </div>
+          <p class='translation-help'>Zoom in to see all six reading frames. Requires a map with sequence data.</p>
+          <hr />
+        </section>
         <section id='track-sizing' class='section-track-sizing' aria-labelledby='track-sizing-heading'>
           <div class='test-heading' id='track-sizing-heading'>Track Sizing</div>
           <div class='track-sizing-controls'>
@@ -297,7 +314,7 @@
     <!-- Bootstrap JavaScript -->
     <script src="../scripts/bootstrap.min.js"></script>
 
-    <script src='test.js?v=sequence-settings'></script>
+    <script src='test.js?v=translation-default'></script>
     <script src='track-sizing.js?v=3'></script>
     <script src='../scripts/controls.js'></script>
 

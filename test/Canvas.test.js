@@ -136,6 +136,29 @@ describe('Canvas', () => {
     expect(canvas.arrowHeadLengthPixels({autoArrow: true, centerOffset: 100, featureLengthBp: 20, width: 20})).toBe(6);
   });
 
+  test('uses translation border overrides without changing the default feature border', () => {
+    canvas.pixelsPerBp.mockReturnValue(12);
+    const options = {start: 10, stop: 12, centerOffset: 100, width: 16, showBorder: true};
+    canvas.drawElement({...options, borderColor: 'green', borderThickness: 0.4});
+    expect(context.strokeStyle).toBe('green');
+    expect(context.lineWidth).toBe(0.4);
+
+    canvas.drawElement(options);
+    expect(context.strokeStyle).toBe('rgba(0,0,0,1)');
+    expect(context.lineWidth).toBe(0.75);
+  });
+
+  test('keeps shaded edges narrow when the backbone expands for translations', () => {
+    canvas.pixelsPerBp.mockReturnValue(12);
+    const widths = [];
+    context.stroke.mockImplementation(() => widths.push(context.lineWidth));
+    canvas.drawElement({
+      start: 10, stop: 12, centerOffset: 100, width: 160,
+      showShading: true, shadingWidth: 2,
+    });
+    expect(widths).toEqual([156, 2, 2]);
+  });
+
   test('draws curved text with a complete halo pass before glyph fills', () => {
     canvas.pixelsPerBp.mockReturnValue(2);
 

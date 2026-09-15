@@ -31,8 +31,8 @@ import * as d3 from 'd3';
  * -----------|-----------------------------------------------
  *  bp        | Base pair
  *  centerOffset | Distance from center of the map. For a circular map, this is the radius, while for a linear map, it's the distance from the backbone.
- *  elementType | One of: 'legendItem', 'caption', 'feature', 'plot', 'backbone', 'contig', 'label', or undefined
- *  element   | The element (e.g, a feature), if there is one.
+ *  elementType | One of: 'legendItem', 'caption', 'feature', 'plot', 'translation', 'backbone', 'contig', 'label', or undefined
+ *  element   | The element (e.g, a feature), if there is one. For 'translation', contains the hovered codon's map range, signed frame, codon, amino acid, start/stop flags, genetic code, and contig.
  *  slot      | Slot (if there is one). Track can be accessed from the slot (<em>slot.track</em>).
  *  score     | Score for element (e.g. feature, plot), if available.
  *  canvasX   | Position on the canvas X axis, where the origin is the top-left. See [scales](../tutorials/details-map-scales.html) for details.
@@ -240,7 +240,7 @@ class EventMonitor {
 
   /**
    * Returns an object with the *element* and *elementType* for the given *slot*, *bp*, and *centerOffset*.
-   * ElementType can be one of the following: 'plot', 'feature', 'label', 'legendItem', 'captionItem', 'contig', 'backbone'
+   * ElementType can be one of the following: 'plot', 'feature', 'translation', 'label', 'legendItem', 'captionItem', 'contig', 'backbone'
    * @param {Slot}  slot - the slot for the event.
    * @param {Number}  bp - the bp for the event.
    * @param {Number}  centerOffset - the centerOffset for the event.
@@ -296,6 +296,12 @@ class EventMonitor {
         elementType = 'plot';
         element = slot._plot;
       }
+    }
+
+    // Visible translation lanes provide more specific details than the backbone.
+    if (!elementType) {
+      element = this.viewer.sequence.translation.hitTest(bp, centerOffset);
+      if (element) { elementType = 'translation'; }
     }
 
     // Check for Backbone or Contig

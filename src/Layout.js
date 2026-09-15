@@ -894,10 +894,11 @@ class Layout {
     // ctx.textBaseline = 'top';
 
     // Draw Backbone
+    const previousBackboneThickness = backbone.adjustedThickness;
     backbone.draw(fast);
 
-    // Recalculate the slot offsets and thickness if the zoom level has changed
-    this.updateLayout();
+    // Refresh slot offsets when zoom or sequence-detail thickness changes.
+    this.updateLayout(backbone.adjustedThickness !== previousBackboneThickness);
 
     // Divider rings
     viewer.dividers.draw();

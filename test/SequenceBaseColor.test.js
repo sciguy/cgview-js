@@ -167,11 +167,11 @@ describe('Sequence base coloring', () => {
     expect(secondViewer.io.toJSON().cgview.sequence).toEqual(exported.cgview.sequence);
   });
 
-  test('colors both strands across the origin using each contig backbone', () => {
+  test.each(['horizontal', 'curved'])('fills boxes on both strands across the origin with %s bases', (orientation) => {
     const cgv = new Viewer('#map', {
       sequence: {
         baseColorMode: 'byBase',
-        baseTextOrientation: 'curved',
+        baseTextOrientation: orientation,
         contigs: [
           {name: 'Light', seq: 'AC', color: 'white'},
           {name: 'Dark', seq: 'GU', color: 'black'},
@@ -183,25 +183,63 @@ describe('Sequence base coloring', () => {
       .mockReturnValue(new CGRange(cgv.sequence.mapContig, 4, 2));
     const ctx = cgv.canvas.context('map');
     const rendered = [];
+    let fill;
+    let currentBase;
+    const drawBase = cgv.sequence._drawBase;
+    jest.spyOn(cgv.sequence, '_drawBase').mockImplementation(function(...args) {
+      currentBase = args[1];
+      return drawBase.apply(this, args);
+    });
+    jest.spyOn(ctx, 'fill').mockImplementation(() => { fill = rgba(ctx.fillStyle); });
     jest.spyOn(ctx, 'fillText').mockImplementation((base) => {
-      rendered.push({base, color: rgba(ctx.fillStyle)});
+      rendered.push({base, fill, text: rgba(ctx.fillStyle)});
+    });
+    jest.spyOn(ctx, 'drawImage').mockImplementation((image) => {
+      const glyphContext = image.getContext('2d');
+      rendered.push({base: currentBase, fill, text: rgba(glyphContext.fillStyle)});
     });
 
     cgv.sequence.draw();
 
     expect(rendered).toEqual([
-      {base: 'U', color: rgba(DEFAULT_BASE_COLORS.onDark.T)},
-      {base: 'A', color: rgba(DEFAULT_BASE_COLORS.onDark.A)},
-      {base: 'A', color: rgba(DEFAULT_BASE_COLORS.onLight.A)},
-      {base: 'T', color: rgba(DEFAULT_BASE_COLORS.onLight.T)},
-      {base: 'C', color: rgba(DEFAULT_BASE_COLORS.onLight.C)},
-      {base: 'G', color: rgba(DEFAULT_BASE_COLORS.onLight.G)},
+      {base: 'U', fill: rgba(DEFAULT_BASE_COLORS.onDark.T), text: rgba('black')},
+      {base: 'A', fill: rgba(DEFAULT_BASE_COLORS.onDark.A), text: rgba('black')},
+      {base: 'A', fill: rgba(DEFAULT_BASE_COLORS.onLight.A), text: rgba('white')},
+      {base: 'T', fill: rgba(DEFAULT_BASE_COLORS.onLight.T), text: rgba('white')},
+      {base: 'C', fill: rgba(DEFAULT_BASE_COLORS.onLight.C), text: rgba('white')},
+      {base: 'G', fill: rgba(DEFAULT_BASE_COLORS.onLight.G), text: rgba('white')},
     ]);
 
     cgv.sequence.update({baseColorMode: 'single', color: 'navy'});
     rendered.length = 0;
     cgv.sequence.draw();
     expect(rendered).toHaveLength(6);
-    expect(rendered.every(({color}) => color === rgba('navy'))).toBe(true);
+    expect(rendered.every(({text, fill}) => text === rgba('navy') && fill === rgba('#e5e7eb'))).toBe(true);
+  });
+
+  test('chooses text contrast from custom fills and refreshes cached palette styles', () => {
+    const cgv = new Viewer('#map', {sequence: {seq: 'ATGN', baseColorMode: 'byBase',
+      baseColors: {onDark: {A: 'black', T: 'white', ambiguous: '#000080'}},
+    }});
+    const sequence = cgv.sequence;
+    expect(sequence._baseCellStyleForBase('A', 1).text).toBe(rgba('white'));
+    expect(sequence._baseCellStyleForBase('U', 2).text).toBe(rgba('black'));
+    expect(sequence._baseCellStyleForBase('N', 4).text).toBe(rgba('white'));
+    const cached = sequence._baseCellStyleForBase('A', 1);
+    expect(sequence._baseCellStyleForBase('A', 1)).toBe(cached);
+    sequence.update({baseColors: {onDark: {A: 'white'}}});
+    expect(sequence._baseCellStyleForBase('A', 1).text).toBe(rgba('black'));
+    expect(sequence._baseCellStyleForBase('A', 1)).not.toBe(cached);
+  });
+
+  test('chooses contrasting letters after compositing translucent fills over each contig', () => {
+    const fill = 'rgba(0,0,0,0.1)';
+    const cgv = new Viewer('#map', {sequence: {baseColorMode: 'byBase',
+      contigs: [{seq: 'A', color: 'white'}, {seq: 'A', color: 'black'}],
+      baseColors: {onLight: {A: fill}, onDark: {A: fill}},
+    }});
+    const sequence = cgv.sequence;
+    expect(sequence._baseCellStyleForBase('A', 1)).toEqual({fill: rgba(fill), text: rgba('black')});
+    expect(sequence._baseCellStyleForBase('A', 2)).toEqual({fill: rgba(fill), text: rgba('white')});
   });
 });

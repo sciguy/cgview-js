@@ -291,6 +291,9 @@ class Canvas {
    *   [Default: value from settings {@link Settings#showShading}]
    * @param {Boolean} [options.showBorder] - Should the element be drawn with a border
    *   [Default: value from settings {@link Settings#showBorder}]
+   * @param {String} [options.borderColor] - Override the settings border color.
+   * @param {Number} [options.borderThickness] - Border width in screen pixels.
+   * @param {Number} [options.shadingWidth] - Shaded edge width in screen pixels.
    * @param {Boolean} [options.fast=false] - Fast drawing mode
    * @param {Boolean} [options.selected=false] - Is the element selected
    * @param {Number} [options.minArcLength] - Minimum arc length in pixels
@@ -339,7 +342,10 @@ class Canvas {
       decoration = 'arc',
       autoArrow = false,
       showShading = settings.showShading,
+      shadingWidth,
       showBorder = settings.showBorder,
+      borderColor = settings.borderColor.rgbaString,
+      borderThickness,
       fast = false,
       selected = false,
       minArcLength = this.viewer.legend.defaultMinArcLength,
@@ -357,13 +363,20 @@ class Canvas {
     // Shading settings
     const shadowFraction = 0.10;
     const shadowColorDiff = 0.15;
+    const shadowWidth = Math.min(
+      width / 2,
+      Math.max(0, Number(utils.defaultFor(shadingWidth, width * shadowFraction)) || 0),
+    );
 
     // Border settings
-    let borderWidth = settings.borderThickness;
+    let borderWidth = borderThickness === undefined ?
+      settings.borderThickness : Math.max(0, Number(borderThickness) || 0);
     let selectedBorderDash = [3, 1];
-    // Above this zoom factor, border width will not increase
-    const zoomFactorMaxForBorder = 2;
-    borderWidth = (Math.min(this.viewer.zoomFactor, zoomFactorMaxForBorder) * (borderWidth/ zoomFactorMaxForBorder));
+    if (borderThickness === undefined) {
+      // Above this zoom factor, the default border width will not increase.
+      const zoomFactorMaxForBorder = 2;
+      borderWidth = (Math.min(this.viewer.zoomFactor, zoomFactorMaxForBorder) * (borderWidth / zoomFactorMaxForBorder));
+    }
 
     // TODO:
     // - skip border for fast draw
@@ -420,7 +433,6 @@ class Canvas {
       }
 
       if (showShading && !fast) {
-        const shadowWidth = width * shadowFraction;
         // Main Arc
         const mainWidth = width - (2 * shadowWidth);
         ctx.beginPath();
@@ -463,7 +475,7 @@ class Canvas {
         // const adjustedBorderWidth = borderWidth;
         ctx.beginPath();
         // ctx.strokeStyle = 'rgba(0,0,0,0.5)';
-        ctx.strokeStyle = settings.borderColor.rgbaString;
+        ctx.strokeStyle = borderColor;
         ctx.lineWidth = borderWidth;
         this.path(layer, centerOffset + halfMainWidth - adjustedBorderWidth, start, stop);
 
@@ -521,7 +533,7 @@ class Canvas {
       }
 
       if (showShading && !fast) {
-        const halfMainWidth =  width * (0.5 - shadowFraction);
+        const halfMainWidth = (width / 2) - shadowWidth;
         const shadowPt = this.pointForBp(arcStopBp, centerOffset - halfMainWidth);
 
         // Main Arrow
@@ -579,7 +591,7 @@ class Canvas {
         // const adjustedBorderWidth = borderWidth;
         ctx.beginPath();
         // ctx.strokeStyle = 'rgba(0,0,0,0.5)';
-        ctx.strokeStyle = settings.borderColor.rgbaString;
+        ctx.strokeStyle = borderColor;
         ctx.lineWidth = borderWidth;
         this.path(layer, centerOffset + halfMainWidth - adjustedBorderWidth, arcStartBp, arcStopBp, direction === -1);
 
