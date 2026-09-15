@@ -72,6 +72,9 @@ const BASE_TEXT_ORIENTATIONS = Object.freeze(['horizontal', 'curved']);
  * contrasting black or white letters. U shares the T color; all other
  * characters use the ambiguous color.
  *
+ * Letters, fills, and outlines fade in together before quarter-size detail,
+ * reaching full opacity at the zoom where bases previously first appeared.
+ *
  * Each contig independently selects `baseColors.onLight` or
  * `baseColors.onDark` from the luminance of its rendered backbone. A
  * translucent backbone is first composited over the map background. Changing
@@ -1228,11 +1231,14 @@ class Sequence extends CGObject {
   draw() {
     const backbone = this.viewer.backbone;
     const pixelsPerBp = backbone.pixelsPerBp();
-    if (!this.visible || pixelsPerBp < 1) { return; }
-    const ctx = this.canvas.context('map');
-    const seqZoomFactor = 0.25; // The scale at which the sequence will first appear.
-    if (pixelsPerBp < (this.bpSpacing - this.bpMargin) * seqZoomFactor) { return; }
+    if (!this.visible) { return; }
+    // Start fading at half the former appearance cutoff and finish at that cutoff.
+    // Smoothstep keeps both ends continuous, including when zooming back out.
+    const fullOpacityPixels = Math.max(1, (this.bpSpacing - this.bpMargin) * 0.25);
+    const opacityProgress = Math.max(0, Math.min(1, 2 * pixelsPerBp / fullOpacityPixels - 1));
+    if (!opacityProgress) { return; }
 
+    const ctx = this.canvas.context('map');
     const scaleFactor = this.detailScaleFactor(pixelsPerBp);
 
     const centerOffset = backbone.adjustedCenterOffset;
@@ -1248,6 +1254,7 @@ class Sequence extends CGObject {
       }
       let bp = range.start;
       ctx.save();
+      ctx.globalAlpha *= opacityProgress * opacityProgress * (3 - 2 * opacityProgress);
       ctx.strokeStyle = '#9ca3af';
       ctx.lineJoin = 'round';
       ctx.font = this.font.cssScaled(scaleFactor);

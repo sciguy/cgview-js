@@ -36,15 +36,15 @@ export const BASE_COLOR_KEYS = Object.freeze(['A', 'C', 'G', 'T', 'ambiguous']);
 export const DEFAULT_BASE_COLORS = Object.freeze({
   onLight: Object.freeze({
     A: '#15803d',
-    C: '#a16207',
-    G: '#1d4ed8',
+    C: '#1d4ed8',
+    G: '#a16207',
     T: '#b91c1c',
     ambiguous: '#475569',
   }),
   onDark: Object.freeze({
     A: '#4ade80',
-    C: '#fbbf24',
-    G: '#60a5fa',
+    C: '#60a5fa',
+    G: '#fbbf24',
     T: '#f87171',
     ambiguous: '#cbd5e1',
   }),
