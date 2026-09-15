@@ -41,6 +41,8 @@ import {
 const DARK_BACKBONE_LUMINANCE_THRESHOLD = 0.4;
 const BASE_DISPLAY_MODES = Object.freeze(['coloredBoxes', 'uniformBoxes', 'lettersOnly']);
 const BASE_TEXT_ORIENTATIONS = Object.freeze(['horizontal', 'curved']);
+const BASE_BOX_ARROW_START_PIXELS = 4;
+const BASE_BOX_ARROW_FULL_PIXELS = 10;
 
 /**
  * The CGView Sequence represents the sequence that makes up the map.
@@ -65,8 +67,9 @@ const BASE_TEXT_ORIENTATIONS = Object.freeze(['horizontal', 'curved']);
  *
  * ### Base Display
  * At readable sequence zoom, [baseDisplayMode](#baseDisplayMode) selects colored
- * boxes, uniform boxes, or letters without boxes. Adjacent boxes have a 1 px
- * gap and follow the strand's reading direction. The `uniformBoxes` mode uses
+ * boxes, uniform boxes, or letters without boxes. Boxes touch with flat edges
+ * through 4 pixels per base. From 4 to 10 pixels per base, they smoothly gain
+ * directional tips and a 1 px gap. The `uniformBoxes` mode uses
  * neutral fills with [color](#color) for every letter. The default
  * `coloredBoxes` mode fills the boxes using
  * [baseColors](#baseColors) for A, C, G, T/U, and ambiguous characters, with
@@ -1138,8 +1141,9 @@ class Sequence extends CGObject {
   }
 
   /**
-   * Calculate geometry once per nucleotide row. Allow for the pointed/notched
-   * edges and their outlines to leave a 1 px gap between adjoining boxes.
+   * Calculate geometry once per nucleotide row. Touching rectangles gradually
+   * gain directional tips and a 1 px gap as pixels per base increase.
+   * Account for outlines so adjoining boxes touch at the smallest sizes.
    * @param {Number} scaleFactor - Nucleotide-detail size from 0 to 1.
    * @param {Number} centerOffset - Row radius or linear offset in pixels.
    * @returns {Object} Cell dimensions and curved-edge mode, without drawing.
@@ -1147,13 +1151,17 @@ class Sequence extends CGObject {
    */
   _baseCellGeometry(scaleFactor, centerOffset) {
     const pixelsPerBp = this.canvas.pixelsPerBp(centerOffset);
+    const arrowProgress = Math.max(0, Math.min(1,
+      (pixelsPerBp - BASE_BOX_ARROW_START_PIXELS) / (BASE_BOX_ARROW_FULL_PIXELS - BASE_BOX_ARROW_START_PIXELS)));
+    const arrowScale = arrowProgress * arrowProgress * (3 - 2 * arrowProgress);
+    const gap = arrowScale; // Smoothly grow to 1 CSS pixel, including outlines.
     const borderWidth = 0.5 * scaleFactor;
     const halfHeight = (this._baseCellHeight * scaleFactor - borderWidth) / 2;
-    const tipLength = Math.min(halfHeight * 0.2, pixelsPerBp * 0.125);
-    const halfWidth = Math.max(0, (pixelsPerBp + tipLength - 1 - borderWidth) / 2);
+    const tipLength = Math.min(halfHeight * 0.2, pixelsPerBp * 0.125) * arrowScale;
+    const halfWidth = Math.max(0, (pixelsPerBp + tipLength - gap - borderWidth) / 2);
     const curveError = (pixelsPerBp * pixelsPerBp / 8 + pixelsPerBp * halfHeight / 2) / centerOffset;
     return {halfWidth, halfHeight, tipLength, pixelsPerBp, scaleFactor,
-      tipCenterOffset: 0.25 * scaleFactor, borderWidth,
+      tipCenterOffset: 0.25 * scaleFactor * arrowScale, borderWidth,
       curved: this.viewer.format === 'circular' && curveError > 0.25};
   }
 
