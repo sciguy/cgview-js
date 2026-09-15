@@ -814,9 +814,10 @@ Attribute                        | Type      | Description
 [contigs](api/Sequence.html#contigs)<sup>iu</sup> | Array     | Array of contigs. Contigs are ignored if a seq is provided.
 [font](api/Sequence.html#font)                    | String    | A string describing the font [Default: 'SansSerif, plain, 14']. See <a href="api/Font.html"><code>Font</code></a> for details.
 [color](api/Sequence.html#color)                  | String    | A string describing the sequence color [Default: 'black']. See <a href="api/Color.html"><code>Color</code></a> for details.
-[baseColorMode](api/Sequence.html#baseColorMode)  | String    | Detailed base coloring: `single` or `byBase` [Default: `byBase`].
+[baseDisplayMode](api/Sequence.html#baseDisplayMode) | String | Base presentation: `coloredBoxes`, `uniformBoxes`, or `lettersOnly` [Default: `coloredBoxes`].
 [baseTextOrientation](api/Sequence.html#baseTextOrientation) | String | Base presentation: `horizontal` or `curved` [Default: `curved`].
-[baseColors](api/Sequence.html#baseColors)        | Object    | Nucleotide color palettes for light and dark backbone colors.
+[baseColors](api/Sequence.html#baseColors)        | Object    | Nucleotide box-fill palettes for light and dark backbone colors.
+[translation](api/Sequence.html#translation)    | Object    | Six-frame translation options. See <a href="api/SequenceTranslation.html"><code>SequenceTranslation</code></a>. Shown by default at sufficient zoom.
 [visible](api/CGObject.html#visible) | Boolean   | Sequence is visible when zoomed in enough [Default: true]
 [meta](api/CGObject.html#meta)       | Object    | [Meta data](tutorials/details-meta-data.html)
 

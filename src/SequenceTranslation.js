@@ -126,6 +126,7 @@ class SequenceTranslation extends CGObject {
     this._requestLayoutUpdate();
   }
 
+  /** @member {Font} - Amino-acid font. */
   get font() {
     return this._font;
   }
@@ -137,6 +138,7 @@ class SequenceTranslation extends CGObject {
     this._requestLayoutUpdate();
   }
 
+  /** @member {Color} - Shared text color for all amino acids, including starts and stops. */
   get color() {
     return this._color;
   }
@@ -145,6 +147,7 @@ class SequenceTranslation extends CGObject {
     this._color = value.toString() === 'Color' ? value : new Color(value);
   }
 
+  /** @member {Color} - Fill for ordinary codon boxes. */
   get backgroundColor() {
     return this._backgroundColor;
   }
@@ -153,6 +156,7 @@ class SequenceTranslation extends CGObject {
     this._backgroundColor = value.toString() === 'Color' ? value : new Color(value);
   }
 
+  /** @member {Color} - Shared border color for all codon boxes. */
   get borderColor() {
     return this._borderColor;
   }
@@ -161,6 +165,7 @@ class SequenceTranslation extends CGObject {
     this._borderColor = value.toString() === 'Color' ? value : new Color(value);
   }
 
+  /** @member {Color} - Fill for highlighted start codons. */
   get startColor() {
     return this._startColor;
   }
@@ -169,6 +174,7 @@ class SequenceTranslation extends CGObject {
     this._startColor = value.toString() === 'Color' ? value : new Color(value);
   }
 
+  /** @member {Color} - Fill for highlighted stop codons. */
   get stopColor() {
     return this._stopColor;
   }
@@ -177,6 +183,7 @@ class SequenceTranslation extends CGObject {
     this._stopColor = value.toString() === 'Color' ? value : new Color(value);
   }
 
+  /** @member {Boolean} - Highlight starts defined by the active genetic code. */
   get highlightStartCodons() {
     return this._highlightStartCodons;
   }
@@ -185,6 +192,7 @@ class SequenceTranslation extends CGObject {
     this._highlightStartCodons = Boolean(value);
   }
 
+  /** @member {Boolean} - Highlight stops defined by the active genetic code. */
   get highlightStopCodons() {
     return this._highlightStopCodons;
   }

@@ -15,18 +15,18 @@ describe('Sequence base coloring', () => {
     jest.restoreAllMocks();
   });
 
-  test('uses sequence.color for explicit single-color rendering and saves that choice', () => {
+  test.each(['uniformBoxes', 'lettersOnly'])('uses sequence.color and saves %s display', (mode) => {
     const cgv = new Viewer('#map', {
-      sequence: {seq: 'ATGCN', color: 'navy', baseColorMode: 'single'},
+      sequence: {seq: 'ATGCN', color: 'navy', baseDisplayMode: mode},
     });
 
-    expect(cgv.sequence.baseColorMode).toBe('single');
+    expect(cgv.sequence.baseDisplayMode).toBe(mode);
     expect(cgv.sequence._colorForBase('A', 1)).toBe(rgba('navy'));
     expect(cgv.sequence._colorForBase('N', 5)).toBe(rgba('navy'));
-    expect(cgv.sequence.toJSON().baseColorMode).toBe('single');
-    expect(cgv.sequence.toJSON({includeDefaults: true}).baseColorMode).toBe('single');
+    expect(cgv.sequence.toJSON().baseDisplayMode).toBe(mode);
+    expect(cgv.sequence.toJSON({includeDefaults: true}).baseDisplayMode).toBe(mode);
     cgv.io.loadJSON(cgv.io.toJSON());
-    expect(cgv.sequence.baseColorMode).toBe('single');
+    expect(cgv.sequence.baseDisplayMode).toBe(mode);
     expect(cgv.sequence._colorForBase('A', 1)).toBe(rgba('navy'));
   });
 
@@ -35,9 +35,10 @@ describe('Sequence base coloring', () => {
       sequence: {seq: 'ACGTUN-'},
     });
 
-    expect(cgv.sequence.baseColorMode).toBe('byBase');
-    expect(cgv.sequence.toJSON()).not.toHaveProperty('baseColorMode');
-    expect(cgv.sequence.toJSON({includeDefaults: true}).baseColorMode).toBe('byBase');
+    expect(cgv.sequence.baseDisplayMode).toBe('coloredBoxes');
+    expect(cgv.sequence).not.toHaveProperty('baseColorMode');
+    expect(cgv.sequence.toJSON()).not.toHaveProperty('baseDisplayMode');
+    expect(cgv.sequence.toJSON({includeDefaults: true}).baseDisplayMode).toBe('coloredBoxes');
     // The default gray backbone uses the brighter dark-background palette.
     expect(cgv.sequence._colorForBase('A', 1)).toBe(DEFAULT_BASE_COLORS.onDark.A);
     expect(cgv.sequence._colorForBase('C', 2)).toBe(DEFAULT_BASE_COLORS.onDark.C);
@@ -51,7 +52,7 @@ describe('Sequence base coloring', () => {
   test('selects light and dark palettes independently for contigs in one map', () => {
     const cgv = new Viewer('#map', {
       sequence: {
-        baseColorMode: 'byBase',
+        baseDisplayMode: 'coloredBoxes',
         contigs: [
           {name: 'Light', seq: 'A', color: 'white'},
           {name: 'Dark', seq: 'C', color: 'black'},
@@ -69,7 +70,7 @@ describe('Sequence base coloring', () => {
     const cgv = new Viewer('#map', {
       settings: {backgroundColor: 'white'},
       backbone: {color: 'rgba(0,0,0,0.2)'},
-      sequence: {seq: 'A', baseColorMode: 'byBase'},
+      sequence: {seq: 'A', baseDisplayMode: 'coloredBoxes'},
     });
 
     // 20% black over white renders as a light gray, rather than raw black.
@@ -86,7 +87,7 @@ describe('Sequence base coloring', () => {
 
   test('updates sequence colors and palettes without changing the mode', () => {
     const cgv = new Viewer('#map', {
-      sequence: {seq: 'A', baseColorMode: 'byBase'},
+      sequence: {seq: 'A', baseDisplayMode: 'coloredBoxes'},
     });
     const customBaseColors = {
       onLight: {...DEFAULT_BASE_COLORS.onLight, A: '#006400'},
@@ -97,17 +98,17 @@ describe('Sequence base coloring', () => {
 
     expect(cgv.sequence.color.rgbaString).toBe(rgba('#123456'));
     expect(cgv.sequence.baseColors).toEqual(customBaseColors);
-    expect(cgv.sequence.baseColorMode).toBe('byBase');
+    expect(cgv.sequence.baseDisplayMode).toBe('coloredBoxes');
 
-    cgv.sequence.update({baseColorMode: 'single'});
-    expect(cgv.sequence.baseColorMode).toBe('single');
+    cgv.sequence.update({baseDisplayMode: 'uniformBoxes'});
+    expect(cgv.sequence.baseDisplayMode).toBe('uniformBoxes');
     expect(cgv.sequence._colorForBase('A', 1)).toBe(rgba('#123456'));
     expect(cgv.sequence.baseColors).toEqual(customBaseColors);
   });
 
   test('saves custom palettes and keeps returned palette copies detached', () => {
     const cgv = new Viewer('#map', {
-      sequence: {seq: 'A', baseColorMode: 'byBase'},
+      sequence: {seq: 'A', baseDisplayMode: 'coloredBoxes'},
     });
 
     expect(cgv.sequence.toJSON()).not.toHaveProperty('baseColors');
@@ -139,10 +140,10 @@ describe('Sequence base coloring', () => {
       },
     });
 
-    expect(cgv.sequence.baseColorMode).toBe('byBase');
+    expect(cgv.sequence.baseDisplayMode).toBe('coloredBoxes');
     expect(cgv.sequence.color.rgbaString).toBe(rgba('navy'));
     expect(cgv.sequence._colorForBase('A', 1)).toBe(DEFAULT_BASE_COLORS.onDark.A);
-    expect(cgv.io.toJSON().cgview.sequence).not.toHaveProperty('baseColorMode');
+    expect(cgv.io.toJSON().cgview.sequence).not.toHaveProperty('baseDisplayMode');
     expect(cgv.io.toJSON().cgview.sequence).not.toHaveProperty('colorBases');
   });
 
@@ -150,7 +151,7 @@ describe('Sequence base coloring', () => {
     const firstViewer = new Viewer('#map', {
       sequence: {
         seq: 'AC',
-        baseColorMode: 'byBase',
+        baseDisplayMode: 'coloredBoxes',
         color: '#112233',
         baseColors: {
           onLight: {C: '#654321'},
@@ -161,14 +162,14 @@ describe('Sequence base coloring', () => {
     firstViewer.sequence.update({baseColors: {onDark: {A: '#abcdef'}}});
 
     const exported = firstViewer.io.toJSON();
-    expect(exported.cgview.sequence).not.toHaveProperty('baseColorMode');
+    expect(exported.cgview.sequence).not.toHaveProperty('baseDisplayMode');
     expect(exported.cgview.sequence.baseColors.onLight.C).toBe('#654321');
     expect(exported.cgview.sequence.baseColors.onDark.A).toBe('#abcdef');
 
     const secondViewer = new Viewer('#second-map');
     secondViewer.io.loadJSON(exported);
 
-    expect(secondViewer.sequence.baseColorMode).toBe('byBase');
+    expect(secondViewer.sequence.baseDisplayMode).toBe('coloredBoxes');
     expect(secondViewer.sequence.color.rgbaString).toBe(rgba('#112233'));
     expect(secondViewer.sequence.baseColors).toEqual(firstViewer.sequence.baseColors);
     expect(secondViewer.io.toJSON().cgview.sequence).toEqual(exported.cgview.sequence);
@@ -177,7 +178,7 @@ describe('Sequence base coloring', () => {
   test.each(['horizontal', 'curved'])('fills boxes on both strands across the origin with %s bases', (orientation) => {
     const cgv = new Viewer('#map', {
       sequence: {
-        baseColorMode: 'byBase',
+        baseDisplayMode: 'coloredBoxes',
         baseTextOrientation: orientation,
         contigs: [
           {name: 'Light', seq: 'AC', color: 'white'},
@@ -217,15 +218,66 @@ describe('Sequence base coloring', () => {
       {base: 'G', fill: rgba(DEFAULT_BASE_COLORS.onLight.G), text: rgba('white')},
     ]);
 
-    cgv.sequence.update({baseColorMode: 'single', color: 'navy'});
+    cgv.sequence.update({baseDisplayMode: 'uniformBoxes', color: 'navy'});
     rendered.length = 0;
     cgv.sequence.draw();
     expect(rendered).toHaveLength(6);
     expect(rendered.every(({text, fill}) => text === rgba('navy') && fill === rgba('#e5e7eb'))).toBe(true);
   });
 
+  test.each([
+    ['circular', 'curved'], ['circular', 'horizontal'],
+    ['linear', 'curved'], ['linear', 'horizontal'],
+  ])('draws letters only across the origin without box work in %s/%s mode', (format, orientation) => {
+    const cgv = new Viewer('#map', {sequence: {
+      seq: 'ATGC', color: 'navy', baseDisplayMode: 'lettersOnly', baseTextOrientation: orientation,
+      translation: {visible: false},
+    }});
+    const sequence = cgv.sequence;
+    cgv.format = format;
+    const pixels = jest.spyOn(cgv.backbone, 'pixelsPerBp');
+    jest.spyOn(cgv.backbone, 'visibleRange', 'get').mockReturnValue(new CGRange(sequence.mapContig, 4, 2));
+    const geometry = jest.spyOn(sequence, '_baseCellGeometry');
+    const palette = jest.spyOn(sequence, '_baseCellStyleForBase');
+    const uniformStyle = jest.spyOn(sequence, '_uniformBaseCellStyle');
+    const variant = jest.spyOn(sequence, '_baseColorVariantForBp');
+    const drawBase = sequence._drawBase;
+    const ctx = cgv.canvas.context('map');
+    const letters = [];
+    const textColors = [];
+    const opacities = [];
+    jest.spyOn(sequence, '_drawBase').mockImplementation(function(...args) {
+      letters.push(args[1]);
+      opacities.push(ctx.globalAlpha);
+      return drawBase.apply(this, args);
+    });
+    jest.spyOn(ctx, 'fillText').mockImplementation(() => textColors.push(rgba(ctx.fillStyle)));
+    jest.spyOn(ctx, 'drawImage').mockImplementation(image => textColors.push(rgba(image.getContext('2d').fillStyle)));
+
+    for (const fraction of [0.1875, 1.25]) {
+      pixels.mockReturnValue((sequence.bpSpacing - sequence.bpMargin) * fraction);
+      letters.length = textColors.length = opacities.length = 0;
+      for (const method of ['fill', 'stroke', 'beginPath', 'rotate']) { ctx[method].mockClear(); }
+      ctx.globalAlpha = 0.8;
+      sequence.draw();
+
+      expect(letters).toEqual(['C', 'G', 'A', 'T', 'T', 'A']);
+      expect(textColors).toEqual(Array(6).fill(rgba('navy')));
+      expect(opacities).toEqual(Array(6).fill(fraction < 1 ? 0.4 : 0.8));
+      expect(ctx.globalAlpha).toBe(0.8);
+      expect(ctx.fill).not.toHaveBeenCalled();
+      expect(ctx.stroke).not.toHaveBeenCalled();
+      expect(ctx.beginPath).not.toHaveBeenCalled();
+      expect(ctx.rotate).toHaveBeenCalledTimes(format === 'circular' && orientation === 'curved' ? 6 : 0);
+    }
+    expect(geometry).not.toHaveBeenCalled();
+    expect(palette).not.toHaveBeenCalled();
+    expect(uniformStyle).not.toHaveBeenCalled();
+    expect(variant).not.toHaveBeenCalled();
+  });
+
   test('chooses text contrast from custom fills and refreshes cached palette styles', () => {
-    const cgv = new Viewer('#map', {sequence: {seq: 'ATGN', baseColorMode: 'byBase',
+    const cgv = new Viewer('#map', {sequence: {seq: 'ATGN', baseDisplayMode: 'coloredBoxes',
       baseColors: {onDark: {A: 'black', T: 'white', ambiguous: '#000080'}},
     }});
     const sequence = cgv.sequence;
@@ -241,7 +293,7 @@ describe('Sequence base coloring', () => {
 
   test('chooses contrasting letters after compositing translucent fills over each contig', () => {
     const fill = 'rgba(0,0,0,0.1)';
-    const cgv = new Viewer('#map', {sequence: {baseColorMode: 'byBase',
+    const cgv = new Viewer('#map', {sequence: {baseDisplayMode: 'coloredBoxes',
       contigs: [{seq: 'A', color: 'white'}, {seq: 'A', color: 'black'}],
       baseColors: {onLight: {A: fill}, onDark: {A: fill}},
     }});

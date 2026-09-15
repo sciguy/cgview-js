@@ -126,16 +126,16 @@ describe('Sequence zoom detail', () => {
     const listener = jest.fn();
     cgv.on('sequence-update.sequence-detail-test', listener);
 
-    cgv.sequence.update({baseColorMode: 'single', baseTextOrientation: 'horizontal'});
-    expect(cgv.sequence.baseColorMode).toBe('single');
+    cgv.sequence.update({baseDisplayMode: 'uniformBoxes', baseTextOrientation: 'horizontal'});
+    expect(cgv.sequence.baseDisplayMode).toBe('uniformBoxes');
     expect(cgv.sequence.baseTextOrientation).toBe('horizontal');
     expect(listener).toHaveBeenCalledWith({
-      attributes: {baseColorMode: 'single', baseTextOrientation: 'horizontal'},
+      attributes: {baseDisplayMode: 'uniformBoxes', baseTextOrientation: 'horizontal'},
     });
 
     jest.spyOn(console, 'error').mockImplementation(() => {});
-    cgv.sequence.update({baseColorMode: 'invalid', baseTextOrientation: 'invalid'});
-    expect(cgv.sequence.baseColorMode).toBe('single');
+    cgv.sequence.update({baseDisplayMode: 'invalid', baseTextOrientation: 'invalid'});
+    expect(cgv.sequence.baseDisplayMode).toBe('uniformBoxes');
     expect(cgv.sequence.baseTextOrientation).toBe('horizontal');
   });
 

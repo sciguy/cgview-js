@@ -166,16 +166,16 @@ rulerLabelOrientationRadios.forEach((radio) => {
 cgv.on('ruler-update.ruler-label-options', syncRulerLabelOptions);
 syncRulerLabelOptions();
 // Sequence detail
-const baseColorModeSelect = document.getElementById('sequence-base-color-mode');
+const baseDisplayModeSelect = document.getElementById('sequence-base-display-mode');
 const baseTextOrientationRadios = document.querySelectorAll(
   'input[name="sequence-base-text-orientation"]',
 );
 function syncSequenceControls() {
-  baseColorModeSelect.value = cgv.sequence.baseColorMode;
+  baseDisplayModeSelect.value = cgv.sequence.baseDisplayMode;
   syncRadioGroup(baseTextOrientationRadios, cgv.sequence.baseTextOrientation);
 }
-baseColorModeSelect.addEventListener('change', (e) => {
-  cgv.sequence.update({baseColorMode: e.target.value});
+baseDisplayModeSelect.addEventListener('change', (e) => {
+  cgv.sequence.update({baseDisplayMode: e.target.value});
   cgv.draw();
 });
 baseTextOrientationRadios.forEach((radio) => {

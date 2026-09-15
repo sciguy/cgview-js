@@ -27,7 +27,7 @@
     <script src="../scripts/d3.min.js"></script>
     <script src="../scripts/svgcanvas.iife.js"></script>
     <!-- CGView -->
-    <script src='../dist/cgview.min.js?v=sequence-translation-defaults'></script>
+    <script src='../dist/cgview.min.js?v=base-display-modes'></script>
 
     <link rel="stylesheet" href="../dist/cgview.css" />
     <link rel="stylesheet" href="../styles/controls.css" />
@@ -37,7 +37,7 @@
 
     <!-- Dev Page -->
     <script src='performance.js'></script>
-    <link rel="stylesheet" href="test.css?v=translation-testing" />
+    <link rel="stylesheet" href="test.css?v=base-display-modes" />
     <!-- Test Map Data -->
     <script src='maps.js'></script>
 
@@ -163,10 +163,11 @@
         <div class='section-sequence'>
           <div class='test-heading'>Sequence Testing</div>
           <div class='sequence-options'>
-            <label for='sequence-base-color-mode'>Base coloring:</label>
-            <select id='sequence-base-color-mode' class='form-select form-select-sm'>
-              <option value='single'>Single color</option>
-              <option value='byBase'>Color by base</option>
+            <label for='sequence-base-display-mode'>Base display:</label>
+            <select id='sequence-base-display-mode' class='form-select form-select-sm'>
+              <option value='coloredBoxes'>Colored boxes</option>
+              <option value='uniformBoxes'>Uniform boxes</option>
+              <option value='lettersOnly'>Letters only</option>
             </select>
           </div>
           <fieldset class='sequence-orientation-options'>
@@ -314,7 +315,7 @@
     <!-- Bootstrap JavaScript -->
     <script src="../scripts/bootstrap.min.js"></script>
 
-    <script src='test.js?v=sequence-translation-defaults'></script>
+    <script src='test.js?v=base-display-modes'></script>
     <script src='track-sizing.js?v=3'></script>
     <script src='../scripts/controls.js'></script>
 

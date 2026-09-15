@@ -31,7 +31,6 @@ import Color from './Color';
 import Font from './Font';
 import utils from './Utils';
 import {
-  BASE_COLOR_MODES,
   DEFAULT_BASE_COLORS,
   colorForBase,
   copyBaseColors,
@@ -40,6 +39,7 @@ import {
 } from './BaseColorPalette';
 
 const DARK_BACKBONE_LUMINANCE_THRESHOLD = 0.4;
+const BASE_DISPLAY_MODES = Object.freeze(['coloredBoxes', 'uniformBoxes', 'lettersOnly']);
 const BASE_TEXT_ORIENTATIONS = Object.freeze(['horizontal', 'curved']);
 
 /**
@@ -63,14 +63,17 @@ const BASE_TEXT_ORIENTATIONS = Object.freeze(['horizontal', 'curved']);
  * and plot, positions are relative to contigs. However, when drawing we use
  * positions relative to the entire map.
  *
- * ### Base Coloring
- * At readable sequence zoom, [baseColorMode](#baseColorMode) controls how
- * nucleotide arrow boxes are colored. Adjacent boxes have a 1 px gap and follow
- * the strand's reading direction. The `single` mode uses neutral fills
- * with [color](#color) for every letter. The default `byBase` mode fills the boxes using
+ * ### Base Display
+ * At readable sequence zoom, [baseDisplayMode](#baseDisplayMode) selects colored
+ * boxes, uniform boxes, or letters without boxes. Adjacent boxes have a 1 px
+ * gap and follow the strand's reading direction. The `uniformBoxes` mode uses
+ * neutral fills with [color](#color) for every letter. The default
+ * `coloredBoxes` mode fills the boxes using
  * [baseColors](#baseColors) for A, C, G, T/U, and ambiguous characters, with
  * contrasting black or white letters. U shares the T color; all other
- * characters use the ambiguous color.
+ * characters use the ambiguous color. The `lettersOnly` mode uses [color](#color)
+ * for every letter and draws no fills or borders. All three modes support
+ * [baseTextOrientation](#baseTextOrientation).
  *
  * Letters, fills, and outlines fade in together before quarter-size detail,
  * reaching full opacity at the zoom where bases previously first appeared.
@@ -82,10 +85,10 @@ const BASE_TEXT_ORIENTATIONS = Object.freeze(['horizontal', 'curved']);
  * `baseColors.onDark` from the luminance of its rendered backbone. A
  * translucent backbone is first composited over the map background. Changing
  * [color](#color) or [baseColors](#baseColors) does not change
- * [baseColorMode](#baseColorMode).
+ * [baseDisplayMode](#baseDisplayMode).
  *
- * In JSON, a missing `baseColorMode` means `byBase`, and that default is
- * omitted when saving. The value `single` is serialized explicitly. Custom
+ * In JSON, a missing `baseDisplayMode` means `coloredBoxes`, and that default is
+ * omitted when saving. Both `uniformBoxes` and `lettersOnly` are saved explicitly. Custom
  * palettes are saved in `sequence.baseColors`; built-in palettes are omitted
  * unless `includeDefaults` is requested.
  *
@@ -106,7 +109,7 @@ const BASE_TEXT_ORIENTATIONS = Object.freeze(['horizontal', 'curved']);
  * [contigs](#contigs)<sup>iu</sup> | Array     | Array of contigs. Contigs are ignored if a seq is provided.
  * [font](#font)                    | String    | A string describing the font [Default: 'SansSerif, plain, 14']. See {@link Font} for details.
  * [color](#color)                  | String    | A string describing the sequence color [Default: 'black']. See {@link Color} for details.
- * [baseColorMode](#baseColorMode)  | String    | Detailed base coloring: `single` or `byBase` [Default: `byBase`].
+ * [baseDisplayMode](#baseDisplayMode) | String | Base presentation: `coloredBoxes`, `uniformBoxes`, or `lettersOnly` [Default: `coloredBoxes`].
  * [baseTextOrientation](#baseTextOrientation) | String | Base presentation: `horizontal` or `curved` [Default: `curved`].
  * [baseColors](#baseColors)        | Object    | Nucleotide box-fill palettes for light and dark backbone colors.
  * [translation](#translation)    | Object    | Six-frame translation options. See {@link SequenceTranslation}. Shown by default at sufficient zoom.
@@ -143,8 +146,8 @@ class Sequence extends CGObject {
     this.color = utils.defaultFor(options.color, 'black');
     this._baseTextOrientation = 'curved';
     this.baseTextOrientation = utils.defaultFor(options.baseTextOrientation, 'curved');
-    this._baseColorMode = 'byBase';
-    this.baseColorMode = utils.defaultFor(options.baseColorMode, 'byBase');
+    this._baseDisplayMode = 'coloredBoxes';
+    this.baseDisplayMode = utils.defaultFor(options.baseDisplayMode, 'coloredBoxes');
     this._baseColorVariantCache = new Map();
     this._baseCellStyleCache = new Map();
     this._baseColors = copyBaseColors(DEFAULT_BASE_COLORS);
@@ -421,18 +424,19 @@ class Sequence extends CGObject {
   }
 
   /**
-   * @member {'single'|'byBase'} - Get or set detailed sequence base coloring.
-   * `single` renders every letter with [color](#color) on a neutral box.
-   * `byBase` fills boxes with the base palettes and uses contrasting letters.
-   * Neither mode changes `color`.
+   * @member {'coloredBoxes'|'uniformBoxes'|'lettersOnly'} - Get or set detailed base presentation.
+   * `coloredBoxes` fills boxes with the base palettes and uses contrasting letters.
+   * `uniformBoxes` uses neutral boxes with [color](#color) for the letters.
+   * `lettersOnly` uses [color](#color) for letters without boxes or borders.
+   * Changing the display mode does not change the configured colors or orientation.
    */
-  get baseColorMode() {
-    return this._baseColorMode;
+  get baseDisplayMode() {
+    return this._baseDisplayMode;
   }
 
-  set baseColorMode(value) {
-    if (utils.validate(value, BASE_COLOR_MODES)) {
-      this._baseColorMode = value;
+  set baseDisplayMode(value) {
+    if (utils.validate(value, BASE_DISPLAY_MODES)) {
+      this._baseDisplayMode = value;
     }
   }
 
@@ -1078,14 +1082,14 @@ class Sequence extends CGObject {
   }
 
   /**
-   * Return the single-mode text color or by-base box fill for one base.
+   * Return the colored-box fill or uniform text color for one base.
    * @param {String} base - Sequence character.
    * @param {Number} bp - Map base-pair position.
    * @returns {*} Configured single or semantic base color.
    * @private
    */
   _colorForBase(base, bp) {
-    if (this.baseColorMode === 'single') {
+    if (this.baseDisplayMode !== 'coloredBoxes') {
       return this.color.rgbaString;
     }
     return colorForBase(this._baseColors, base, this._baseColorVariantForBp(bp));
@@ -1125,8 +1129,8 @@ class Sequence extends CGObject {
     return compositeStyle;
   }
 
-  /** Neutral base boxes preserve the configured single-mode letter color. @private */
-  _singleBaseCellStyle() {
+  /** Neutral base boxes preserve the configured uniform letter color. @private */
+  _uniformBaseCellStyle() {
     return {
       fill: this.color.relativeLuminance < DARK_BACKBONE_LUMINANCE_THRESHOLD ? '#e5e7eb' : '#334155',
       text: this.color.rgbaString,
@@ -1181,8 +1185,8 @@ class Sequence extends CGObject {
   }
 
   /**
-   * Draw one directional base box and its letter. Circular cells follow the
-   * backbone independently of the selected glyph orientation.
+   * Draw one base letter and its optional directional box. Circular boxes
+   * follow the backbone independently of the selected glyph orientation.
    * @param {CanvasRenderingContext2D} ctx - Map canvas context.
    * @param {String} base - Sequence character to draw.
    * @param {Number} bp - Map base-pair position.
@@ -1190,23 +1194,30 @@ class Sequence extends CGObject {
    * @param {Number} baselineOffset - Font baseline adjustment.
    * @param {Object} [orientation] - Reusable readable tangent, flip flag, cosine, and sine.
    * @param {Number} [strand=1] - Reading direction (1 or -1).
-   * @param {Object} [cell] - Precomputed row geometry.
+   * @param {Object|null} [cell] - Precomputed box geometry; null skips box drawing.
    * @param {Object} [style] - Precomputed fill and text colors.
    * @param {SequenceGlyphCache} [glyphCache] - Cached images for horizontal raster text.
-   * @returns {undefined} Paints one box and glyph, restoring any glyph transform.
+   * @param {Number} [scaleFactor] - Precomputed glyph scale shared by both strands.
+   * @returns {undefined} Paints the glyph and optional box, restoring any glyph transform.
    * @private
    */
-  _drawBase(ctx, base, bp, centerOffset, baselineOffset, orientation, strand = 1, cell, style, glyphCache) {
-    cell = cell || this._baseCellGeometry(this.detailScaleFactor(this.viewer.backbone.pixelsPerBp()), centerOffset);
-    style = style || (this.baseColorMode === 'byBase' ? this._baseCellStyleForBase(base, bp) : this._singleBaseCellStyle());
+  _drawBase(ctx, base, bp, centerOffset, baselineOffset, orientation, strand = 1, cell, style, glyphCache,
+    scaleFactor = cell?.scaleFactor ?? this.detailScaleFactor(this.viewer.backbone.pixelsPerBp())) {
+    if (cell === undefined && this.baseDisplayMode !== 'lettersOnly') {
+      cell = this._baseCellGeometry(scaleFactor, centerOffset);
+    }
+    style = style || (this.baseDisplayMode === 'coloredBoxes' ? this._baseCellStyleForBase(base, bp)
+      : cell ? this._uniformBaseCellStyle() : {text: this.color.rgbaString});
     const origin = this.canvas.pointForBp(bp, centerOffset);
     const circular = this.viewer.format === 'circular';
     const curvedText = circular && this.baseTextOrientation === 'curved';
-    orientation = orientation || (circular ? this.canvas.tangentialTextOrientationForBp(bp) : undefined);
+    orientation = orientation || (circular && (cell || curvedText) ? this.canvas.tangentialTextOrientationForBp(bp) : undefined);
     const direction = orientation?.flipped ? -strand : strand;
-    ctx.fillStyle = style.fill;
-    ctx.lineWidth = cell.borderWidth;
-    if (cell.curved) {
+    if (cell) {
+      ctx.fillStyle = style.fill;
+      ctx.lineWidth = cell.borderWidth;
+    }
+    if (cell?.curved) {
       traceCurvedChevron(this.canvas, ctx, bp, centerOffset, strand, cell);
       ctx.fill();
       ctx.stroke();
@@ -1218,7 +1229,7 @@ class Sequence extends CGObject {
     }
     const x = curvedText ? 0 : origin.x;
     const y = curvedText ? 0 : origin.y;
-    if (!cell.curved) {
+    if (cell && !cell.curved) {
       const cos = !circular || curvedText ? 1 : orientation.cos ?? Math.cos(orientation.angle);
       const sin = !circular || curvedText ? 0 : orientation.sin ?? Math.sin(orientation.angle);
       traceChevron(ctx, x, y, direction, cell, cos, sin);
@@ -1227,7 +1238,7 @@ class Sequence extends CGObject {
     }
     ctx.fillStyle = style.text;
     if (glyphCache) {
-      glyphCache.draw(ctx, base, style.text, x, y, cell.scaleFactor);
+      glyphCache.draw(ctx, base, style.text, x, y, scaleFactor);
     } else {
       ctx.fillText(base, x, y + baselineOffset);
     }
@@ -1259,10 +1270,14 @@ class Sequence extends CGObject {
         complement = this._emptySequence(range.length);
       }
       let bp = range.start;
+      const boxes = this.baseDisplayMode !== 'lettersOnly';
+      const coloredBoxes = this.baseDisplayMode === 'coloredBoxes';
       ctx.save();
       ctx.globalAlpha *= opacityProgress * opacityProgress * (3 - 2 * opacityProgress);
-      ctx.strokeStyle = '#9ca3af';
-      ctx.lineJoin = 'round';
+      if (boxes) {
+        ctx.strokeStyle = '#9ca3af';
+        ctx.lineJoin = 'round';
+      }
       ctx.font = this._baseDetailFont.cssScaled(scaleFactor);
       ctx.textAlign = 'center';
       ctx.textBaseline = 'alphabetic'; // The default baseline works best across canvas and svg
@@ -1274,19 +1289,19 @@ class Sequence extends CGObject {
       }
       // Distance from the center of the backbone to place sequence text
       const centerOffsetDiff = this._baseRowCenterOffset * scaleFactor;
-      const directCell = this._baseCellGeometry(scaleFactor, centerOffset + centerOffsetDiff);
-      const reverseCell = this._baseCellGeometry(scaleFactor, centerOffset - centerOffsetDiff);
-      const singleStyle = this._singleBaseCellStyle();
-      const byBase = this.baseColorMode === 'byBase';
+      const directCell = boxes ? this._baseCellGeometry(scaleFactor, centerOffset + centerOffsetDiff) : null;
+      const reverseCell = boxes ? this._baseCellGeometry(scaleFactor, centerOffset - centerOffsetDiff) : null;
+      const sharedStyle = coloredBoxes ? undefined : boxes ? this._uniformBaseCellStyle() : {text: this.color.rgbaString};
       const circular = this.viewer.format === 'circular';
+      const oriented = circular && (boxes || this.baseTextOrientation === 'curved');
       this._baseColorVariantCache.clear();
       for (let i = 0, len = range.length; i < len; i++) {
-        const orientation = circular ? this.canvas.tangentialTextOrientationForBp(bp) : undefined;
-        if (orientation) {
+        const orientation = oriented ? this.canvas.tangentialTextOrientationForBp(bp) : undefined;
+        if (boxes && orientation) {
           orientation.cos = Math.cos(orientation.angle);
           orientation.sin = Math.sin(orientation.angle);
         }
-        const variant = byBase ? this._baseColorVariantForBp(bp) : undefined;
+        const variant = coloredBoxes ? this._baseColorVariantForBp(bp) : undefined;
         this._drawBase(
           ctx,
           seq[i],
@@ -1296,8 +1311,9 @@ class Sequence extends CGObject {
           orientation,
           1,
           directCell,
-          byBase ? this._baseCellStyleForBase(seq[i], bp, variant) : singleStyle,
+          coloredBoxes ? this._baseCellStyleForBase(seq[i], bp, variant) : sharedStyle,
           glyphCache,
+          scaleFactor,
         );
         this._drawBase(
           ctx,
@@ -1308,8 +1324,9 @@ class Sequence extends CGObject {
           orientation,
           -1,
           reverseCell,
-          byBase ? this._baseCellStyleForBase(complement[i], bp, variant) : singleStyle,
+          coloredBoxes ? this._baseCellStyleForBase(complement[i], bp, variant) : sharedStyle,
           glyphCache,
+          scaleFactor,
         );
         bp++;
       }
@@ -1337,7 +1354,7 @@ class Sequence extends CGObject {
       recordClass: 'Sequence',
       validKeys: [
         'color',
-        'baseColorMode',
+        'baseDisplayMode',
         'baseTextOrientation',
         'baseColors',
         'font',
@@ -1360,8 +1377,8 @@ class Sequence extends CGObject {
     if (!this.visible || options.includeDefaults) {
       json.visible = this.visible;
     }
-    if (this.baseColorMode !== 'byBase' || options.includeDefaults) {
-      json.baseColorMode = this.baseColorMode;
+    if (this.baseDisplayMode !== 'coloredBoxes' || options.includeDefaults) {
+      json.baseDisplayMode = this.baseDisplayMode;
     }
     if (this.baseTextOrientation !== 'curved' || options.includeDefaults) {
       json.baseTextOrientation = this.baseTextOrientation;

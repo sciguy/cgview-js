@@ -2930,7 +2930,7 @@
 <div id="wrap" class="clearfix jaguar">
     <div class="main">
 
-        <h1 class="page-title" data-filename="Track.js.html">Source: Track.js</h1>
+        <h1 class="page-title" data-filename="SequenceTranslation.js.html">Source: SequenceTranslation.js</h1>
 
 
 
@@ -2938,7 +2938,7 @@
     <section>
         <article>
             <pre class="source language-javascript "><code class="language-javascript">//////////////////////////////////////////////////////////////////////////////
-// Track
+// SequenceTranslation
 //////////////////////////////////////////////////////////////////////////////
 
 /**
@@ -2959,679 +2959,726 @@
  */
 
 import CGObject from './CGObject';
-import CGArray from './CGArray';
-import Slot from './Slot';
+import Color from './Color';
+import Font from './Font';
+import SequenceGlyphCache from './SequenceGlyphCache';
+import {CELL_VERTICAL_PADDING, traceChevron, traceCurvedChevron} from './SequenceCell';
 import utils from './Utils';
 
-// TODO: - Instead of check for features or plot. There could be a data attribute which
-//         will point to features or a plot.
+const COMPLEMENT = {
+  A: 'T', T: 'A', U: 'A', G: 'C', C: 'G',
+  Y: 'R', R: 'Y', S: 'S', W: 'W', K: 'M', M: 'K',
+  B: 'V', V: 'B', D: 'H', H: 'D', N: 'N',
+  '-': '-', '.': '.',
+};
+
+const AMINO_ACID_NAMES = {
+  A: 'Alanine', R: 'Arginine', N: 'Asparagine', D: 'Aspartic acid',
+  C: 'Cysteine', E: 'Glutamic acid', Q: 'Glutamine', G: 'Glycine',
+  H: 'Histidine', I: 'Isoleucine', L: 'Leucine', K: 'Lysine',
+  M: 'Methionine', F: 'Phenylalanine', P: 'Proline', S: 'Serine',
+  T: 'Threonine', W: 'Tryptophan', Y: 'Tyrosine', V: 'Valine',
+  B: 'Asparagine or aspartic acid', Z: 'Glutamine or glutamic acid',
+  J: 'Leucine or isoleucine', U: 'Selenocysteine', O: 'Pyrrolysine',
+  '*': 'Stop', X: 'Unknown',
+};
+
+const DETAIL_FADE_START = 0.25;
+const FULL_OPACITY_SCALE = 0.5;
+const AMINO_ACID_ALPHABET = 'ACDEFGHIKLMNPQRSTVWYBXZJUO*';
+
+// Translation cells need enough room for both the nominal font box and their
+// inset border. Keeping these values in unscaled screen pixels makes the cell,
+// lane, and glyph proportions remain stable through the detail transition.
+const LANE_VERTICAL_PADDING = 3.5;
 
 /**
- * The Track represents what data should be displayed and how it should be laid out.
+ * SequenceTranslation draws all six reading frames around the sequence when
+ * enough base-pair detail is visible. Direct frames are drawn outside the
+ * backbone and reverse frames are drawn inside it. Reading frames restart at
+ * each contig boundary. Protein sequences are not stored: codons intersecting
+ * the visible range are translated and drawn in a streaming pass. Lane size
+ * and opacity increase smoothly with zoom rather than switching on at a cutoff.
  *
- * ### Action and Events
- *
- * Action                                    | Viewer Method                              | Track Method        | Event
- * ------------------------------------------|--------------------------------------------|---------------------|-----
- * [Add](../docs.html#s.adding-records)      | [addTracks()](Viewer.html#addTracks)       | -                   | tracks-add
- * [Update](../docs.html#s.updating-records) | [updateTracks()](Viewer.html#updateTracks) | [update()](#update) | tracks-update
- * [Remove](../docs.html#s.removing-records) | [removeTracks()](Viewer.html#removeTracks) | [remove()](#remove) | tracks-remove
- * [Reorder](../docs.html#s.reordering-records) | [moveTrack()](Viewer.html#moveTrack)    | [move()](#move)     | tracks-moved
- * [Read](../docs.html#s.reading-records)    | [tracks()](Viewer.html#tracks)             | -                   | -
+ * SequenceTranslation is configured through {@link Sequence#translation}.
  *
  * &lt;a name="attributes">&lt;/a>
  * ### Attributes
  *
- * Attribute                         | Type      | Description
- * ----------------------------------|-----------|------------
- * [name](#name)                     | String    | Name of track [Default: "Unknown"]
- * [dataType](#dataType)             | String    | Type of data shown by the track: plot, feature [Default: feature]
- * [dataMethod](#dataMethod)         | String    | Methods used to extract/connect to features or a plot: sequence, source, type, tag [Default: source]
- * [dataKeys](#dataKeys)             | String\|Array | Values used by dataMethod to extract features or a plot.
- * [position](#position)             | String    | Feature tracks: inside, outside, around, or along [Default: around]. Plot tracks: inside or outside; set explicitly. The old feature-track value 'both' is an alias for 'around'.
- * [separateFeaturesBy](#separateFeaturesBy) | String    | How features should be separated: none, strand, readingFrame, type, legend [Default: strand]
- * [thicknessRatio](#thicknessRatio) | Number    | Thickness of track compared to other tracks [Default: 1]
- * [computedInitialSlotThickness](#computedInitialSlotThickness) | Number | Read-only thickness in pixels per visible slot at zoom factor 1, computed using the current canvas dimensions, ratios, and settings.
- * [loadProgress](#loadProgress)     | Number    | Number between 0 and 100 indicating progress of track loading. Used internally by workers.
- * [drawOrder](#drawOrder)           | String    | Order to draw features in: position, score [Default: position]
- * [favorite](#favorite)&lt;sup>ic&lt;/sup> | Boolean  | Optional application flag set with update(); not saved to JSON or used for drawing.
- * [visible](CGObject.html#visible)  | Boolean   | Track is visible [Default: true]
- * [meta](CGObject.html#meta)        | Object    | [Meta data](../tutorials/details-meta-data.html) for Track
+ * Attribute                         | Type    | Description
+ * ----------------------------------|---------|------------
+ * [font](#font)                     | String  | Amino-acid font [Default: 'monospace, plain, 11']
+ * [color](#color)                   | String  | Text color for all amino acids, including starts and stops [Default: 'black']
+ * [backgroundColor](#backgroundColor) | String | Normal codon fill color
+ * [borderColor](#borderColor)       | String  | Border color for all codon boxes, including starts and stops
+ * [startColor](#startColor)         | String  | Start-codon background color [Default: '#00c80e']
+ * [stopColor](#stopColor)           | String  | Stop-codon background color [Default: '#e34444']
+ * [highlightStartCodons](#highlightStartCodons) | Boolean | Highlight starts defined by the active genetic code [Default: true]
+ * [highlightStopCodons](#highlightStopCodons) | Boolean | Highlight stops defined by the active genetic code [Default: true]
+ * [laneSpacing](#laneSpacing)       | Number  | Radial spacing between adjacent reading-frame lanes [Default: 2]
+ * [edgePadding](#edgePadding)       | Number  | Radial clearance at both edges of each strand's translation band [Default: 6]
+ * [visible](CGObject.html#visible)  | Boolean | Show six-frame translations at sufficient zoom [Default: true]
  *
- * &lt;sup>ic&lt;/sup> Ignored on Track creation
- *
- * ### Examples
+ * @example
+ * cgv.sequence.translation.update({visible: true, highlightStartCodons: true});
+ * cgv.draw();
  *
  * @extends CGObject
  */
-class Track extends CGObject {
+class SequenceTranslation extends CGObject {
 
-  /**
-   * Create a new track.
-   * @param {Viewer} viewer - The viewer
-   * @param {Object} options - [Attributes](#attributes) used to create the track.
-   * @param {Object} [meta] - User-defined [Meta data](../tutorials/details-meta-data.html) to add to the track.
-   */
-  constructor(viewer, data = {}, meta = {}) {
-    super(viewer, data, meta);
-    this.viewer = viewer;
-    this._plot;
-    this._features = new CGArray();
-    this._slots = new CGArray();
-    this.name = utils.defaultFor(data.name, 'Unknown');
-    this.separateFeaturesBy = utils.defaultFor(data.separateFeaturesBy, 'strand');
-    this.drawOrder = utils.defaultFor(data.drawOrder, 'position');
-    this.dataType = utils.defaultFor(data.dataType, 'feature');
-    this.dataMethod = utils.defaultFor(data.dataMethod, 'source');
-    this.dataKeys = data.dataKeys;
-    this.dataOptions = data.dataOptions || {};
-    this.position = utils.defaultFor(data.position, 'around');
-    const thicknessRatio = Number(utils.defaultFor(data.thicknessRatio, 1));
-    this._thicknessRatio = Number.isFinite(thicknessRatio) &amp;&amp; thicknessRatio > 0 ? thicknessRatio : 1;
-    this._loadProgress = 0;
-    this.refresh();
+  constructor(sequence, options = {}, meta = {}) {
+    options = options || {};
+    super(sequence.viewer, {...options, visible: utils.defaultFor(options.visible, true)}, meta);
+    this._sequence = sequence;
+    this._configured = Object.keys(options).length > 0;
+    this.font = utils.defaultFor(options.font, 'monospace, plain, 11');
+    this.color = utils.defaultFor(options.color, 'black');
+    this.backgroundColor = utils.defaultFor(options.backgroundColor, '#e5e7eb');
+    this.borderColor = utils.defaultFor(options.borderColor, '#9ca3af');
+    this.startColor = utils.defaultFor(options.startColor, '#00c80e');
+    this.stopColor = utils.defaultFor(options.stopColor, '#e34444');
+    this.highlightStartCodons = utils.defaultFor(options.highlightStartCodons, true);
+    this.highlightStopCodons = utils.defaultFor(options.highlightStopCodons, true);
+    this.laneSpacing = utils.defaultFor(options.laneSpacing, 2);
+    this.edgePadding = utils.defaultFor(options.edgePadding, 6);
+
+    this.viewer.trigger('sequence-translation-update', { attributes: this.toJSON({includeDefaults: true}) });
   }
 
-  /**
-   * Optional application flag accepted by [update()](#update). It is not
-   * initialized from creation data, saved to JSON, or used for drawing.
-   * @member {Boolean|undefined} Track#favorite
-   */
-
-  /**
-   * Return the class name as a string.
-   * @return {String} - 'Track'
-   */
   toString() {
-    return 'Track';
+    return 'SequenceTranslation';
   }
 
-  /**
-   * @member {Viewer} - Get the *Viewer*
-   */
-  get viewer() {
-    return this._viewer;
-  }
-
-  set viewer(viewer) {
-    if (this.viewer) {
-      // TODO: Remove if already attached to Viewer
-    }
-    this._viewer = viewer;
-    viewer._tracks.push(this);
-  }
-
-
-  set visible(value) {
-    // super.visible = value;
-    this._visible = value;
-    if (this.layout) {
-      this.layout._adjustProportions();
-    }
+  get sequence() {
+    return this._sequence;
   }
 
   get visible() {
-    // return super.visible
     return this._visible;
   }
 
-  /**
-   * @member {String} - Alias for getting the name. Useful for querying CGArrays.
-   */
-  get id() {
-    return this.name;
+  set visible(value) {
+    const visible = Boolean(value);
+    if (visible === this._visible) { return; }
+    this._visible = visible;
+    this._requestLayoutUpdate();
+  }
+
+  /** @member {Font} - Amino-acid font. */
+  get font() {
+    return this._font;
+  }
+
+  set font(value) {
+    const font = value.toString() === 'Font' ? value : new Font(value);
+    if (font.string === this._font?.string) { return; }
+    this._font = font;
+    this._requestLayoutUpdate();
+  }
+
+  /** @member {Color} - Shared text color for all amino acids, including starts and stops. */
+  get color() {
+    return this._color;
+  }
+
+  set color(value) {
+    this._color = value.toString() === 'Color' ? value : new Color(value);
+  }
+
+  /** @member {Color} - Fill for ordinary codon boxes. */
+  get backgroundColor() {
+    return this._backgroundColor;
+  }
+
+  set backgroundColor(value) {
+    this._backgroundColor = value.toString() === 'Color' ? value : new Color(value);
+  }
+
+  /** @member {Color} - Shared border color for all codon boxes. */
+  get borderColor() {
+    return this._borderColor;
+  }
+
+  set borderColor(value) {
+    this._borderColor = value.toString() === 'Color' ? value : new Color(value);
+  }
+
+  /** @member {Color} - Fill for highlighted start codons. */
+  get startColor() {
+    return this._startColor;
+  }
+
+  set startColor(value) {
+    this._startColor = value.toString() === 'Color' ? value : new Color(value);
+  }
+
+  /** @member {Color} - Fill for highlighted stop codons. */
+  get stopColor() {
+    return this._stopColor;
+  }
+
+  set stopColor(value) {
+    this._stopColor = value.toString() === 'Color' ? value : new Color(value);
+  }
+
+  /** @member {Boolean} - Highlight starts defined by the active genetic code. */
+  get highlightStartCodons() {
+    return this._highlightStartCodons;
+  }
+
+  set highlightStartCodons(value) {
+    this._highlightStartCodons = Boolean(value);
+  }
+
+  /** @member {Boolean} - Highlight stops defined by the active genetic code. */
+  get highlightStopCodons() {
+    return this._highlightStopCodons;
+  }
+
+  set highlightStopCodons(value) {
+    this._highlightStopCodons = Boolean(value);
+  }
+
+  get laneHeight() {
+    return this.font.height + (2 * LANE_VERTICAL_PADDING);
   }
 
   /**
-   * @member {String} - Get or set the *name*.
+   * @member {Number} - Radial spacing between adjacent translation lanes.
    */
-  get name() {
-    return this._name;
+  get laneSpacing() {
+    return this._laneSpacing;
   }
 
-  set name(value) {
-    this._name = value;
-  }
-
-  /** * @member {Viewer} - Get the *Layout*
-   */
-  get layout() {
-    return this.viewer.layout;
-  }
-
-
-  /**
-   * @member {String} - Get or set the *drawOrder*. Must be one of 'position' or 'score' [Default: 'position']
-   * - position: Features are drawn in the (opposite) order they appear in the sequence. From end of strand backwards. This makes the arrow heads apear above features.
-   * - score: Features are drawn in order of score (lowest to highest).
-   */
-  get drawOrder() {
-    return this._drawOrder;
-  }
-
-  set drawOrder(value) {
-    if ( utils.validate(value, ['position', 'score']) ) {
-      this._drawOrder = value;
-    }
+  set laneSpacing(value) {
+    const laneSpacing = Math.max(0, Number(value) || 0);
+    if (laneSpacing === this._laneSpacing) { return; }
+    this._laneSpacing = laneSpacing;
+    this._requestLayoutUpdate();
   }
 
   /**
-   * @member {String} - Get or set the *dataType*. Must be one of 'feature' or 'plot' [Default: 'feature']
+   * @member {Number} - Radial clearance between the nucleotide rows and first
+   * translation lane, and between the final lane and backbone edge.
    */
-  get dataType() {
-    return this._dataType;
+  get edgePadding() {
+    return this._edgePadding;
   }
 
-  set dataType(value) {
-    if ( utils.validate(value, ['feature', 'plot']) ) {
-      this._dataType = value;
-    }
+  set edgePadding(value) {
+    const edgePadding = Math.max(0, Number(value) || 0);
+    if (edgePadding === this._edgePadding) { return; }
+    this._edgePadding = edgePadding;
+    this._requestLayoutUpdate();
   }
 
-  /** * @member {String} - Alias for *dataType*.
-   */
-  get type() {
-    return this.dataType;
-    // return this.contents.type;
+  get lanesPerStrand() {
+    return 3;
   }
 
   /**
-   * @member {String} - Get or set the *dataMethod* attribute. *dataMethod* describes how the features/plot should be extracted.
-   *    Options are 'source', 'type', 'tag', or 'sequence' [Default: 'source']
-   */
-  get dataMethod() {
-    return this._dataMethod;
-  }
-
-  set dataMethod(value) {
-    if ( utils.validate(value, ['source', 'type', 'tag', 'sequence']) ) {
-      this._dataMethod = value;
-    }
-  }
-
-  /**
-   * @member {String} - Get or set the *dataKeys* attribute. *dataKeys* describes which features/plot should be extracted. For example,
-   *    if *dataMethod* is 'type', and *dataKeys* is 'CDS', then all features with a type of 'CDS' will be used to create the track.
-   *    For *dataMethod* of 'sequence', the following values are possible for *dataKeys*: 'orfs', 'start-stop-codons', 'gc-content', 'gc-skew'.
-   */
-  get dataKeys() {
-    return this._dataKeys;
-  }
-
-  set dataKeys(value) {
-    this._dataKeys = (value === undefined) ? new CGArray() : new CGArray(value);
-  }
-
-  /** * @member {Object} - Get or set the *dataOptions*. The *dataOptions* are passed to the SequenceExtractor.
-   */
-  get dataOptions() {
-    return this._dataOptions;
-  }
-
-  set dataOptions(value) {
-    this._dataOptions = value;
-  }
-
-
-  /**
-   * @member {String} - Get or set separateFeaturesBy. Possible values are 'none', 'strand', 'readingFrame', 'type', or 'legend'.
-   */
-  get separateFeaturesBy() {
-    return this._separateFeaturesBy;
-  }
-
-  set separateFeaturesBy(value) {
-    if ( utils.validate(value, ['none', 'strand', 'readingFrame', 'type', 'legend']) ) {
-      this._separateFeaturesBy = value;
-      this.updateSlots();
-    }
-  }
-
-  /**
-   * @member {String} - Get or set the position. Feature tracks accept 'inside',
-   * 'outside', 'around', or 'along'; 'both' is a deprecated alias for 'around'.
-   * Plot tracks accept 'inside' or 'outside'.
-   */
-  get position() {
-    return this._position;
-  }
-
-  // set position(value) {
-  //   if ((this.type === 'feature' &amp;&amp; utils.validate(value, ['inside', 'outside', 'both', 'along'])) ||
-  //       (this.type === 'plot' &amp;&amp; utils.validate(value, ['inside', 'outside']))) {
-  //     this._position = value;
-  //     this.updateSlots();
-  //   }
-  // }
-  set position(value) {
-    if (this.type === 'feature') {
-      // Deprecated value
-      if (value === 'both') {
-        console.warn("[CGView] track.position 'both' is deprecated and will be removed in v1.9. Use 'around' instead.");
-        value = 'around';
-      }
-
-      if (utils.validate(value, ['inside', 'outside', 'around', 'along'])) {
-        this._position = value;
-        this.updateSlots();
-      }
-      return;
-    }
-
-    if (this.type === 'plot') {
-      if (utils.validate(value, ['inside', 'outside'])) {
-        this._position = value;
-        this.updateSlots();
-      }
-    }
-  }
-
-  /**
-   * @member {Plot} - Get the plot associated with this track
-   */
-  get plot() {
-    return this._plot;
-  }
-
-  /**
-   * @member {Number} - Get or set the load progress position (integer between 0 and 100)
-   */
-  get loadProgress() {
-    return this._loadProgress;
-  }
-
-  set loadProgress(value) {
-    this._loadProgress = value;
-    // this.viewer.trigger('track-load-progress-changed', this);
-  }
-
-  /**
-   * @member {Number} - Return the number of features or plot points contained in this track.
-   */
-  get itemCount() {
-    if (this.type === 'plot') {
-      return (this.plot) ? this.plot.length : 0;
-    } else if (this.type === 'feature') {
-      return this.features().length;
-    } else {
-      return 0;
-    }
-  }
-
-  /**
-   * @member {Number} - Get or set the slot size as a ratio to all other slots.
-   * Finite positive numbers (including numeric strings) are accepted. Invalid
-   * or unchanged values do not recalculate layout. Updates apply immediately.
-   */
-  get thicknessRatio() {
-    return this._thicknessRatio;
-  }
-
-  set thicknessRatio(value) {
-    const ratio = Number(value);
-    if (!Number.isFinite(ratio) || ratio &lt;= 0 || ratio === this._thicknessRatio) { return; }
-    this._thicknessRatio = ratio;
-    this.layout._adjustProportions({duration: 0});
-  }
-
-  /**
-   * @member {Number|undefined} - Read-only thickness in pixels per visible slot
-   * at zoom factor 1, computed using the current canvas dimensions, ratios, and settings.
-   * Excludes dividers and spacing. All visible slots in a track have the same
-   * thickness. This getter does not change the
-   * view or store a second thickness. Returns undefined while loading, for a
-   * hidden/removed track, or when the track has no visible slots. Current
-   * rendered thickness is available as slot.thickness.
-   */
-  get computedInitialSlotThickness() {
-    if (this.viewer.loading) { return undefined; }
-    return this.layout._slotThicknessesAt(1).find(entry => entry.slot.track === this)?.thickness;
-  }
-
-  /**
-   * Size this track using its existing ratio and the map's sizing settings.
-   * Ratio mode is equivalent to update({thicknessRatio: value}), including for
-   * hidden or empty tracks; it redistributes space among visible slots.
-   * Pixel mode targets every visible slot at zoom 1, preserving neighbouring
-   * overview widths. Hidden, removed, loading, and slotless tracks cannot use
-   * pixel mode. Shared limits can make some extreme targets incompatible.
-   *
-   * This is an operation, not a fixed-pixel mode. Resizing the canvas changes
-   * overview widths; zoomed widths still follow shared layout limits. Only
-   * thicknessRatio and settings are saved. Updates are synchronous, preserve
-   * the zoomed focal position, and emit tracks-update and (when changed)
-   * settings-update after layout. Call viewer.draw() to render the result.
-   *
-   * @param {Number} value - Finite positive ratio or overview pixels per slot.
-   * @param {Object} options - An explicit mode is required.
-   * @param {String} options.mode - 'ratio' or 'pixels'.
-   * @return {Track} This track, for chaining.
-   * @throws {TypeError} If mode is missing or unknown.
-   * @throws {RangeError} If value is invalid, shared limits prevent the target,
-   * or the target would give a circular map a non-positive backbone radius.
-   * @throws {Error} If pixel sizing is unavailable for this track.
-   * @example
-   * track.setThickness(20, {mode: 'pixels'});
-   * console.log(track.computedInitialSlotThickness); // 20 per visible slot
-   * track.setThickness(2, {mode: 'ratio'});
-   * track.viewer.draw();
-   */
-  setThickness(value, options = {}) {
-    if (!['ratio', 'pixels'].includes(options?.mode)) {
-      throw new TypeError("Track thickness requires mode: 'ratio' or 'pixels'.");
-    }
-    if (!Number.isFinite(value) || value &lt;= 0) {
-      throw new RangeError('Track thickness must be a finite positive number.');
-    }
-    if (options.mode === 'ratio') {
-      this.update({thicknessRatio: value});
-    } else {
-      this.layout._setTrackOverviewThickness(this, value);
-    }
-    return this;
-  }
-
-  /**
-   * Update track [attributes](#attributes).
-   * See [updating records](../docs.html#s.updating-records) for details.
-   * @param {Object} attributes - Object describing the properties to change
-   */
-  update(attributes) {
-    this.viewer.updateTracks(this, attributes);
-  }
-
-  /**
-   * Remove track
-   */
-  remove() {
-    this.viewer.removeTracks(this);
-  }
-
-  /**
-   * Move this track to a new index in the array of Viewer tracks.
-   * @param {Number} newIndex - New index for this track (0-based)
-   */
-  move(newIndex) {
-    const currentIndex = this.viewer.tracks().indexOf(this);
-    this.viewer.moveTrack(currentIndex, newIndex);
-  }
-
-
-  /**
-   * Returns an [CGArray](CGArray.html) of Features or a single Feature from all the features in this track.
-   * @param {Integer|String|Array} term - See [CGArray.get](CGArray.html#get) for details.
-   * @return {CGArray}
-   */
-  features(term) {
-    return this._features.get(term);
-  }
-
-  slots(term) {
-    return this._slots.get(term);
-  }
-
-  /**
-   * Returns an [CGArray](CGArray.html) of Features or a single Feature from all the unique features in this track.
-   * Unique features are ones that only appear in this track.
-   * @param {Integer|String|Array} term - See [CGArray.get](CGArray.html#get) for details.
-   * @return {CGArray}
+   * Radial space occupied by one strand's lanes, including inter-lane spacing
+   * and explicit clearance at both edges. This is the source of truth for
+   * backbone expansion.
    * @private
    */
-  uniqueFeatures(term) {
-    const features = new CGArray();
-    for (let i = 0, len = this._features.length; i &lt; len; i++) {
-      if (this._features[i].tracks().length === 1) {
-        features.push(this._features[i]);
-      }
-    }
-    return features.get(term);
+  get strandThickness() {
+    return (this.lanesPerStrand * this.laneHeight) +
+      ((this.lanesPerStrand - 1) * this.laneSpacing) +
+      (2 * this.edgePadding);
   }
 
   /**
-   * Remove a feature or array of features from the track and slots.
-   *
-   * @param {Feature|Array} features - The Feature(s) to remove.
+   * Extra backbone thickness required for three lanes on each strand.
+   * @private
    */
-  removeFeatures(features) {
-    features = (features.toString() === 'CGArray') ? features : new CGArray(features);
-    // this._features = new CGArray(
-    //   this._features.filter( (f) => { return !features.includes(f) })
-    // );
-    this._features = this._features.filter( f => !features.includes(f) );
-    this.slots().each( (i, slot) => {
-      slot.removeFeatures(features);
-    });
-    this.viewer.trigger('track-update', this);
+  get thickness() {
+    if (!this.visible || !this.sequence.hasSeq) { return 0; }
+    return 2 * this.strandThickness;
   }
 
   /**
-   * Remove the plot from the track and slots.
+   * Return the scaled radial geometry shared by lane placement and backbone
+   * sizing. Offsets are distances from the backbone center.
+   * @param {Number} scaleFactor - Translation size from 0 to 1.
+   * @param {Number} [baseScaleFactor=scaleFactor] - Nucleotide size from 0 to 1.
+   * @returns {Object} Lane dimensions and offsets in screen pixels.
+   * @private
    */
-  removePlot() {
-    this._plot = undefined;
-    this.slots().each( (i, slot) => {
-      slot.removePlot();
-    });
-    this.viewer.trigger('track-update', this);
-  }
-
-  // NOTE:
-  // - features and plots extracted from sequence are empheral and will be removed and readded on refresh
-  refresh() {
-    const tempPlot = this._plot;
-    const tempFeatures = this._features;
-    this._features = new CGArray();
-    this._plot = undefined;
-    if (this.dataMethod === 'sequence') {
-      tempPlot?.remove();
-      this.viewer.removeFeatures(tempFeatures);
-      this.extractFromSequence();
-    } else if (this.type === 'feature') {
-      this.updateFeatures();
-    } else if (this.type === 'plot') {
-      this.updatePlot();
-    }
-    this.updateSlots();
-  }
-
-  extractFromSequence() {
-    const sequenceExtractor = this.viewer.sequence.sequenceExtractor;
-    if (sequenceExtractor) {
-      sequenceExtractor.extractTrackData(this, this.dataKeys[0], this.dataOptions);
-    } else {
-      console.error('No sequence is available to extract features/plots from');
-    }
-  }
-
-  updateFeatures() {
-    // Methods where the feature will contain a single value
-    if (this.dataMethod === 'source' || this.dataMethod === 'type') {
-      this.viewer.features().each( (i, feature) => {
-        if (this.dataKeys.includes(feature[this.dataMethod]) &amp;&amp; feature.contig.visible) {
-          this._features.push(feature);
-        }
-      });
-    // Methods where the feature will contain an array of values
-    } else if (this.dataMethod === 'tag') {
-      this.viewer.features().each( (i, feature) => {
-        if (this.dataKeys.some( k => feature.tags.includes(k)) &amp;&amp; feature.contig.visible) {
-          this._features.push(feature);
-        }
-      });
-    }
-  }
-
-  updatePlot() {
-    if (this.dataMethod === 'source') {
-      // Plot with particular Source
-      this.viewer.plots().find( (plot) => {
-        if (plot.source === this.dataKeys[0]) {
-          this._plot = plot;
-        }
-      });
-    }
-  }
-
-  updateSlots() {
-    if (this.type === 'feature') {
-      this.updateFeatureSlots();
-    } else if (this.type === 'plot') {
-      this.updatePlotSlot();
-    }
-    this.layout._adjustProportions();
-    // this.viewer.trigger('track-update', this);
-  }
-
-  updateFeatureSlots() {
-    this._slots = new CGArray();
-    if (['type', 'legend'].includes(this.separateFeaturesBy)) {
-      const features = this.featuresBy(this.separateFeaturesBy);
-      // types can be 'type' or 'legend'
-      const types = Object.keys(features);
-      // Sort by number of features
-      types.sort((a, b) => features[b].length - features[a].length);
-      for (const type of types) {
-        const slot = new Slot(this, {strand: 'direct'});
-        slot.replaceFeatures(features[type]);
-      }
-    } else if (this.separateFeaturesBy === 'readingFrame') {
-      const features = this.sequence.featuresByReadingFrame(this.features());
-      // Direct Reading Frames
-      for (const rf of [1, 2, 3]) {
-        const slot = new Slot(this, {strand: 'direct'});
-        slot.replaceFeatures(features[`rfPlus${rf}`]);
-      }
-      // Reverse Reading Frames
-      for (const rf of [1, 2, 3]) {
-        const slot = new Slot(this, {strand: 'reverse'});
-        slot.replaceFeatures(features[`rfMinus${rf}`]);
-      }
-    } else if (this.separateFeaturesBy === 'strand') {
-      const features = this.featuresByStrand();
-      // We always want direct strand first (from the outside in)
-      const strands = this.position === 'outside' ? ['reverse', 'direct'] : ['direct', 'reverse'];
-      // Direct Slot
-      let slot = new Slot(this, {strand: strands[0]});
-      slot.replaceFeatures(this.position === 'outside' ? features.reverse : features.direct);
-      // Reverse Slot
-      slot = new Slot(this, {strand: strands[1]});
-      slot.replaceFeatures(this.position === 'outside' ? features.direct : features.reverse);
-    } else {
-      // Combined Slot
-      const slot = new Slot(this, {strand: 'direct'});
-      slot.replaceFeatures(this.features());
-    }
-  }
-
-  // FIXME: this should become simply (update)
-  // update(attributes = {}) {
-  //   this.viewer.updateTracks(this, attributes);
-  // }
-  triggerUpdate() {
-    this.viewer.updateTracks(this);
-  }
-
-  featuresByStrand() {
-    const features = {};
-    features.direct = new CGArray();
-    features.reverse = new CGArray();
-    this.features().each( (i, feature) => {
-      if (feature.strand === -1) {
-        features.reverse.push(feature);
-      } else {
-        features.direct.push(feature);
-      }
-    });
-    return features;
-  }
-
-  // Returns an object with keys as the type of feature (e.g. types or legend names) and values as an array of features
-  // by: 'type' or 'legend'
-  featuresBy(by='type') {
-    const features = {};
-    this.features().each( (i, feature) => {
-      const key = (by === 'legend') ? feature.legend.name : feature[by];
-      if (features[key] === undefined) {
-        features[key] = new CGArray();
-      }
-      features[key].push(feature);
-    });
-    return features;
-  }
-
-  // featuresByType() {
-  //   const features = {};
-  //   this.features().each( (i, feature) => {
-  //     const type = feature.type;
-  //     if (features[type] === undefined) {
-  //       features[type] = new CGArray();
-  //     }
-  //     features[type].push(feature);
-  //   });
-  //   return features;
-  // }
-
-  // featuresByLegend() {
-  //   const features = {};
-  //   this.features().each( (i, feature) => {
-  //     const legend = feature.legend.name;
-  //     if (features[legend] === undefined) {
-  //       features[legend] = new CGArray();
-  //     }
-  //     features[legend].push(feature);
-  //   });
-  //   return features;
-  // }
-
-  updatePlotSlot() {
-    this._slots = new CGArray();
-    const slot = new Slot(this, {type: 'plot'});
-    slot._plot = this._plot;
-  }
-
-  highlight(color = '#FFB') {
-    if (this.visible) {
-      this.slots().each( (i, slot) => {
-        slot.highlight(color);
-      });
-    }
-  }
-
-  /**
-   * Returns JSON representing the object
-   */
-  toJSON(options = {}) {
-    const json = {
-      name: this.name,
-      separateFeaturesBy: this.separateFeaturesBy,
-      position: this.position,
-      thicknessRatio: this.thicknessRatio,
-      dataType: this.dataType,
-      dataMethod: this.dataMethod
+  _layoutForScale(scaleFactor, baseScaleFactor = scaleFactor) {
+    const highlightPadding = CELL_VERTICAL_PADDING * scaleFactor;
+    const laneHeight = this.laneHeight * scaleFactor;
+    const laneSpacing = this.laneSpacing * scaleFactor;
+    const edgePadding = this.edgePadding * scaleFactor;
+    // The highlight border is inset into the cell. The larger padding leaves
+    // clear space between that border and the nominal glyph box, while the
+    // lane retains a separate one-pixel gutter around the complete cell.
+    // Every value uses the same detail scale so these proportions do not
+    // change while zooming through the sequence-detail transition.
+    const highlightHeight = (this.font.height * scaleFactor) + (2 * highlightPadding);
+    const highlightBorderWidth = scaleFactor;
+    const laneStep = laneHeight + laneSpacing;
+    const sequenceHalfThickness = this.sequence.baseThickness * baseScaleFactor / 2;
+    const firstLaneCenterOffset = sequenceHalfThickness + edgePadding + (laneHeight / 2);
+    const outerLaneEdgeOffset = firstLaneCenterOffset + ((this.lanesPerStrand - 1) * laneStep) + (laneHeight / 2);
+    const backboneEdgeOffset = sequenceHalfThickness + (this.strandThickness * scaleFactor);
+    return {
+      scaleFactor,
+      laneHeight,
+      laneSpacing,
+      edgePadding,
+      highlightHeight,
+      highlightBorderWidth,
+      laneStep,
+      firstLaneCenterOffset,
+      outerLaneEdgeOffset,
+      backboneEdgeOffset,
     };
-    // DataKeys
-    json.dataKeys = (this.dataKeys.length === 1) ? this.dataKeys[0] : [...this.dataKeys];
-    // DataOptions
-    if (this.dataOptions &amp;&amp; Object.keys(this.dataOptions).length > 0) {
-      json.dataOptions = this.dataOptions;
-    }
-    // Optionally add default values
-    if (!this.visible || options.includeDefaults) {
-      json.visible = this.visible;
-    }
-    if (this.drawOrder != 'position') {
-      json.drawOrder = this.drawOrder;
-    }
-    // This could be a new Track specific toJSON option
-    if (options.includeDefaults) {
-      json.loadProgress = this.loadProgress;
-    }
-    return json;
   }
 
+  /**
+   * Genetic code used to translate codons. Alias for Viewer.geneticCode.
+   */
+  get geneticCode() {
+    return this.viewer.geneticCode;
+  }
+
+  set geneticCode(value) {
+    this.viewer.geneticCode = value;
+  }
+
+  /**
+   * Name of the active genetic code.
+   */
+  get geneticCodeName() {
+    return this.viewer.codonTables.byID(this.geneticCode)?.name;
+  }
+
+  /**
+   * Grow lanes continuously over the nucleotide-detail zoom range.
+   * Smoothstep has zero slope at both ends, including when zooming back out.
+   * No timers or per-frame animation state are needed.
+   * @param {Number} pixelsPerBp - Backbone pixels per base pair.
+   * @returns {Number} Translation size in the range 0 to 1.
+   * @private
+   */
+  scaleFactor(pixelsPerBp) {
+    if (!this.visible || !this.sequence.visible || !this.sequence.hasSeq || pixelsPerBp &lt; 1) { return 0; }
+    const baseScale = this.sequence.detailScaleFactor(pixelsPerBp);
+    const progress = Math.max(0, (baseScale - DETAIL_FADE_START) / (1 - DETAIL_FADE_START));
+    return progress * progress * (3 - 2 * progress);
+  }
+
+  /**
+   * Return the additional backbone space occupied by translation at this zoom.
+   * @param {Number} pixelsPerBp - Backbone pixels per base pair.
+   * @returns {Number} Additional thickness in screen pixels; zero when hidden.
+   * @private
+   */
+  scaledThickness(pixelsPerBp) {
+    return this.thickness * this.scaleFactor(pixelsPerBp);
+  }
+
+  _splitRange(range) {
+    if (range.start &lt;= range.stop) {
+      return [[range.start, range.stop]];
+    }
+    return [[range.start, this.sequence.length], [1, range.stop]];
+  }
+
+  _visibleContigSegments(contig, visibleRange) {
+    const segments = [];
+    const contigStart = contig.mapStart;
+    const contigStop = contig.mapStop;
+    for (const [visibleStart, visibleStop] of this._splitRange(visibleRange)) {
+      const start = Math.max(contigStart, visibleStart);
+      const stop = Math.min(contigStop, visibleStop);
+      if (start &lt;= stop) {
+        segments.push([start - contig.lengthOffset, stop - contig.lengthOffset]);
+      }
+    }
+    return segments;
+  }
+
+  _reverseComplementCodon(codon) {
+    return `${COMPLEMENT[codon[2]] || 'N'}${COMPLEMENT[codon[1]] || 'N'}${COMPLEMENT[codon[0]] || 'N'}`;
+  }
+
+  /**
+   * Visit translated codons without materializing a protein string or codon
+   * record array. Segments use contig-local coordinates and are normally
+   * calculated once per contig for the current draw.
+   * @param {Contig} contig - Contig anchoring the reading frame.
+   * @param {Array&lt;Array&lt;Number>>} segments - Visible local start/stop pairs.
+   * @param {Number} strand - Forward (1) or reverse (-1).
+   * @param {Number} frame - Reading frame from 1 to 3.
+   * @param {CodonTable} codonTable - Active genetic code.
+   * @param {Function} callback - Receives map start, codon, amino acid, start flag, and stop flag.
+   * @returns {undefined} Invokes the callback for each overlapping complete codon.
+   * @private
+   */
+  _forEachCodon(contig, segments, strand, frame, codonTable, callback) {
+    const contigLength = contig.length;
+    const mapSequence = this.sequence.seq;
+    const highestStart = strand === 1 ? contigLength - 2 : contigLength - frame - 1;
+    const firstFrameStart = strand === 1 ? frame : ((((highestStart - 1) % 3) + 3) % 3) + 1;
+
+    for (const [visibleStart, visibleStop] of segments) {
+      const firstStart = firstFrameStart + Math.max(0, Math.ceil((visibleStart - 2 - firstFrameStart) / 3)) * 3;
+      const lastStart = Math.min(visibleStop, highestStart);
+      for (let localStart = firstStart; localStart &lt;= lastStart; localStart += 3) {
+        if (localStart &lt; 1 || localStart + 2 > contigLength) { continue; }
+        const mapStart = contig.lengthOffset + localStart;
+        const genomicCodon = mapSequence.substring(mapStart - 1, mapStart + 2).replace(/U/g, 'T');
+        const codon = strand === 1 ? genomicCodon : this._reverseComplementCodon(genomicCodon);
+        callback(
+          mapStart,
+          codon,
+          codonTable.table[codon] || 'X',
+          codonTable.starts.includes(codon),
+          codonTable.stops.includes(codon)
+        );
+      }
+    }
+  }
+
+  /**
+   * Return translated codons for one frame overlapping the visible range.
+   * Exposed primarily to make the frame anchoring independently testable.
+   * @param {Contig} contig - Contig anchoring the reading frame.
+   * @param {CGRange} visibleRange - Visible map coordinates.
+   * @param {Number} strand - Forward (1) or reverse (-1).
+   * @param {Number} frame - Reading frame from 1 to 3.
+   * @param {CodonTable} codonTable - Active genetic code.
+   * @returns {Array&lt;Object>} Newly allocated codon records, without changing sequence data.
+   * @private
+   */
+  codonsForRange(contig, visibleRange, strand, frame, codonTable) {
+    const codons = [];
+    const segments = this._visibleContigSegments(contig, visibleRange);
+    this._forEachCodon(contig, segments, strand, frame, codonTable, (start, codon, aminoAcid, isStart, isStop) => {
+      codons.push({
+        start,
+        stop: start + 2,
+        middle: start + 1,
+        strand,
+        frame,
+        codon,
+        aminoAcid,
+        isStart,
+        isStop,
+      });
+    });
+    return codons;
+  }
+
+  /**
+   * Resolve the single codon under a pointer in a visible translation lane.
+   * Uses the drawing layout at the current zoom, including the distinct DNA
+   * and translation scales during the fade. No protein arrays are constructed.
+   * @param {Number} bp - Map base-pair position under the pointer.
+   * @param {Number} centerOffset - Pointer radius or linear map offset in pixels.
+   * @returns {Object|undefined} New codon details, including its map range,
+   * signed frame, amino-acid name, genetic code, and contig. Does not change the map.
+   * @private
+   */
+  hitTest(bp, centerOffset) {
+    if (!Number.isFinite(bp) || !Number.isFinite(centerOffset)) { return; }
+    const backbone = this.viewer.backbone;
+    const pixelsPerBp = backbone.pixelsPerBp();
+    const scaleFactor = this.scaleFactor(pixelsPerBp);
+    if (!scaleFactor) { return; }
+
+    const layout = this._layoutForScale(scaleFactor, this.sequence.detailScaleFactor(pixelsPerBp));
+    const signedOffset = centerOffset - backbone.adjustedCenterOffset;
+    const strand = signedOffset >= 0 ? 1 : -1;
+    const radialOffset = Math.abs(signedOffset);
+    const frameIndex = Math.round((radialOffset - layout.firstLaneCenterOffset) / layout.laneStep);
+    if (frameIndex &lt; 0 || frameIndex >= this.lanesPerStrand) { return; }
+    const laneCenterOffset = layout.firstLaneCenterOffset + frameIndex * layout.laneStep;
+    if (Math.abs(radialOffset - laneCenterOffset) > layout.laneHeight / 2) { return; }
+
+    const mapBp = Math.round(bp);
+    if (mapBp &lt; 1 || mapBp > this.sequence.length) { return; }
+    const contig = this.sequence.hasMultipleContigs ? this.sequence.contigForBp(mapBp) : this.sequence.mapContig;
+    if (!contig?.visible) { return; }
+
+    const localBp = mapBp - contig.lengthOffset;
+    const frame = frameIndex + 1;
+    const codonTable = this.viewer.codonTables.byID(this.geneticCode) || this.viewer.codonTables.byID(11);
+    let result;
+    this._forEachCodon(contig, [[localBp, localBp]], strand, frame, codonTable,
+      (start, codon, aminoAcid, isStart, isStop) => {
+        result = {
+          start,
+          stop: start + 2,
+          middle: start + 1,
+          strand,
+          frame,
+          signedFrame: strand * frame,
+          codon,
+          aminoAcid,
+          aminoAcidName: AMINO_ACID_NAMES[aminoAcid] || 'Unknown',
+          isStart,
+          isStop,
+          geneticCode: Number(codonTable.geneticCodeID),
+          geneticCodeName: codonTable.name,
+          contig,
+        };
+      }
+    );
+    return result;
+  }
+
+  /**
+   * Calculate shared cell geometry once for each lane in a draw. A tangent
+   * polygon is sufficient when its maximum deviation is below 0.25 pixels;
+   * short circular sequences retain curved edges at their exact map positions.
+   * @param {Object} layout - Scaled translation-lane geometry.
+   * @param {Number} centerOffset - Lane position in screen pixels.
+   * @returns {Object} Cell dimensions, direction-independent bounds, and curve mode.
+   * @private
+   */
+  _cellGeometry(layout, centerOffset) {
+    const pixelsPerBp = this.canvas.pixelsPerBp(centerOffset);
+    const span = 3 * pixelsPerBp;
+    const borderWidth = layout.highlightBorderWidth;
+    const gap = Math.min(0.5 * borderWidth, span * 0.05);
+    const halfWidth = Math.max(0, (span - gap - borderWidth) / 2);
+    const halfHeight = (layout.highlightHeight - borderWidth) / 2;
+    const tipLength = Math.min(halfHeight * 0.4, halfWidth * 0.25);
+    const curveError = (span * span / 8 + span * layout.highlightHeight / 4) / centerOffset;
+    return {
+      halfWidth,
+      halfHeight,
+      tipLength,
+      borderWidth,
+      pixelsPerBp,
+      curved: this.viewer.format === 'circular' &amp;&amp; curveError > 0.25,
+    };
+  }
+
+  /**
+   * Trace a compact chevron about a glyph's center. The caller fills and strokes
+   * the same path, then draws the glyph using the same coordinate transform.
+   * @param {CanvasRenderingContext2D} ctx - Map canvas context.
+   * @param {Number} x - Glyph center in the current coordinate system.
+   * @param {Number} y - Glyph center in the current coordinate system.
+   * @param {Number} direction - Reading direction along the local x axis (1 or -1).
+   * @param {Object} cell - Lane cell geometry.
+   * @returns {undefined} Replaces the current canvas path.
+   * @private
+   */
+  _traceCell(ctx, x, y, direction, cell) {
+    traceChevron(ctx, x, y, direction, cell);
+  }
+
+  /**
+   * Trace the same chevron with curved edges for short circular sequences.
+   * @param {CanvasRenderingContext2D} ctx - Map canvas context.
+   * @param {Number} middle - Map position at the center of the codon.
+   * @param {Number} centerOffset - Lane radius in screen pixels.
+   * @param {Number} strand - Forward (1) or reverse (-1) reading direction.
+   * @param {Object} cell - Lane cell geometry.
+   * @returns {undefined} Replaces the current canvas path in map coordinates.
+   * @private
+   */
+  _traceCurvedCell(ctx, middle, centerOffset, strand, cell) {
+    traceCurvedChevron(this.canvas, ctx, middle, centerOffset, strand, cell);
+  }
+
+  /** Prepare the shared cap-height baseline once per font. @private */
+  _textBaselineOffset(ctx, scaleFactor) {
+    return SequenceGlyphCache.baselineOffsetForFont(ctx, this.font) * scaleFactor;
+  }
+
+  /** Reuse amino-acid glyph sheets for all six lanes; SVG uses native text. @private */
+  _glyphsForContext(ctx) {
+    if (ctx.getSerializedSvg) { return; }
+    this._glyphCache = SequenceGlyphCache.forContext(ctx, this.font, this._glyphCache, AMINO_ACID_ALPHABET);
+    return this._glyphCache;
+  }
+
+  _drawCodon(start, aminoAcid, isStart, isStop, centerOffset, layout, strand = 1,
+    cell = this._cellGeometry(layout, centerOffset), glyphCache, baselineOffset = 0) {
+    let fillColor = this.backgroundColor;
+    // Stop fill takes precedence for any unusual table that classifies a
+    // codon as both a start and a stop.
+    if (isStop &amp;&amp; this.highlightStopCodons) {
+      fillColor = this.stopColor;
+    } else if (isStart &amp;&amp; this.highlightStartCodons) {
+      fillColor = this.startColor;
+    }
+
+    const ctx = this.canvas.context('map');
+    const middle = start + 1;
+    const origin = this.canvas.pointForBp(middle, centerOffset);
+    const circular = this.viewer.format === 'circular';
+    const orientation = circular ? this.canvas.tangentialTextOrientationForBp(middle) : undefined;
+    const direction = orientation?.flipped ? -strand : strand;
+    ctx.fillStyle = fillColor.rgbaString;
+    ctx.strokeStyle = this.borderColor.rgbaString;
+    ctx.lineWidth = cell.borderWidth;
+    if (cell.curved) {
+      this._traceCurvedCell(ctx, middle, centerOffset, strand, cell);
+      ctx.fill();
+      ctx.stroke();
+    }
+    if (circular) {
+      ctx.save();
+      ctx.translate(origin.x, origin.y);
+      ctx.rotate(orientation.angle);
+    }
+    const x = circular ? 0 : origin.x;
+    const y = circular ? 0 : origin.y;
+    if (!cell.curved) {
+      this._traceCell(ctx, x, y, direction, cell);
+      ctx.fill();
+      ctx.stroke();
+    }
+    ctx.fillStyle = this.color.rgbaString;
+    if (glyphCache) {
+      glyphCache.draw(ctx, aminoAcid, this.color.rgbaString, x, y, layout.scaleFactor);
+    } else {
+      ctx.fillText(aminoAcid, x, y + baselineOffset);
+    }
+    if (circular) { ctx.restore(); }
+  }
+
+  /**
+   * Draw visible codons directly on the map canvas, restoring context state.
+   * Does no sequence work until translation detail begins to appear.
+   * @param {CGRange} visibleRange - Visible map coordinates.
+   * @param {Number} backboneCenterOffset - Backbone position in screen pixels.
+   * @param {Number} pixelsPerBp - Backbone pixels per base pair.
+   * @returns {undefined}
+   * @private
+   */
+  draw(visibleRange, backboneCenterOffset, pixelsPerBp) {
+    const scaleFactor = this.scaleFactor(pixelsPerBp);
+    if (!scaleFactor || !visibleRange) { return; }
+
+    const codonTable = this.viewer.codonTables.byID(this.geneticCode) || this.viewer.codonTables.byID(11);
+    const layout = this._layoutForScale(scaleFactor, this.sequence.detailScaleFactor(pixelsPerBp));
+    const contigs = this.sequence.contigsForMapRange(visibleRange);
+    const ctx = this.canvas.context('map');
+
+    ctx.save();
+    // Finish fading at half size, then let the solid letters and cells grow.
+    // Ease out to full opacity without changing lane geometry or zoom timing.
+    const opacityProgress = Math.min(1, scaleFactor / FULL_OPACITY_SCALE);
+    ctx.globalAlpha *= opacityProgress * (2 - opacityProgress);
+    ctx.font = this.font.cssScaled(scaleFactor);
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'alphabetic';
+    ctx.lineJoin = 'round';
+    const baselineOffset = this._textBaselineOffset(ctx, scaleFactor);
+    const glyphCache = this._glyphsForContext(ctx);
+    if (glyphCache) {
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = 'high';
+    }
+    const laneGeometry = new Map();
+    for (const contig of contigs) {
+      const segments = this._visibleContigSegments(contig, visibleRange);
+      for (const strand of [1, -1]) {
+        for (let frame = 1; frame &lt;= this.lanesPerStrand; frame++) {
+          const laneCenterOffset = layout.firstLaneCenterOffset + ((frame - 1) * layout.laneStep);
+          const centerOffset = backboneCenterOffset + (strand * laneCenterOffset);
+          const lane = strand * frame;
+          let cell = laneGeometry.get(lane);
+          if (!cell) {
+            cell = this._cellGeometry(layout, centerOffset);
+            laneGeometry.set(lane, cell);
+          }
+          this._forEachCodon(contig, segments, strand, frame, codonTable, (start, codon, aminoAcid, isStart, isStop) => {
+            this._drawCodon(start, aminoAcid, isStart, isStop, centerOffset, layout, strand, cell, glyphCache, baselineOffset);
+          });
+        }
+      }
+    }
+    ctx.restore();
+  }
+
+  /**
+   * Recalculate backbone and slot geometry once after a size-affecting option
+   * changes. Updates are applied synchronously so the next draw cannot combine
+   * a new backbone thickness with stale feature-slot offsets.
+   * @private
+   */
+  _requestLayoutUpdate() {
+    if (this._layoutUpdatesSuspended) {
+      this._layoutUpdatePending = true;
+      return;
+    }
+    if (!this._sequence || !this.viewer.backbone || this.viewer.loading) { return; }
+    const previousThickness = this.viewer.backbone.adjustedThickness;
+    this.viewer.backbone.refreshThickness();
+    // Size-affecting translation settings have no current layout effect below
+    // the detail threshold. The normal zoom draw will refresh the backbone as
+    // soon as the scaled translation thickness becomes non-zero.
+    if (Math.abs(this.viewer.backbone.adjustedThickness - previousThickness) &lt; 0.001) { return; }
+    this.viewer.layout._adjustProportions({duration: 0});
+  }
+
+  /**
+   * Update translation settings, refresh affected layout, and emit an update
+   * event. Call viewer.draw() to paint the changes.
+   * @param {Object} attributes - Translation attributes to change.
+   * @returns {undefined}
+   */
+  update(attributes) {
+    this._configured = true;
+    this._layoutUpdatesSuspended = true;
+    this._layoutUpdatePending = false;
+    try {
+      this.viewer.updateRecords(this, attributes, {
+        recordClass: 'SequenceTranslation',
+        validKeys: [
+          'font', 'color', 'backgroundColor', 'borderColor',
+          'startColor', 'stopColor',
+          'highlightStartCodons', 'highlightStopCodons',
+          'laneSpacing', 'edgePadding', 'visible'
+        ]
+      });
+    } finally {
+      this._layoutUpdatesSuspended = false;
+    }
+    if (this._layoutUpdatePending) {
+      this._layoutUpdatePending = false;
+      this._requestLayoutUpdate();
+    }
+    this.viewer.trigger('sequence-translation-update', { attributes });
+  }
+
+  invertColors() {
+    // Preserve start/stop fills so their meaning stays consistent on either background.
+    this.update({
+      color: this.color.invert().rgbaString,
+      backgroundColor: this.backgroundColor.invert().rgbaString,
+      borderColor: this.borderColor.invert().rgbaString,
+    });
+  }
+
+  toJSON() {
+    return {
+      font: this.font.string,
+      color: this.color.rgbaString,
+      backgroundColor: this.backgroundColor.rgbaString,
+      borderColor: this.borderColor.rgbaString,
+      startColor: this.startColor.rgbaString,
+      stopColor: this.stopColor.rgbaString,
+      highlightStartCodons: this.highlightStartCodons,
+      highlightStopCodons: this.highlightStopCodons,
+      laneSpacing: this.laneSpacing,
+      edgePadding: this.edgePadding,
+      visible: this.visible,
+    };
+  }
 }
 
-export default Track;
+export default SequenceTranslation;
 </code></pre>
         </article>
     </section>
