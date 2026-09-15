@@ -69,20 +69,16 @@ const LANE_VERTICAL_PADDING = 3.5;
  * Attribute                         | Type    | Description
  * ----------------------------------|---------|------------
  * [font](#font)                     | String  | Amino-acid font [Default: 'monospace, plain, 11']
- * [color](#color)                   | String  | Amino-acid text color [Default: 'black']
+ * [color](#color)                   | String  | Text color for all amino acids, including starts and stops [Default: 'black']
  * [backgroundColor](#backgroundColor) | String | Normal codon fill color
- * [borderColor](#borderColor)       | String  | Normal codon border color
- * [startColor](#startColor)         | String  | Start-codon background color
- * [startBorderColor](#startBorderColor) | String | Start-codon border color
- * [startTextColor](#startTextColor) | String  | Start-codon amino-acid color
- * [stopColor](#stopColor)           | String  | Stop-codon background color
- * [stopBorderColor](#stopBorderColor) | String | Stop-codon border color
- * [stopTextColor](#stopTextColor)   | String  | Stop-codon amino-acid color
+ * [borderColor](#borderColor)       | String  | Border color for all codon boxes, including starts and stops
+ * [startColor](#startColor)         | String  | Start-codon background color [Default: '#00c80e']
+ * [stopColor](#stopColor)           | String  | Stop-codon background color [Default: '#e34444']
  * [highlightStartCodons](#highlightStartCodons) | Boolean | Highlight starts defined by the active genetic code [Default: true]
  * [highlightStopCodons](#highlightStopCodons) | Boolean | Highlight stops defined by the active genetic code [Default: true]
  * [laneSpacing](#laneSpacing)       | Number  | Radial spacing between adjacent reading-frame lanes [Default: 2]
  * [edgePadding](#edgePadding)       | Number  | Radial clearance at both edges of each strand's translation band [Default: 6]
- * [visible](CGObject.html#visible)  | Boolean | Show six-frame translations at sufficient zoom [Default: false]
+ * [visible](CGObject.html#visible)  | Boolean | Show six-frame translations at sufficient zoom [Default: true]
  *
  * @example
  * cgv.sequence.translation.update({visible: true, highlightStartCodons: true});
@@ -94,19 +90,15 @@ class SequenceTranslation extends CGObject {
 
   constructor(sequence, options = {}, meta = {}) {
     options = options || {};
-    super(sequence.viewer, {...options, visible: utils.defaultFor(options.visible, false)}, meta);
+    super(sequence.viewer, {...options, visible: utils.defaultFor(options.visible, true)}, meta);
     this._sequence = sequence;
     this._configured = Object.keys(options).length > 0;
     this.font = utils.defaultFor(options.font, 'monospace, plain, 11');
     this.color = utils.defaultFor(options.color, 'black');
     this.backgroundColor = utils.defaultFor(options.backgroundColor, '#e5e7eb');
     this.borderColor = utils.defaultFor(options.borderColor, '#9ca3af');
-    this.startColor = utils.defaultFor(options.startColor, '#86efac');
-    this.startBorderColor = utils.defaultFor(options.startBorderColor, '#16a34a');
-    this.startTextColor = utils.defaultFor(options.startTextColor, '#166534');
-    this.stopColor = utils.defaultFor(options.stopColor, '#fca5a5');
-    this.stopBorderColor = utils.defaultFor(options.stopBorderColor, '#b91c1c');
-    this.stopTextColor = utils.defaultFor(options.stopTextColor, '#b91c1c');
+    this.startColor = utils.defaultFor(options.startColor, '#00c80e');
+    this.stopColor = utils.defaultFor(options.stopColor, '#e34444');
     this.highlightStartCodons = utils.defaultFor(options.highlightStartCodons, true);
     this.highlightStopCodons = utils.defaultFor(options.highlightStopCodons, true);
     this.laneSpacing = utils.defaultFor(options.laneSpacing, 2);
@@ -177,44 +169,12 @@ class SequenceTranslation extends CGObject {
     this._startColor = value.toString() === 'Color' ? value : new Color(value);
   }
 
-  get startBorderColor() {
-    return this._startBorderColor;
-  }
-
-  set startBorderColor(value) {
-    this._startBorderColor = value.toString() === 'Color' ? value : new Color(value);
-  }
-
-  get startTextColor() {
-    return this._startTextColor;
-  }
-
-  set startTextColor(value) {
-    this._startTextColor = value.toString() === 'Color' ? value : new Color(value);
-  }
-
   get stopColor() {
     return this._stopColor;
   }
 
   set stopColor(value) {
     this._stopColor = value.toString() === 'Color' ? value : new Color(value);
-  }
-
-  get stopBorderColor() {
-    return this._stopBorderColor;
-  }
-
-  set stopBorderColor(value) {
-    this._stopBorderColor = value.toString() === 'Color' ? value : new Color(value);
-  }
-
-  get stopTextColor() {
-    return this._stopTextColor;
-  }
-
-  set stopTextColor(value) {
-    this._stopTextColor = value.toString() === 'Color' ? value : new Color(value);
   }
 
   get highlightStartCodons() {
@@ -596,18 +556,12 @@ class SequenceTranslation extends CGObject {
   _drawCodon(start, aminoAcid, isStart, isStop, centerOffset, layout, strand = 1,
     cell = this._cellGeometry(layout, centerOffset), glyphCache, baselineOffset = 0) {
     let fillColor = this.backgroundColor;
-    let textColor = this.color;
-    let borderColor = this.borderColor;
-    // Stop styling takes precedence for any unusual table that classifies a
+    // Stop fill takes precedence for any unusual table that classifies a
     // codon as both a start and a stop.
     if (isStop && this.highlightStopCodons) {
       fillColor = this.stopColor;
-      textColor = this.stopTextColor;
-      borderColor = this.stopBorderColor;
     } else if (isStart && this.highlightStartCodons) {
       fillColor = this.startColor;
-      textColor = this.startTextColor;
-      borderColor = this.startBorderColor;
     }
 
     const ctx = this.canvas.context('map');
@@ -617,7 +571,7 @@ class SequenceTranslation extends CGObject {
     const orientation = circular ? this.canvas.tangentialTextOrientationForBp(middle) : undefined;
     const direction = orientation?.flipped ? -strand : strand;
     ctx.fillStyle = fillColor.rgbaString;
-    ctx.strokeStyle = borderColor.rgbaString;
+    ctx.strokeStyle = this.borderColor.rgbaString;
     ctx.lineWidth = cell.borderWidth;
     if (cell.curved) {
       this._traceCurvedCell(ctx, middle, centerOffset, strand, cell);
@@ -636,9 +590,9 @@ class SequenceTranslation extends CGObject {
       ctx.fill();
       ctx.stroke();
     }
-    ctx.fillStyle = textColor.rgbaString;
+    ctx.fillStyle = this.color.rgbaString;
     if (glyphCache) {
-      glyphCache.draw(ctx, aminoAcid, textColor.rgbaString, x, y, layout.scaleFactor);
+      glyphCache.draw(ctx, aminoAcid, this.color.rgbaString, x, y, layout.scaleFactor);
     } else {
       ctx.fillText(aminoAcid, x, y + baselineOffset);
     }
@@ -736,8 +690,7 @@ class SequenceTranslation extends CGObject {
         recordClass: 'SequenceTranslation',
         validKeys: [
           'font', 'color', 'backgroundColor', 'borderColor',
-          'startColor', 'startBorderColor', 'startTextColor',
-          'stopColor', 'stopBorderColor', 'stopTextColor',
+          'startColor', 'stopColor',
           'highlightStartCodons', 'highlightStopCodons',
           'laneSpacing', 'edgePadding', 'visible'
         ]
@@ -753,16 +706,11 @@ class SequenceTranslation extends CGObject {
   }
 
   invertColors() {
+    // Preserve start/stop fills so their meaning stays consistent on either background.
     this.update({
       color: this.color.invert().rgbaString,
       backgroundColor: this.backgroundColor.invert().rgbaString,
       borderColor: this.borderColor.invert().rgbaString,
-      startColor: this.startColor.invert().rgbaString,
-      startBorderColor: this.startBorderColor.invert().rgbaString,
-      startTextColor: this.startTextColor.invert().rgbaString,
-      stopColor: this.stopColor.invert().rgbaString,
-      stopBorderColor: this.stopBorderColor.invert().rgbaString,
-      stopTextColor: this.stopTextColor.invert().rgbaString,
     });
   }
 
@@ -773,11 +721,7 @@ class SequenceTranslation extends CGObject {
       backgroundColor: this.backgroundColor.rgbaString,
       borderColor: this.borderColor.rgbaString,
       startColor: this.startColor.rgbaString,
-      startBorderColor: this.startBorderColor.rgbaString,
-      startTextColor: this.startTextColor.rgbaString,
       stopColor: this.stopColor.rgbaString,
-      stopBorderColor: this.stopBorderColor.rgbaString,
-      stopTextColor: this.stopTextColor.rgbaString,
       highlightStartCodons: this.highlightStartCodons,
       highlightStopCodons: this.highlightStopCodons,
       laneSpacing: this.laneSpacing,

@@ -15,23 +15,29 @@ describe('Sequence base coloring', () => {
     jest.restoreAllMocks();
   });
 
-  test('uses sequence.color for backward-compatible single-color rendering', () => {
+  test('uses sequence.color for explicit single-color rendering and saves that choice', () => {
     const cgv = new Viewer('#map', {
-      sequence: {seq: 'ATGCN', color: 'navy'},
+      sequence: {seq: 'ATGCN', color: 'navy', baseColorMode: 'single'},
     });
 
     expect(cgv.sequence.baseColorMode).toBe('single');
     expect(cgv.sequence._colorForBase('A', 1)).toBe(rgba('navy'));
     expect(cgv.sequence._colorForBase('N', 5)).toBe(rgba('navy'));
-    expect(cgv.sequence.toJSON()).not.toHaveProperty('baseColorMode');
-    expect(cgv.sequence.toJSON({includeDefaults: true})).not.toHaveProperty('baseColorMode');
+    expect(cgv.sequence.toJSON().baseColorMode).toBe('single');
+    expect(cgv.sequence.toJSON({includeDefaults: true}).baseColorMode).toBe('single');
+    cgv.io.loadJSON(cgv.io.toJSON());
+    expect(cgv.sequence.baseColorMode).toBe('single');
+    expect(cgv.sequence._colorForBase('A', 1)).toBe(rgba('navy'));
   });
 
-  test('uses built-in colors for canonical, RNA, and ambiguous bases', () => {
+  test('uses built-in base colors by default for canonical, RNA, and ambiguous bases', () => {
     const cgv = new Viewer('#map', {
-      sequence: {seq: 'ACGTUN-', baseColorMode: 'byBase'},
+      sequence: {seq: 'ACGTUN-'},
     });
 
+    expect(cgv.sequence.baseColorMode).toBe('byBase');
+    expect(cgv.sequence.toJSON()).not.toHaveProperty('baseColorMode');
+    expect(cgv.sequence.toJSON({includeDefaults: true}).baseColorMode).toBe('byBase');
     // The default gray backbone uses the brighter dark-background palette.
     expect(cgv.sequence._colorForBase('A', 1)).toBe(DEFAULT_BASE_COLORS.onDark.A);
     expect(cgv.sequence._colorForBase('C', 2)).toBe(DEFAULT_BASE_COLORS.onDark.C);
@@ -123,7 +129,7 @@ describe('Sequence base coloring', () => {
     expect(cgv.sequence.toJSON()).not.toHaveProperty('baseColors');
   });
 
-  test('loads legacy sequence JSON as single color and ignores colorBases', () => {
+  test('uses default base coloring for JSON without a mode and ignores colorBases', () => {
     const cgv = new Viewer('#map');
 
     cgv.io.loadJSON({
@@ -133,8 +139,9 @@ describe('Sequence base coloring', () => {
       },
     });
 
-    expect(cgv.sequence.baseColorMode).toBe('single');
-    expect(cgv.sequence._colorForBase('A', 1)).toBe(rgba('navy'));
+    expect(cgv.sequence.baseColorMode).toBe('byBase');
+    expect(cgv.sequence.color.rgbaString).toBe(rgba('navy'));
+    expect(cgv.sequence._colorForBase('A', 1)).toBe(DEFAULT_BASE_COLORS.onDark.A);
     expect(cgv.io.toJSON().cgview.sequence).not.toHaveProperty('baseColorMode');
     expect(cgv.io.toJSON().cgview.sequence).not.toHaveProperty('colorBases');
   });
@@ -154,7 +161,7 @@ describe('Sequence base coloring', () => {
     firstViewer.sequence.update({baseColors: {onDark: {A: '#abcdef'}}});
 
     const exported = firstViewer.io.toJSON();
-    expect(exported.cgview.sequence.baseColorMode).toBe('byBase');
+    expect(exported.cgview.sequence).not.toHaveProperty('baseColorMode');
     expect(exported.cgview.sequence.baseColors.onLight.C).toBe('#654321');
     expect(exported.cgview.sequence.baseColors.onDark.A).toBe('#abcdef');
 

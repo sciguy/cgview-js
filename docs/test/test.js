@@ -251,17 +251,10 @@ cgv.on('sequence-translation-update.translation-testing', () => {
 cgv.on('settings-update.translation-testing', () => {
   if (!cgv.loading) { syncTranslationControls(); }
 });
-cgv.on('cgv-json-load.translation-testing', (data) => {
+cgv.on('cgv-json-load.translation-testing', () => {
   // This event fires before replacement records are constructed.
-  queueMicrotask(() => {
-    // Enable translation for testing while respecting saved visibility choices.
-    if (data.sequence?.translation?.visible === undefined) {
-      updateTranslation({visible: true});
-    }
-    syncTranslationControls();
-  });
+  queueMicrotask(syncTranslationControls);
 });
-updateTranslation({visible: true});
 syncTranslationControls();
 // Toggle Track Sizing Test
 const trackSizingCheckbox = document.getElementById('option-show-track-sizing');

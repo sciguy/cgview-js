@@ -11,15 +11,23 @@ describe('SequenceTranslation', () => {
     jest.restoreAllMocks();
   });
 
-  test('is opt-in and contributes backbone thickness only when visible', () => {
+  test('is visible by default and preserves an explicit hidden setting', () => {
     const cgv = new Viewer('#map', {sequence: {seq: 'ATGAAATAACCC'}});
     const baseThickness = cgv.sequence.baseThickness;
 
-    expect(cgv.sequence.translation.visible).toBe(false);
-    expect(cgv.sequence.thickness).toBe(baseThickness);
-
-    cgv.sequence.translation.visible = true;
+    expect(cgv.sequence.translation.visible).toBe(true);
     expect(cgv.sequence.thickness).toBeGreaterThan(baseThickness);
+    expect(cgv.sequence.toJSON().translation.visible).toBe(true);
+    expect(cgv.sequence.toJSON({includeDefaults: true}).translation.visible).toBe(true);
+
+    cgv.sequence.translation.color = 'navy';
+    expect(cgv.sequence.toJSON().translation.color).toBe('rgba(0,0,128,1)');
+    cgv.sequence.translation.visible = false;
+    expect(cgv.sequence.thickness).toBe(baseThickness);
+    const json = cgv.io.toJSON();
+    expect(json.cgview.sequence.translation.visible).toBe(false);
+    cgv.io.loadJSON(json);
+    expect(cgv.sequence.translation.visible).toBe(false);
   });
 
   test('batches size-affecting updates into one synchronous layout refresh', () => {
@@ -56,7 +64,7 @@ describe('SequenceTranslation', () => {
   });
 
   test('refreshes layout for direct visibility changes', () => {
-    const cgv = new Viewer('#map', {sequence: {seq: 'ATGAAATAACCC'}});
+    const cgv = new Viewer('#map', {sequence: {seq: 'ATGAAATAACCC', translation: {visible: false}}});
     const adjustProportions = jest.spyOn(cgv.layout, '_adjustProportions');
 
     cgv.sequence.translation.visible = true;
@@ -66,7 +74,7 @@ describe('SequenceTranslation', () => {
   });
 
   test('does not recalculate layout when translation has zero thickness at the current zoom', () => {
-    const cgv = new Viewer('#map', {sequence: {seq: 'A'.repeat(1000)}});
+    const cgv = new Viewer('#map', {sequence: {seq: 'A'.repeat(1000), translation: {visible: false}}});
     jest.spyOn(cgv.backbone, 'pixelsPerBp').mockReturnValue(0.5);
     const refreshThickness = jest.spyOn(cgv.backbone, 'refreshThickness');
     const adjustProportions = jest.spyOn(cgv.layout, '_adjustProportions');
@@ -196,52 +204,59 @@ describe('SequenceTranslation', () => {
     expect(cgv.io.toJSON().cgview.settings.geneticCode).toBe(2);
   });
 
-  test('styles start and stop codons independently and allows either highlight to be disabled', () => {
+  test('shares text and borders across codons while highlighting start and stop fills', () => {
     const cgv = new Viewer('#map', {
       sequence: {
         seq: 'ATGTAACCC',
         translation: {
           visible: true,
+          color: '#123456',
+          borderColor: '#777777',
           startColor: '#d1fae5',
-          startBorderColor: '#059669',
-          startTextColor: '#065f46',
           stopColor: '#fee2e2',
-          stopBorderColor: '#dc2626',
-          stopTextColor: '#991b1b',
         },
       },
     });
     const translation = cgv.sequence.translation;
     const range = new CGRange(cgv.sequence.mapContig, 1, cgv.sequence.length);
     const codons = translation.codonsForRange(cgv.contigs(1), range, 1, 1, cgv.codonTables.byID(11));
-    expect(translation.startTextColor.rgbaString).toBe('rgba(6,95,70,1)');
-    expect(translation.stopTextColor.rgbaString).toBe('rgba(153,27,27,1)');
-
     const pointForBp = jest.spyOn(cgv.canvas, 'pointForBp').mockReturnValue({x: 12, y: 34});
     const ctx = cgv.canvas.context('map');
     const fills = [];
     const borders = [];
+    const textColors = [];
     jest.spyOn(ctx, 'fill').mockImplementation(() => fills.push(ctx.fillStyle));
     jest.spyOn(ctx, 'stroke').mockImplementation(() => borders.push({color: ctx.strokeStyle, width: ctx.lineWidth}));
-    const fillText = jest.spyOn(ctx, 'fillText');
+    const fillText = jest.spyOn(ctx, 'fillText').mockImplementation(() => textColors.push(ctx.fillStyle));
     const rotate = jest.spyOn(ctx, 'rotate');
     const layout = translation._layoutForScale(0.6);
     const draw = codon => translation._drawCodon(codon.start, codon.aminoAcid, codon.isStart, codon.isStop, 100, layout);
     draw(codons[0]);
     expect(fills.at(-1)).toBe('#d1fae5');
-    expect(borders.at(-1)).toEqual({color: '#059669', width: 0.6});
+    expect(borders.at(-1)).toEqual({color: '#777777', width: 0.6});
     expect(pointForBp).toHaveBeenCalledWith(codons[0].start + 1, 100);
     expect(ctx.translate).toHaveBeenLastCalledWith(12, 34);
     expect(rotate).toHaveBeenCalled();
     expect(fillText).toHaveBeenLastCalledWith(codons[0].aminoAcid, 0, 0);
     draw(codons[1]);
     expect(fills.at(-1)).toBe('#fee2e2');
-    expect(borders.at(-1)).toEqual({color: '#dc2626', width: 0.6});
+    draw(codons[2]);
+    expect(fills.at(-1)).toBe('#e5e7eb');
+    expect(borders).toEqual(Array(3).fill({color: '#777777', width: 0.6}));
+    expect(textColors).toEqual(Array(3).fill('#123456'));
+
+    const glyphCache = {draw: jest.fn()};
+    for (const codon of codons) {
+      translation._drawCodon(codon.start, codon.aminoAcid, codon.isStart, codon.isStop,
+        100, layout, 1, undefined, glyphCache);
+      expect(glyphCache.draw).toHaveBeenLastCalledWith(ctx, codon.aminoAcid, 'rgba(18,52,86,1)', 0, 0, 0.6);
+    }
 
     translation.update({highlightStartCodons: false, highlightStopCodons: false});
     for (const codon of codons) { draw(codon); }
     expect(fills.slice(-3)).toEqual(['#e5e7eb', '#e5e7eb', '#e5e7eb']);
-    expect(borders.slice(-3).every(border => border.color === '#9ca3af')).toBe(true);
+    expect(borders.slice(-3).every(border => border.color === '#777777')).toBe(true);
+    expect(textColors.slice(-3)).toEqual(Array(3).fill('#123456'));
 
     const circularRotateCount = rotate.mock.calls.length;
     cgv.format = 'linear';
@@ -412,7 +427,7 @@ describe('SequenceTranslation', () => {
   });
 
   test('does no codon or range work for hidden, distant, or length-only sequence', () => {
-    const cgv = new Viewer('#map', {sequence: {seq: 'ATG'.repeat(100)}});
+    const cgv = new Viewer('#map', {sequence: {seq: 'ATG'.repeat(100), translation: {visible: false}}});
     const translation = cgv.sequence.translation;
     const contigs = jest.spyOn(cgv.sequence, 'contigsForMapRange');
     const visit = jest.spyOn(translation, '_forEachCodon');
@@ -473,11 +488,12 @@ describe('SequenceTranslation', () => {
 
   test('round trips all testing controls and resets them when loading an unconfigured map', () => {
     const cgv = new Viewer('#map', {sequence: {seq: 'ATGTAACCC'}});
-    expect(cgv.sequence.toJSON()).not.toHaveProperty('translation');
+    expect(cgv.sequence.toJSON().translation.visible).toBe(true);
     cgv.sequence.translation.update({
-      visible: true,
+      visible: false,
       highlightStartCodons: false,
       highlightStopCodons: false,
+      color: '#112233',
       startColor: '#123456',
       stopColor: '#abcdef',
       backgroundColor: '#d0d0d0',
@@ -485,13 +501,17 @@ describe('SequenceTranslation', () => {
     });
     cgv.settings.update({geneticCode: 2});
     const json = cgv.io.toJSON();
+    expect(json.cgview.sequence.translation.color).toBe('rgba(17,34,51,1)');
+    for (const key of ['startTextColor', 'startBorderColor', 'stopTextColor', 'stopBorderColor']) {
+      expect(json.cgview.sequence.translation).not.toHaveProperty(key);
+    }
     cgv.io.loadJSON(json);
     expect(cgv.sequence.translation.toJSON()).toEqual(json.cgview.sequence.translation);
     expect(cgv.geneticCode).toBe(2);
     cgv.io.loadJSON({cgview: {version: '1.9.0', sequence: {seq: 'ATGTAACCC'}}});
-    expect(cgv.sequence.translation.visible).toBe(false);
+    expect(cgv.sequence.translation.visible).toBe(true);
     expect(cgv.sequence.translation.highlightStartCodons).toBe(true);
-    expect(cgv.sequence.toJSON()).not.toHaveProperty('translation');
+    expect(cgv.sequence.toJSON().translation.visible).toBe(true);
   });
 
   test('uses the selected genetic code for starts and stops without forcing internal starts to methionine', () => {

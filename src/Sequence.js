@@ -66,8 +66,8 @@ const BASE_TEXT_ORIENTATIONS = Object.freeze(['horizontal', 'curved']);
  * ### Base Coloring
  * At readable sequence zoom, [baseColorMode](#baseColorMode) controls how
  * nucleotide arrow boxes are colored. Adjacent boxes have a 1 px gap and follow
- * the strand's reading direction. The default `single` mode uses neutral fills
- * with [color](#color) for every letter. The `byBase` mode fills the boxes using
+ * the strand's reading direction. The `single` mode uses neutral fills
+ * with [color](#color) for every letter. The default `byBase` mode fills the boxes using
  * [baseColors](#baseColors) for A, C, G, T/U, and ambiguous characters, with
  * contrasting black or white letters. U shares the T color; all other
  * characters use the ambiguous color.
@@ -84,8 +84,8 @@ const BASE_TEXT_ORIENTATIONS = Object.freeze(['horizontal', 'curved']);
  * [color](#color) or [baseColors](#baseColors) does not change
  * [baseColorMode](#baseColorMode).
  *
- * In JSON, a missing `baseColorMode` means `single`, and that default is
- * omitted when saving. The value `byBase` is serialized explicitly. Custom
+ * In JSON, a missing `baseColorMode` means `byBase`, and that default is
+ * omitted when saving. The value `single` is serialized explicitly. Custom
  * palettes are saved in `sequence.baseColors`; built-in palettes are omitted
  * unless `includeDefaults` is requested.
  *
@@ -106,10 +106,10 @@ const BASE_TEXT_ORIENTATIONS = Object.freeze(['horizontal', 'curved']);
  * [contigs](#contigs)<sup>iu</sup> | Array     | Array of contigs. Contigs are ignored if a seq is provided.
  * [font](#font)                    | String    | A string describing the font [Default: 'SansSerif, plain, 14']. See {@link Font} for details.
  * [color](#color)                  | String    | A string describing the sequence color [Default: 'black']. See {@link Color} for details.
- * [baseColorMode](#baseColorMode)  | String    | Detailed base coloring: `single` or `byBase` [Default: `single`].
- * [baseTextOrientation](#baseTextOrientation) | String | Base presentation: `horizontal` or `curved` [Default: `horizontal`].
+ * [baseColorMode](#baseColorMode)  | String    | Detailed base coloring: `single` or `byBase` [Default: `byBase`].
+ * [baseTextOrientation](#baseTextOrientation) | String | Base presentation: `horizontal` or `curved` [Default: `curved`].
  * [baseColors](#baseColors)        | Object    | Nucleotide box-fill palettes for light and dark backbone colors.
- * [translation](#translation)    | Object    | Six-frame translation options. See {@link SequenceTranslation}. Hidden by default.
+ * [translation](#translation)    | Object    | Six-frame translation options. See {@link SequenceTranslation}. Shown by default at sufficient zoom.
  * [visible](CGObject.html#visible) | Boolean   | Sequence is visible when zoomed in enough [Default: true]
  * [meta](CGObject.html#meta)       | Object    | [Meta data](../tutorials/details-meta-data.html)
  * 
@@ -141,10 +141,10 @@ class Sequence extends CGObject {
     this._viewer = viewer;
     this.bpMargin = 2;
     this.color = utils.defaultFor(options.color, 'black');
-    this._baseTextOrientation = 'horizontal';
-    this.baseTextOrientation = utils.defaultFor(options.baseTextOrientation, 'horizontal');
-    this._baseColorMode = 'single';
-    this.baseColorMode = utils.defaultFor(options.baseColorMode, 'single');
+    this._baseTextOrientation = 'curved';
+    this.baseTextOrientation = utils.defaultFor(options.baseTextOrientation, 'curved');
+    this._baseColorMode = 'byBase';
+    this.baseColorMode = utils.defaultFor(options.baseColorMode, 'byBase');
     this._baseColorVariantCache = new Map();
     this._baseCellStyleCache = new Map();
     this._baseColors = copyBaseColors(DEFAULT_BASE_COLORS);
@@ -1360,18 +1360,17 @@ class Sequence extends CGObject {
     if (!this.visible || options.includeDefaults) {
       json.visible = this.visible;
     }
-    if (this.baseColorMode === 'byBase') {
+    if (this.baseColorMode !== 'byBase' || options.includeDefaults) {
       json.baseColorMode = this.baseColorMode;
     }
-    if (this.baseTextOrientation !== 'horizontal' || options.includeDefaults) {
+    if (this.baseTextOrientation !== 'curved' || options.includeDefaults) {
       json.baseTextOrientation = this.baseTextOrientation;
     }
     if (options.includeDefaults || JSON.stringify(this._baseColors) !== JSON.stringify(DEFAULT_BASE_COLORS)) {
       json.baseColors = this.baseColors;
     }
-    if (this.translation.visible || this.translation._configured || options.includeDefaults) {
-      json.translation = this.translation.toJSON(options);
-    }
+    // Preserve visibility and direct style changes now that translation is enabled by default.
+    json.translation = this.translation.toJSON(options);
     return json;
   }
 

@@ -10,18 +10,18 @@ describe('Sequence zoom detail', () => {
     jest.restoreAllMocks();
   });
 
-  test('uses horizontal base text by default and omits it from normal JSON', () => {
+  test('uses curved base text by default and omits it from normal JSON', () => {
     const cgv = new Viewer('#map', {sequence: {seq: 'ATGC'}});
 
-    expect(cgv.sequence.baseTextOrientation).toBe('horizontal');
+    expect(cgv.sequence.baseTextOrientation).toBe('curved');
     expect(cgv.sequence.toJSON()).not.toHaveProperty('baseTextOrientation');
     expect(cgv.sequence.toJSON({includeDefaults: true}).baseTextOrientation)
-      .toBe('horizontal');
+      .toBe('curved');
   });
 
   test('lets smaller bases match amino-acid height without changing their saved font', () => {
     const cgv = new Viewer('#map', {sequence: {
-      seq: 'ATG'.repeat(100), font: 'sans-serif,plain,10', translation: {visible: true},
+      seq: 'ATG'.repeat(100), font: 'sans-serif,plain,10', baseTextOrientation: 'horizontal', translation: {visible: true},
     }});
     const sequence = cgv.sequence;
     const translation = sequence.translation;
@@ -69,7 +69,7 @@ describe('Sequence zoom detail', () => {
   });
 
   test('keeps horizontal circular bases unrotated', () => {
-    const cgv = new Viewer('#map', {sequence: {seq: 'ATGC'}});
+    const cgv = new Viewer('#map', {sequence: {seq: 'ATGC', baseTextOrientation: 'horizontal'}});
     const ctx = cgv.canvas.context('map');
     jest.spyOn(cgv.canvas, 'pointForBp').mockReturnValue({x: 12, y: 34});
     const orientation = jest.spyOn(cgv.canvas, 'tangentialTextOrientationForBp');
@@ -126,29 +126,29 @@ describe('Sequence zoom detail', () => {
     const listener = jest.fn();
     cgv.on('sequence-update.sequence-detail-test', listener);
 
-    cgv.sequence.update({baseColorMode: 'byBase', baseTextOrientation: 'curved'});
-    expect(cgv.sequence.baseColorMode).toBe('byBase');
-    expect(cgv.sequence.baseTextOrientation).toBe('curved');
+    cgv.sequence.update({baseColorMode: 'single', baseTextOrientation: 'horizontal'});
+    expect(cgv.sequence.baseColorMode).toBe('single');
+    expect(cgv.sequence.baseTextOrientation).toBe('horizontal');
     expect(listener).toHaveBeenCalledWith({
-      attributes: {baseColorMode: 'byBase', baseTextOrientation: 'curved'},
+      attributes: {baseColorMode: 'single', baseTextOrientation: 'horizontal'},
     });
 
     jest.spyOn(console, 'error').mockImplementation(() => {});
     cgv.sequence.update({baseColorMode: 'invalid', baseTextOrientation: 'invalid'});
-    expect(cgv.sequence.baseColorMode).toBe('byBase');
-    expect(cgv.sequence.baseTextOrientation).toBe('curved');
+    expect(cgv.sequence.baseColorMode).toBe('single');
+    expect(cgv.sequence.baseTextOrientation).toBe('horizontal');
   });
 
-  test('round trips curved base text orientation', () => {
+  test.each(['curved', 'horizontal'])('round trips %s base text orientation', (orientation) => {
     const firstViewer = new Viewer('#map', {
-      sequence: {seq: 'ATGC', baseTextOrientation: 'curved'},
+      sequence: {seq: 'ATGC', baseTextOrientation: orientation},
     });
     const json = firstViewer.io.toJSON();
     const secondViewer = new Viewer('#second-map');
 
-    expect(json.cgview.sequence.baseTextOrientation).toBe('curved');
+    expect(json.cgview.sequence.baseTextOrientation).toBe(orientation === 'curved' ? undefined : orientation);
     secondViewer.io.loadJSON(json);
-    expect(secondViewer.sequence.baseTextOrientation).toBe('curved');
+    expect(secondViewer.sequence.baseTextOrientation).toBe(orientation);
   });
 
   test('never returns an upside-down tangential angle', () => {
