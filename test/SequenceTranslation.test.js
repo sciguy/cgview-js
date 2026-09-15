@@ -237,7 +237,7 @@ describe('SequenceTranslation', () => {
     expect(pointForBp).toHaveBeenCalledWith(codons[0].start + 1, 100);
     expect(ctx.translate).toHaveBeenLastCalledWith(12, 34);
     expect(rotate).toHaveBeenCalled();
-    expect(fillText).toHaveBeenLastCalledWith(codons[0].aminoAcid, 0, 0);
+    expect(fillText).toHaveBeenLastCalledWith(codons[0].aminoAcid, 0, -0.6);
     draw(codons[1]);
     expect(fills.at(-1)).toBe('#fee2e2');
     draw(codons[2]);
@@ -249,7 +249,7 @@ describe('SequenceTranslation', () => {
     for (const codon of codons) {
       translation._drawCodon(codon.start, codon.aminoAcid, codon.isStart, codon.isStop,
         100, layout, 1, undefined, glyphCache);
-      expect(glyphCache.draw).toHaveBeenLastCalledWith(ctx, codon.aminoAcid, 'rgba(18,52,86,1)', 0, 0, 0.6);
+      expect(glyphCache.draw).toHaveBeenLastCalledWith(ctx, codon.aminoAcid, 'rgba(18,52,86,1)', 0, -0.6, 0.6);
     }
 
     translation.update({highlightStartCodons: false, highlightStopCodons: false});
@@ -262,7 +262,7 @@ describe('SequenceTranslation', () => {
     cgv.format = 'linear';
     draw(codons[0]);
     expect(rotate).toHaveBeenCalledTimes(circularRotateCount);
-    expect(fillText).toHaveBeenLastCalledWith(codons[0].aminoAcid, 12, 34);
+    expect(fillText).toHaveBeenLastCalledWith(codons[0].aminoAcid, 12, 33.4);
   });
 
   test('streams only visible codons during drawing instead of building frame arrays', () => {

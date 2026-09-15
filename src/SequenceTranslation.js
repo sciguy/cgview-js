@@ -260,8 +260,8 @@ class SequenceTranslation extends CGObject {
   }
 
   /**
-   * Return the scaled radial geometry shared by lane placement and backbone
-   * sizing. Offsets are distances from the backbone center.
+   * Return scaled geometry for lane placement, backbone sizing, and glyph
+   * centering. Lane offsets are distances from the backbone center.
    * @param {Number} scaleFactor - Translation size from 0 to 1.
    * @param {Number} [baseScaleFactor=scaleFactor] - Nucleotide size from 0 to 1.
    * @returns {Object} Lane dimensions and offsets in screen pixels.
@@ -279,6 +279,8 @@ class SequenceTranslation extends CGObject {
     // change while zooming through the sequence-detail transition.
     const highlightHeight = (this.font.height * scaleFactor) + (2 * highlightPadding);
     const highlightBorderWidth = scaleFactor;
+    // Raise glyphs 1 px at full size, keeping the scaled offset fractional.
+    const textOffsetY = -scaleFactor;
     const laneStep = laneHeight + laneSpacing;
     const sequenceHalfThickness = this.sequence.baseThickness * baseScaleFactor / 2;
     const firstLaneCenterOffset = sequenceHalfThickness + edgePadding + (laneHeight / 2);
@@ -291,6 +293,7 @@ class SequenceTranslation extends CGObject {
       edgePadding,
       highlightHeight,
       highlightBorderWidth,
+      textOffsetY,
       laneStep,
       firstLaneCenterOffset,
       outerLaneEdgeOffset,
@@ -599,10 +602,11 @@ class SequenceTranslation extends CGObject {
       ctx.stroke();
     }
     ctx.fillStyle = this.color.rgbaString;
+    const textY = y + layout.textOffsetY;
     if (glyphCache) {
-      glyphCache.draw(ctx, aminoAcid, this.color.rgbaString, x, y, layout.scaleFactor);
+      glyphCache.draw(ctx, aminoAcid, this.color.rgbaString, x, textY, layout.scaleFactor);
     } else {
-      ctx.fillText(aminoAcid, x, y + baselineOffset);
+      ctx.fillText(aminoAcid, x, textY + baselineOffset);
     }
     if (circular) { ctx.restore(); }
   }
