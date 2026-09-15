@@ -10,18 +10,18 @@ describe('Sequence zoom detail', () => {
     jest.restoreAllMocks();
   });
 
-  test('uses horizontal base text by default and omits it from normal JSON', () => {
+  test('uses curved base text by default and omits it from normal JSON', () => {
     const cgv = new Viewer('#map', {sequence: {seq: 'ATGC'}});
 
-    expect(cgv.sequence.baseTextOrientation).toBe('horizontal');
+    expect(cgv.sequence.baseTextOrientation).toBe('curved');
     expect(cgv.sequence.toJSON()).not.toHaveProperty('baseTextOrientation');
     expect(cgv.sequence.toJSON({includeDefaults: true}).baseTextOrientation)
-      .toBe('horizontal');
+      .toBe('curved');
   });
 
   test('lets smaller bases match amino-acid height without changing their saved font', () => {
     const cgv = new Viewer('#map', {sequence: {
-      seq: 'ATG'.repeat(100), font: 'sans-serif,plain,10', translation: {visible: true},
+      seq: 'ATG'.repeat(100), font: 'sans-serif,plain,10', baseTextOrientation: 'horizontal', translation: {visible: true},
     }});
     const sequence = cgv.sequence;
     const translation = sequence.translation;
@@ -69,7 +69,7 @@ describe('Sequence zoom detail', () => {
   });
 
   test('keeps horizontal circular bases unrotated', () => {
-    const cgv = new Viewer('#map', {sequence: {seq: 'ATGC'}});
+    const cgv = new Viewer('#map', {sequence: {seq: 'ATGC', baseTextOrientation: 'horizontal'}});
     const ctx = cgv.canvas.context('map');
     jest.spyOn(cgv.canvas, 'pointForBp').mockReturnValue({x: 12, y: 34});
     const orientation = jest.spyOn(cgv.canvas, 'tangentialTextOrientationForBp');
@@ -126,29 +126,29 @@ describe('Sequence zoom detail', () => {
     const listener = jest.fn();
     cgv.on('sequence-update.sequence-detail-test', listener);
 
-    cgv.sequence.update({baseColorMode: 'byBase', baseTextOrientation: 'curved'});
-    expect(cgv.sequence.baseColorMode).toBe('byBase');
-    expect(cgv.sequence.baseTextOrientation).toBe('curved');
+    cgv.sequence.update({baseDisplayMode: 'uniformBoxes', baseTextOrientation: 'horizontal'});
+    expect(cgv.sequence.baseDisplayMode).toBe('uniformBoxes');
+    expect(cgv.sequence.baseTextOrientation).toBe('horizontal');
     expect(listener).toHaveBeenCalledWith({
-      attributes: {baseColorMode: 'byBase', baseTextOrientation: 'curved'},
+      attributes: {baseDisplayMode: 'uniformBoxes', baseTextOrientation: 'horizontal'},
     });
 
     jest.spyOn(console, 'error').mockImplementation(() => {});
-    cgv.sequence.update({baseColorMode: 'invalid', baseTextOrientation: 'invalid'});
-    expect(cgv.sequence.baseColorMode).toBe('byBase');
-    expect(cgv.sequence.baseTextOrientation).toBe('curved');
+    cgv.sequence.update({baseDisplayMode: 'invalid', baseTextOrientation: 'invalid'});
+    expect(cgv.sequence.baseDisplayMode).toBe('uniformBoxes');
+    expect(cgv.sequence.baseTextOrientation).toBe('horizontal');
   });
 
-  test('round trips curved base text orientation', () => {
+  test.each(['curved', 'horizontal'])('round trips %s base text orientation', (orientation) => {
     const firstViewer = new Viewer('#map', {
-      sequence: {seq: 'ATGC', baseTextOrientation: 'curved'},
+      sequence: {seq: 'ATGC', baseTextOrientation: orientation},
     });
     const json = firstViewer.io.toJSON();
     const secondViewer = new Viewer('#second-map');
 
-    expect(json.cgview.sequence.baseTextOrientation).toBe('curved');
+    expect(json.cgview.sequence.baseTextOrientation).toBe(orientation === 'curved' ? undefined : orientation);
     secondViewer.io.loadJSON(json);
-    expect(secondViewer.sequence.baseTextOrientation).toBe('curved');
+    expect(secondViewer.sequence.baseTextOrientation).toBe(orientation);
   });
 
   test('never returns an upside-down tangential angle', () => {
@@ -161,52 +161,71 @@ describe('Sequence zoom detail', () => {
     }
   });
 
-  test('adjoining nucleotide chevrons leave a 1 px gap on both linear strands', () => {
-    const cgv = new Viewer('#map', {sequence: {seq: 'ATG'.repeat(100)}});
-    cgv.format = 'linear';
-    const sequence = cgv.sequence;
-    const ctx = cgv.canvas.context('map');
-    const cell = sequence._baseCellGeometry(1, 100);
-    for (const strand of [1, -1]) {
-      const edges = [];
-      for (const bp of [10, 10 + strand]) {
-        ctx.moveTo.mockClear();
-        ctx.lineTo.mockClear();
-        sequence._drawBase(ctx, 'A', bp, 100, 5, undefined, strand, cell);
-        edges.push({head: ctx.lineTo.mock.calls.slice(0, 3),
-          tail: [ctx.moveTo.mock.calls[0], ctx.lineTo.mock.calls[4], ctx.lineTo.mock.calls[3]]});
+  test.each([[2, 0], [4, 0], [5.5, 0.15625], [7, 0.5], [8.5, 0.84375], [10, 1], [12, 1]])(
+    'linear base boxes at %s px per base leave a %s px gap on both strands', (pixelsPerBp, expectedGap) => {
+      const cgv = new Viewer('#map', {sequence: {seq: 'ATG'.repeat(100)}});
+      cgv.format = 'linear';
+      const sequence = cgv.sequence;
+      const ctx = cgv.canvas.context('map');
+      jest.spyOn(cgv.canvas, 'pixelsPerBp').mockReturnValue(pixelsPerBp);
+      jest.spyOn(cgv.canvas, 'pointForBp').mockImplementation((bp, offset) => ({x: bp * pixelsPerBp, y: offset}));
+      const cell = sequence._baseCellGeometry(sequence.detailScaleFactor(pixelsPerBp), 100);
+      for (const strand of [1, -1]) {
+        const edges = [];
+        for (const bp of [10, 10 + strand]) {
+          ctx.moveTo.mockClear();
+          ctx.lineTo.mockClear();
+          sequence._drawBase(ctx, 'A', bp, 100, 5, undefined, strand, cell);
+          edges.push({head: ctx.lineTo.mock.calls.slice(0, 3),
+            tail: [ctx.moveTo.mock.calls[0], ctx.lineTo.mock.calls[4], ctx.lineTo.mock.calls[3]]});
+        }
+        for (let i = 0; i < 3; i++) {
+          const gap = (edges[1].tail[i][0] - edges[0].head[i][0]) * strand - cell.borderWidth;
+          expect(gap).toBeCloseTo(expectedGap, 10);
+          expect(edges[0].head[i][1]).toBeCloseTo(edges[1].tail[i][1], 10);
+        }
+        if (expectedGap === 0) {
+          // Both side edges stay flat, including the optical tip adjustment.
+          for (const edge of [edges[0].head, edges[0].tail]) {
+            expect(edge[0][0]).toBe(edge[1][0]);
+            expect(edge[1][0]).toBe(edge[2][0]);
+          }
+          expect(cell.tipCenterOffset).toBe(0);
+        } else {
+          expect((edges[0].head[1][0] - edges[0].head[0][0]) * strand).toBeGreaterThan(0);
+        }
+        const origin = cgv.canvas.pointForBp(10, 100);
+        expect((edges[0].head[1][0] - origin.x) * strand).toBeGreaterThan(0);
       }
-      for (let i = 0; i < 3; i++) {
-        const gap = (edges[1].tail[i][0] - edges[0].head[i][0]) * strand - cell.borderWidth;
-        expect(gap).toBeCloseTo(1, 10);
-        expect(edges[0].head[i][1]).toBeCloseTo(edges[1].tail[i][1], 10);
-      }
-      const origin = cgv.canvas.pointForBp(10, 100);
-      expect((edges[0].head[1][0] - origin.x) * strand).toBeGreaterThan(0);
-    }
-    const translationCell = sequence.translation._cellGeometry(sequence.translation._layoutForScale(1), 100);
-    expect(cell.tipLength / cell.halfHeight).toBeLessThan(translationCell.tipLength / translationCell.halfHeight);
-  });
+      const translationCell = sequence.translation._cellGeometry(sequence.translation._layoutForScale(1), 100);
+      expect(cell.tipLength / cell.halfHeight).toBeLessThan(translationCell.tipLength / translationCell.halfHeight);
+    });
 
-  test('leaves a 1 px gap between curved nucleotide boxes on short circular maps', () => {
-    const cgv = new Viewer('#map', {sequence: {seq: 'ATG'.repeat(32)}});
-    const sequence = cgv.sequence;
-    const cell = sequence._baseCellGeometry(1, 100);
-    const pointForBp = jest.spyOn(cgv.canvas, 'pointForBp');
-    const ctx = cgv.canvas.context('map');
-    expect(cell.curved).toBe(true);
-    for (const strand of [1, -1]) {
-      const boundaries = [];
-      for (const bp of [20, 20 + strand]) {
-        pointForBp.mockClear();
-        ctx.arc.mockClear();
-        sequence._drawBase(ctx, 'A', bp, 100, 5, undefined, strand, cell);
-        boundaries.push({head: pointForBp.mock.calls[1], notch: pointForBp.mock.calls[3]});
-        expect(ctx.arc).toHaveBeenCalledTimes(2);
+  test.each([[2, 0], [4, 0], [5.5, 0.15625], [7, 0.5], [8.5, 0.84375], [10, 1], [12, 1]])(
+    'curved base boxes at %s px per base leave a %s px gap on both strands', (pixelsPerBp, expectedGap) => {
+      const cgv = new Viewer('#map', {sequence: {seq: 'ATG'.repeat(8)}});
+      const sequence = cgv.sequence;
+      const centerOffset = sequence.length * pixelsPerBp / (2 * Math.PI);
+      const cell = sequence._baseCellGeometry(sequence.detailScaleFactor(pixelsPerBp), centerOffset);
+      const pointForBp = jest.spyOn(cgv.canvas, 'pointForBp');
+      const ctx = cgv.canvas.context('map');
+      expect(cell.curved).toBe(true);
+      for (const strand of [1, -1]) {
+        const boundaries = [];
+        for (const bp of [10, 10 + strand]) {
+          pointForBp.mockClear();
+          ctx.arc.mockClear();
+          sequence._drawBase(ctx, 'A', bp, centerOffset, 5, undefined, strand, cell);
+          boundaries.push({head: pointForBp.mock.calls[1], notch: pointForBp.mock.calls[3]});
+          expect(ctx.arc).toHaveBeenCalledTimes(2);
+        }
+        const gap = (boundaries[1].notch[0] - boundaries[0].head[0]) * strand * cell.pixelsPerBp - cell.borderWidth;
+        expect(gap).toBeCloseTo(expectedGap, 10);
+        expect(boundaries[0].head[1]).toBe(boundaries[1].notch[1]);
+        if (expectedGap === 0) {
+          expect(cell.tipLength).toBe(0);
+          expect(boundaries[0].head[1]).toBe(centerOffset);
+        }
       }
-      const gap = (boundaries[1].notch[0] - boundaries[0].head[0]) * strand * cell.pixelsPerBp - cell.borderWidth;
-      expect(gap).toBeCloseTo(1, 10);
-      expect(boundaries[0].head[1]).toBe(boundaries[1].notch[1]);
-    }
-  });
+    });
 });

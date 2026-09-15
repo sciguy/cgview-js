@@ -166,16 +166,16 @@ rulerLabelOrientationRadios.forEach((radio) => {
 cgv.on('ruler-update.ruler-label-options', syncRulerLabelOptions);
 syncRulerLabelOptions();
 // Sequence detail
-const baseColorModeSelect = document.getElementById('sequence-base-color-mode');
+const baseDisplayModeSelect = document.getElementById('sequence-base-display-mode');
 const baseTextOrientationRadios = document.querySelectorAll(
   'input[name="sequence-base-text-orientation"]',
 );
 function syncSequenceControls() {
-  baseColorModeSelect.value = cgv.sequence.baseColorMode;
+  baseDisplayModeSelect.value = cgv.sequence.baseDisplayMode;
   syncRadioGroup(baseTextOrientationRadios, cgv.sequence.baseTextOrientation);
 }
-baseColorModeSelect.addEventListener('change', (e) => {
-  cgv.sequence.update({baseColorMode: e.target.value});
+baseDisplayModeSelect.addEventListener('change', (e) => {
+  cgv.sequence.update({baseDisplayMode: e.target.value});
   cgv.draw();
 });
 baseTextOrientationRadios.forEach((radio) => {
@@ -251,17 +251,10 @@ cgv.on('sequence-translation-update.translation-testing', () => {
 cgv.on('settings-update.translation-testing', () => {
   if (!cgv.loading) { syncTranslationControls(); }
 });
-cgv.on('cgv-json-load.translation-testing', (data) => {
+cgv.on('cgv-json-load.translation-testing', () => {
   // This event fires before replacement records are constructed.
-  queueMicrotask(() => {
-    // Enable translation for testing while respecting saved visibility choices.
-    if (data.sequence?.translation?.visible === undefined) {
-      updateTranslation({visible: true});
-    }
-    syncTranslationControls();
-  });
+  queueMicrotask(syncTranslationControls);
 });
-updateTranslation({visible: true});
 syncTranslationControls();
 // Toggle Track Sizing Test
 const trackSizingCheckbox = document.getElementById('option-show-track-sizing');

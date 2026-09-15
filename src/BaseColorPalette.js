@@ -19,9 +19,6 @@
  * limitations under the License.
  */
 
-/** Supported sequence base-rendering modes. */
-export const BASE_COLOR_MODES = Object.freeze(['single', 'byBase']);
-
 /** Palette variants selected from the rendered backbone luminance. */
 export const BASE_COLOR_VARIANTS = Object.freeze(['onLight', 'onDark']);
 
