@@ -359,7 +359,7 @@ class Backbone extends CGObject {
 
   refreshThickness() {
     const pixelsPerBp = this.pixelsPerBp();
-    if (pixelsPerBp > 1 && this.visible) {
+    if (pixelsPerBp > 1 && this.visible && this.sequence.visible) {
       // const zoomedThicknessWithoutAddition = Math.min(this.adjustedCenterOffset, this.viewer.maxZoomedRadius()) * (this.thickness / this.centerOffset);
       // FIXME: see adjustedThickness for note. Use 4 for now.
       const zoomedThicknessWithoutAddition = Math.min(this.viewer.zoomFactor, 4) * this.thickness;
