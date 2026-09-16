@@ -10,6 +10,58 @@ describe('Sequence zoom detail', () => {
     jest.restoreAllMocks();
   });
 
+  test.each(['circular', 'linear'])('removes hidden sequence expansion and updates slot offsets in %s maps', (format) => {
+    const cgv = new Viewer('#map', {sequence: {seq: 'ATG'.repeat(100), visible: false}});
+    cgv.format = format;
+    cgv.addFeatures({start: 10, stop: 50, source: 'test'});
+    cgv.addTracks({dataType: 'feature', dataMethod: 'source', dataKeys: 'test', position: 'outside'});
+    const sequence = cgv.sequence;
+    const pixels = jest.spyOn(cgv.backbone, 'pixelsPerBp');
+    const bases = jest.spyOn(sequence, '_drawBase');
+    const codons = jest.spyOn(sequence.translation, '_forEachCodon');
+    const slot = cgv.tracks(1).slots(1);
+
+    for (const translationVisible of [true, false]) {
+      sequence.translation.visible = translationVisible;
+      for (const pixelsPerBp of [0.5, 2, 6, 12, 20]) {
+        pixels.mockReturnValue(pixelsPerBp);
+        bases.mockClear();
+        codons.mockClear();
+        sequence.update({visible: false});
+        cgv.drawFast();
+        const hiddenThickness = Math.min(cgv.zoomFactor, 4) * cgv.backbone.thickness;
+        const hiddenSlotOffset = slot.bbOffset;
+        expect(cgv.backbone.bpThicknessAddition).toBe(0);
+        expect(cgv.backbone.adjustedThickness).toBe(hiddenThickness);
+        expect(bases).not.toHaveBeenCalled();
+        expect(codons).not.toHaveBeenCalled();
+
+        sequence.update({visible: true});
+        cgv.drawFast();
+        if (pixelsPerBp > 1) {
+          expect(cgv.backbone.adjustedThickness).toBeGreaterThan(hiddenThickness);
+          expect(slot.bbOffset).toBeGreaterThan(hiddenSlotOffset);
+        }
+
+        // Direct assignment must also collapse the space without changing zoom.
+        sequence.visible = false;
+        cgv.drawFast();
+        expect(cgv.backbone.adjustedThickness).toBe(hiddenThickness);
+        expect(slot.bbOffset).toBe(hiddenSlotOffset);
+      }
+    }
+  });
+
+  test('does not expand hidden sequence placeholders', () => {
+    const cgv = new Viewer('#map', {sequence: {length: 1000, visible: false}});
+    jest.spyOn(cgv.backbone, 'pixelsPerBp').mockReturnValue(20);
+    cgv.drawFast();
+    expect(cgv.backbone.bpThicknessAddition).toBe(0);
+    cgv.sequence.visible = true;
+    cgv.drawFast();
+    expect(cgv.backbone.bpThicknessAddition).toBeGreaterThan(0);
+  });
+
   test('uses curved base text by default and omits it from normal JSON', () => {
     const cgv = new Viewer('#map', {sequence: {seq: 'ATGC'}});
 
