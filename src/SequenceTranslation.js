@@ -621,6 +621,8 @@ class SequenceTranslation extends CGObject {
    * @private
    */
   draw(visibleRange, backboneCenterOffset, pixelsPerBp) {
+    const debugCounts = this.viewer.debug?.data.n;
+    if (debugCounts) { debugCounts.aaDrawCount = 0; }
     const scaleFactor = this.scaleFactor(pixelsPerBp);
     if (!scaleFactor || !visibleRange) { return; }
 
@@ -659,6 +661,7 @@ class SequenceTranslation extends CGObject {
           }
           this._forEachCodon(contig, segments, strand, frame, codonTable, (start, codon, aminoAcid, isStart, isStop) => {
             this._drawCodon(start, aminoAcid, isStart, isStop, centerOffset, layout, strand, cell, glyphCache, baselineOffset);
+            if (debugCounts) { debugCounts.aaDrawCount++; }
           });
         }
       }

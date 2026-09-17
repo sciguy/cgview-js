@@ -934,7 +934,9 @@ class Layout {
     this.drawForeground();
     // Debug
     if (this.viewer.debug) {
-      this.viewer.debug.data.time.fastDraw = utils.elapsedTime(startTime);
+      if (this.viewer.debug.data.time) {
+        this.viewer.debug.data.time.fastDraw = utils.elapsedTime(startTime);
+      }
       this.viewer.debug.draw();
     }
   }
@@ -955,6 +957,8 @@ class Layout {
     this.drawSlotWithTimeOut(this);
     this.sequence.draw();
     this.drawForeground();
+    // Synchronous slot drawing can finish before sequence counts are refreshed.
+    if (this.viewer.debug) { this.viewer.debug.draw(); }
   }
 
   drawExport() {
@@ -1032,7 +1036,9 @@ class Layout {
     } else {
       layout._slotTimeoutID = undefined;
       if (layout.viewer.debug) {
-        layout.viewer.debug.data.time.fullDraw = utils.elapsedTime(layout._drawFullStartTime);
+        if (layout.viewer.debug.data.time) {
+          layout.viewer.debug.data.time.fullDraw = utils.elapsedTime(layout._drawFullStartTime);
+        }
         layout.viewer.debug.draw();
       }
       // if (typeof complete === 'function') { complete.call() }
