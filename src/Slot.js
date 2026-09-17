@@ -303,7 +303,8 @@ class Slot extends CGObject {
         const drawInlineLabels = annotation.visible && ['inline', 'auto'].includes(annotation.labelPosition);
         const drawnFeatures = drawInlineLabels ? [] : undefined;
         let featureCount = this._features.length;
-        if (!range.isMapLength()) {
+        // Full-quality drawing only needs an exact visible count for the debug panel.
+        if (!range.isMapLength() && (fast || (this.viewer.debug && this.viewer.debug.data.n))) {
           featureCount = this._featureNCList.count(start, stop);
         }
         let step = 1;

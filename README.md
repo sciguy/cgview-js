@@ -94,6 +94,10 @@ Use the selected runtime for dependency installation instead of bypassing
 compatibility checks with `--ignore-engines`. This Node version is the development
 toolchain target; browser use of the built CGView bundles does not require Node.
 
+After building, `yarn benchmark:rendering --help` describes the deterministic
+large-map benchmark and optional profiling. See the [rendering performance report](docs/development/rendering-performance.md)
+for methodology, recorded results, and the current Stage 1 findings.
+
 ## License
 
 CGView.js is distributed under the [Apache Version 2.0 License](https://github.com/sciguy/cgview-js/blob/main/LICENSE).

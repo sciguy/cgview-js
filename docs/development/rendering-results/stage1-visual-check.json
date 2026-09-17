@@ -1,0 +1,1108 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-09-17T21:52:13.176Z",
+  "status": "passed",
+  "baselineRoot": "/home/jason/workspace/cgview-js",
+  "candidateRoot": "/home/jason/workspace/cgview-js-worktrees/v1.9-gpu",
+  "cases": [
+    {
+      "format": "circular",
+      "decoration": "arc",
+      "zoom": 1,
+      "status": "passed",
+      "baseline": {
+        "raster": {
+          "background": {
+            "width": 600,
+            "height": 600,
+            "sha256": "680a1c22a8e114ea0c637847e8cc506794073a55f4350364c8a0421e7dbcc8f0"
+          },
+          "map": {
+            "width": 600,
+            "height": 600,
+            "sha256": "dcf90dcb956e7d2182e4600925127a3a913a77b8a3157a6f9c8e5604509d13b0"
+          },
+          "foreground": {
+            "width": 600,
+            "height": 600,
+            "sha256": "06b4bf8e60857782da249195c4edd35fb6cdd41a47a8d0f919a0344f3b3a3a2b"
+          },
+          "canvas": {
+            "width": 600,
+            "height": 600,
+            "sha256": "eda525bab6d74d439bd683b578242e87fd3146fc4d631b7c81d9f76dd4d47a2d"
+          },
+          "debug": {
+            "width": 600,
+            "height": 600,
+            "sha256": "eda525bab6d74d439bd683b578242e87fd3146fc4d631b7c81d9f76dd4d47a2d"
+          },
+          "ui": {
+            "width": 600,
+            "height": 600,
+            "sha256": "eda525bab6d74d439bd683b578242e87fd3146fc4d631b7c81d9f76dd4d47a2d"
+          }
+        }
+      },
+      "candidate": {
+        "raster": {
+          "background": {
+            "width": 600,
+            "height": 600,
+            "sha256": "680a1c22a8e114ea0c637847e8cc506794073a55f4350364c8a0421e7dbcc8f0"
+          },
+          "map": {
+            "width": 600,
+            "height": 600,
+            "sha256": "dcf90dcb956e7d2182e4600925127a3a913a77b8a3157a6f9c8e5604509d13b0"
+          },
+          "foreground": {
+            "width": 600,
+            "height": 600,
+            "sha256": "06b4bf8e60857782da249195c4edd35fb6cdd41a47a8d0f919a0344f3b3a3a2b"
+          },
+          "canvas": {
+            "width": 600,
+            "height": 600,
+            "sha256": "eda525bab6d74d439bd683b578242e87fd3146fc4d631b7c81d9f76dd4d47a2d"
+          },
+          "debug": {
+            "width": 600,
+            "height": 600,
+            "sha256": "eda525bab6d74d439bd683b578242e87fd3146fc4d631b7c81d9f76dd4d47a2d"
+          },
+          "ui": {
+            "width": 600,
+            "height": 600,
+            "sha256": "eda525bab6d74d439bd683b578242e87fd3146fc4d631b7c81d9f76dd4d47a2d"
+          }
+        },
+        "profile": {
+          "passed": true,
+          "featureCalls": 1000,
+          "skippedHooks": []
+        }
+      }
+    },
+    {
+      "format": "circular",
+      "decoration": "arc",
+      "zoom": 10,
+      "status": "passed",
+      "baseline": {
+        "raster": {
+          "background": {
+            "width": 600,
+            "height": 600,
+            "sha256": "680a1c22a8e114ea0c637847e8cc506794073a55f4350364c8a0421e7dbcc8f0"
+          },
+          "map": {
+            "width": 600,
+            "height": 600,
+            "sha256": "46377058c1ef19d1b9ef45143e5fa0d46baa6044b4b623598fc0a3c80be299a6"
+          },
+          "foreground": {
+            "width": 600,
+            "height": 600,
+            "sha256": "d1eab2d1555f2a70bd96f8abdccba4572cbf01e77d8dffb34010f3ba7935e7a1"
+          },
+          "canvas": {
+            "width": 600,
+            "height": 600,
+            "sha256": "eda525bab6d74d439bd683b578242e87fd3146fc4d631b7c81d9f76dd4d47a2d"
+          },
+          "debug": {
+            "width": 600,
+            "height": 600,
+            "sha256": "eda525bab6d74d439bd683b578242e87fd3146fc4d631b7c81d9f76dd4d47a2d"
+          },
+          "ui": {
+            "width": 600,
+            "height": 600,
+            "sha256": "eda525bab6d74d439bd683b578242e87fd3146fc4d631b7c81d9f76dd4d47a2d"
+          }
+        },
+        "svg": {
+          "elements": 571,
+          "sha256": "6d0c918b35bd69e5861a753e96ea02fb32a95c14b63f6e9ba6d509469c0d61a1"
+        },
+        "png": {
+          "width": 1200,
+          "height": 1200,
+          "pixelsSha256": "787ae09622b107515e696f5590bffd6a125e1e1a2a3e52f5da085c86ec2719e3",
+          "bytesSha256": "45de36c4e0bbad42bf13e0804a3ba387af254e8d96adba6f3bf50e739a56ec4f"
+        }
+      },
+      "candidate": {
+        "raster": {
+          "background": {
+            "width": 600,
+            "height": 600,
+            "sha256": "680a1c22a8e114ea0c637847e8cc506794073a55f4350364c8a0421e7dbcc8f0"
+          },
+          "map": {
+            "width": 600,
+            "height": 600,
+            "sha256": "46377058c1ef19d1b9ef45143e5fa0d46baa6044b4b623598fc0a3c80be299a6"
+          },
+          "foreground": {
+            "width": 600,
+            "height": 600,
+            "sha256": "d1eab2d1555f2a70bd96f8abdccba4572cbf01e77d8dffb34010f3ba7935e7a1"
+          },
+          "canvas": {
+            "width": 600,
+            "height": 600,
+            "sha256": "eda525bab6d74d439bd683b578242e87fd3146fc4d631b7c81d9f76dd4d47a2d"
+          },
+          "debug": {
+            "width": 600,
+            "height": 600,
+            "sha256": "eda525bab6d74d439bd683b578242e87fd3146fc4d631b7c81d9f76dd4d47a2d"
+          },
+          "ui": {
+            "width": 600,
+            "height": 600,
+            "sha256": "eda525bab6d74d439bd683b578242e87fd3146fc4d631b7c81d9f76dd4d47a2d"
+          }
+        },
+        "profile": {
+          "passed": true,
+          "featureCalls": 89,
+          "skippedHooks": []
+        },
+        "svg": {
+          "elements": 571,
+          "sha256": "6d0c918b35bd69e5861a753e96ea02fb32a95c14b63f6e9ba6d509469c0d61a1"
+        },
+        "png": {
+          "width": 1200,
+          "height": 1200,
+          "pixelsSha256": "787ae09622b107515e696f5590bffd6a125e1e1a2a3e52f5da085c86ec2719e3",
+          "bytesSha256": "45de36c4e0bbad42bf13e0804a3ba387af254e8d96adba6f3bf50e739a56ec4f"
+        }
+      }
+    },
+    {
+      "format": "circular",
+      "decoration": "arc",
+      "zoom": 1000,
+      "status": "passed",
+      "baseline": {
+        "raster": {
+          "background": {
+            "width": 600,
+            "height": 600,
+            "sha256": "680a1c22a8e114ea0c637847e8cc506794073a55f4350364c8a0421e7dbcc8f0"
+          },
+          "map": {
+            "width": 600,
+            "height": 600,
+            "sha256": "d2d358d20be736cae9d586c4dff1bde8c4f8542d96036e8207d104f699cfcdeb"
+          },
+          "foreground": {
+            "width": 600,
+            "height": 600,
+            "sha256": "97c99c228fe12150c20568cd1c9f5f5d743ba984b0f772ab0d8f22894bae7ff6"
+          },
+          "canvas": {
+            "width": 600,
+            "height": 600,
+            "sha256": "eda525bab6d74d439bd683b578242e87fd3146fc4d631b7c81d9f76dd4d47a2d"
+          },
+          "debug": {
+            "width": 600,
+            "height": 600,
+            "sha256": "eda525bab6d74d439bd683b578242e87fd3146fc4d631b7c81d9f76dd4d47a2d"
+          },
+          "ui": {
+            "width": 600,
+            "height": 600,
+            "sha256": "eda525bab6d74d439bd683b578242e87fd3146fc4d631b7c81d9f76dd4d47a2d"
+          }
+        }
+      },
+      "candidate": {
+        "raster": {
+          "background": {
+            "width": 600,
+            "height": 600,
+            "sha256": "680a1c22a8e114ea0c637847e8cc506794073a55f4350364c8a0421e7dbcc8f0"
+          },
+          "map": {
+            "width": 600,
+            "height": 600,
+            "sha256": "d2d358d20be736cae9d586c4dff1bde8c4f8542d96036e8207d104f699cfcdeb"
+          },
+          "foreground": {
+            "width": 600,
+            "height": 600,
+            "sha256": "97c99c228fe12150c20568cd1c9f5f5d743ba984b0f772ab0d8f22894bae7ff6"
+          },
+          "canvas": {
+            "width": 600,
+            "height": 600,
+            "sha256": "eda525bab6d74d439bd683b578242e87fd3146fc4d631b7c81d9f76dd4d47a2d"
+          },
+          "debug": {
+            "width": 600,
+            "height": 600,
+            "sha256": "eda525bab6d74d439bd683b578242e87fd3146fc4d631b7c81d9f76dd4d47a2d"
+          },
+          "ui": {
+            "width": 600,
+            "height": 600,
+            "sha256": "eda525bab6d74d439bd683b578242e87fd3146fc4d631b7c81d9f76dd4d47a2d"
+          }
+        },
+        "profile": {
+          "passed": true,
+          "featureCalls": 3,
+          "skippedHooks": []
+        }
+      }
+    },
+    {
+      "format": "circular",
+      "decoration": "arrow",
+      "zoom": 1,
+      "status": "passed",
+      "baseline": {
+        "raster": {
+          "background": {
+            "width": 600,
+            "height": 600,
+            "sha256": "680a1c22a8e114ea0c637847e8cc506794073a55f4350364c8a0421e7dbcc8f0"
+          },
+          "map": {
+            "width": 600,
+            "height": 600,
+            "sha256": "6056003f2f0c9b0b35caa3152790d1558a400476cef50f08ec76e7abadd62ea1"
+          },
+          "foreground": {
+            "width": 600,
+            "height": 600,
+            "sha256": "06b4bf8e60857782da249195c4edd35fb6cdd41a47a8d0f919a0344f3b3a3a2b"
+          },
+          "canvas": {
+            "width": 600,
+            "height": 600,
+            "sha256": "eda525bab6d74d439bd683b578242e87fd3146fc4d631b7c81d9f76dd4d47a2d"
+          },
+          "debug": {
+            "width": 600,
+            "height": 600,
+            "sha256": "eda525bab6d74d439bd683b578242e87fd3146fc4d631b7c81d9f76dd4d47a2d"
+          },
+          "ui": {
+            "width": 600,
+            "height": 600,
+            "sha256": "eda525bab6d74d439bd683b578242e87fd3146fc4d631b7c81d9f76dd4d47a2d"
+          }
+        }
+      },
+      "candidate": {
+        "raster": {
+          "background": {
+            "width": 600,
+            "height": 600,
+            "sha256": "680a1c22a8e114ea0c637847e8cc506794073a55f4350364c8a0421e7dbcc8f0"
+          },
+          "map": {
+            "width": 600,
+            "height": 600,
+            "sha256": "6056003f2f0c9b0b35caa3152790d1558a400476cef50f08ec76e7abadd62ea1"
+          },
+          "foreground": {
+            "width": 600,
+            "height": 600,
+            "sha256": "06b4bf8e60857782da249195c4edd35fb6cdd41a47a8d0f919a0344f3b3a3a2b"
+          },
+          "canvas": {
+            "width": 600,
+            "height": 600,
+            "sha256": "eda525bab6d74d439bd683b578242e87fd3146fc4d631b7c81d9f76dd4d47a2d"
+          },
+          "debug": {
+            "width": 600,
+            "height": 600,
+            "sha256": "eda525bab6d74d439bd683b578242e87fd3146fc4d631b7c81d9f76dd4d47a2d"
+          },
+          "ui": {
+            "width": 600,
+            "height": 600,
+            "sha256": "eda525bab6d74d439bd683b578242e87fd3146fc4d631b7c81d9f76dd4d47a2d"
+          }
+        },
+        "profile": {
+          "passed": true,
+          "featureCalls": 1000,
+          "skippedHooks": []
+        }
+      }
+    },
+    {
+      "format": "circular",
+      "decoration": "arrow",
+      "zoom": 10,
+      "status": "passed",
+      "baseline": {
+        "raster": {
+          "background": {
+            "width": 600,
+            "height": 600,
+            "sha256": "680a1c22a8e114ea0c637847e8cc506794073a55f4350364c8a0421e7dbcc8f0"
+          },
+          "map": {
+            "width": 600,
+            "height": 600,
+            "sha256": "5c08bb26a93568d13ef58245cb34f47a32c4d99fdd54b423f7d15db935467e9e"
+          },
+          "foreground": {
+            "width": 600,
+            "height": 600,
+            "sha256": "d1eab2d1555f2a70bd96f8abdccba4572cbf01e77d8dffb34010f3ba7935e7a1"
+          },
+          "canvas": {
+            "width": 600,
+            "height": 600,
+            "sha256": "eda525bab6d74d439bd683b578242e87fd3146fc4d631b7c81d9f76dd4d47a2d"
+          },
+          "debug": {
+            "width": 600,
+            "height": 600,
+            "sha256": "eda525bab6d74d439bd683b578242e87fd3146fc4d631b7c81d9f76dd4d47a2d"
+          },
+          "ui": {
+            "width": 600,
+            "height": 600,
+            "sha256": "eda525bab6d74d439bd683b578242e87fd3146fc4d631b7c81d9f76dd4d47a2d"
+          }
+        },
+        "svg": {
+          "elements": 571,
+          "sha256": "fd10660b6277d8bd9e00c40e1bbd209b7c24fbc86a53d9e5f095943d61707fb5"
+        },
+        "png": {
+          "width": 1200,
+          "height": 1200,
+          "pixelsSha256": "8e3f673a182dc9209721b169bcbb61bfe24113cad0db5eb1b6b17100df8950bf",
+          "bytesSha256": "48769281da08eb593931c6959469c6294a5420b8cb44491caf6f39f49b13cb68"
+        }
+      },
+      "candidate": {
+        "raster": {
+          "background": {
+            "width": 600,
+            "height": 600,
+            "sha256": "680a1c22a8e114ea0c637847e8cc506794073a55f4350364c8a0421e7dbcc8f0"
+          },
+          "map": {
+            "width": 600,
+            "height": 600,
+            "sha256": "5c08bb26a93568d13ef58245cb34f47a32c4d99fdd54b423f7d15db935467e9e"
+          },
+          "foreground": {
+            "width": 600,
+            "height": 600,
+            "sha256": "d1eab2d1555f2a70bd96f8abdccba4572cbf01e77d8dffb34010f3ba7935e7a1"
+          },
+          "canvas": {
+            "width": 600,
+            "height": 600,
+            "sha256": "eda525bab6d74d439bd683b578242e87fd3146fc4d631b7c81d9f76dd4d47a2d"
+          },
+          "debug": {
+            "width": 600,
+            "height": 600,
+            "sha256": "eda525bab6d74d439bd683b578242e87fd3146fc4d631b7c81d9f76dd4d47a2d"
+          },
+          "ui": {
+            "width": 600,
+            "height": 600,
+            "sha256": "eda525bab6d74d439bd683b578242e87fd3146fc4d631b7c81d9f76dd4d47a2d"
+          }
+        },
+        "profile": {
+          "passed": true,
+          "featureCalls": 89,
+          "skippedHooks": []
+        },
+        "svg": {
+          "elements": 571,
+          "sha256": "fd10660b6277d8bd9e00c40e1bbd209b7c24fbc86a53d9e5f095943d61707fb5"
+        },
+        "png": {
+          "width": 1200,
+          "height": 1200,
+          "pixelsSha256": "8e3f673a182dc9209721b169bcbb61bfe24113cad0db5eb1b6b17100df8950bf",
+          "bytesSha256": "48769281da08eb593931c6959469c6294a5420b8cb44491caf6f39f49b13cb68"
+        }
+      }
+    },
+    {
+      "format": "circular",
+      "decoration": "arrow",
+      "zoom": 1000,
+      "status": "passed",
+      "baseline": {
+        "raster": {
+          "background": {
+            "width": 600,
+            "height": 600,
+            "sha256": "680a1c22a8e114ea0c637847e8cc506794073a55f4350364c8a0421e7dbcc8f0"
+          },
+          "map": {
+            "width": 600,
+            "height": 600,
+            "sha256": "2fd79e457ce4216fdacd58a91f47a47116016e0b5714ab4934bae8d2ede5bde9"
+          },
+          "foreground": {
+            "width": 600,
+            "height": 600,
+            "sha256": "97c99c228fe12150c20568cd1c9f5f5d743ba984b0f772ab0d8f22894bae7ff6"
+          },
+          "canvas": {
+            "width": 600,
+            "height": 600,
+            "sha256": "eda525bab6d74d439bd683b578242e87fd3146fc4d631b7c81d9f76dd4d47a2d"
+          },
+          "debug": {
+            "width": 600,
+            "height": 600,
+            "sha256": "eda525bab6d74d439bd683b578242e87fd3146fc4d631b7c81d9f76dd4d47a2d"
+          },
+          "ui": {
+            "width": 600,
+            "height": 600,
+            "sha256": "eda525bab6d74d439bd683b578242e87fd3146fc4d631b7c81d9f76dd4d47a2d"
+          }
+        }
+      },
+      "candidate": {
+        "raster": {
+          "background": {
+            "width": 600,
+            "height": 600,
+            "sha256": "680a1c22a8e114ea0c637847e8cc506794073a55f4350364c8a0421e7dbcc8f0"
+          },
+          "map": {
+            "width": 600,
+            "height": 600,
+            "sha256": "2fd79e457ce4216fdacd58a91f47a47116016e0b5714ab4934bae8d2ede5bde9"
+          },
+          "foreground": {
+            "width": 600,
+            "height": 600,
+            "sha256": "97c99c228fe12150c20568cd1c9f5f5d743ba984b0f772ab0d8f22894bae7ff6"
+          },
+          "canvas": {
+            "width": 600,
+            "height": 600,
+            "sha256": "eda525bab6d74d439bd683b578242e87fd3146fc4d631b7c81d9f76dd4d47a2d"
+          },
+          "debug": {
+            "width": 600,
+            "height": 600,
+            "sha256": "eda525bab6d74d439bd683b578242e87fd3146fc4d631b7c81d9f76dd4d47a2d"
+          },
+          "ui": {
+            "width": 600,
+            "height": 600,
+            "sha256": "eda525bab6d74d439bd683b578242e87fd3146fc4d631b7c81d9f76dd4d47a2d"
+          }
+        },
+        "profile": {
+          "passed": true,
+          "featureCalls": 3,
+          "skippedHooks": []
+        }
+      }
+    },
+    {
+      "format": "linear",
+      "decoration": "arc",
+      "zoom": 1,
+      "status": "passed",
+      "baseline": {
+        "raster": {
+          "background": {
+            "width": 600,
+            "height": 600,
+            "sha256": "680a1c22a8e114ea0c637847e8cc506794073a55f4350364c8a0421e7dbcc8f0"
+          },
+          "map": {
+            "width": 600,
+            "height": 600,
+            "sha256": "1e4266b30721a8a500f522c2c44d27a0c95ce2d337965f8b0488f26b912dde1a"
+          },
+          "foreground": {
+            "width": 600,
+            "height": 600,
+            "sha256": "e66d55e8b6f0973b5510e525805096ad3085262d1e2636122d59445ad34c2af4"
+          },
+          "canvas": {
+            "width": 600,
+            "height": 600,
+            "sha256": "eda525bab6d74d439bd683b578242e87fd3146fc4d631b7c81d9f76dd4d47a2d"
+          },
+          "debug": {
+            "width": 600,
+            "height": 600,
+            "sha256": "eda525bab6d74d439bd683b578242e87fd3146fc4d631b7c81d9f76dd4d47a2d"
+          },
+          "ui": {
+            "width": 600,
+            "height": 600,
+            "sha256": "eda525bab6d74d439bd683b578242e87fd3146fc4d631b7c81d9f76dd4d47a2d"
+          }
+        }
+      },
+      "candidate": {
+        "raster": {
+          "background": {
+            "width": 600,
+            "height": 600,
+            "sha256": "680a1c22a8e114ea0c637847e8cc506794073a55f4350364c8a0421e7dbcc8f0"
+          },
+          "map": {
+            "width": 600,
+            "height": 600,
+            "sha256": "1e4266b30721a8a500f522c2c44d27a0c95ce2d337965f8b0488f26b912dde1a"
+          },
+          "foreground": {
+            "width": 600,
+            "height": 600,
+            "sha256": "e66d55e8b6f0973b5510e525805096ad3085262d1e2636122d59445ad34c2af4"
+          },
+          "canvas": {
+            "width": 600,
+            "height": 600,
+            "sha256": "eda525bab6d74d439bd683b578242e87fd3146fc4d631b7c81d9f76dd4d47a2d"
+          },
+          "debug": {
+            "width": 600,
+            "height": 600,
+            "sha256": "eda525bab6d74d439bd683b578242e87fd3146fc4d631b7c81d9f76dd4d47a2d"
+          },
+          "ui": {
+            "width": 600,
+            "height": 600,
+            "sha256": "eda525bab6d74d439bd683b578242e87fd3146fc4d631b7c81d9f76dd4d47a2d"
+          }
+        },
+        "profile": {
+          "passed": true,
+          "featureCalls": 1000,
+          "skippedHooks": []
+        }
+      }
+    },
+    {
+      "format": "linear",
+      "decoration": "arc",
+      "zoom": 10,
+      "status": "passed",
+      "baseline": {
+        "raster": {
+          "background": {
+            "width": 600,
+            "height": 600,
+            "sha256": "680a1c22a8e114ea0c637847e8cc506794073a55f4350364c8a0421e7dbcc8f0"
+          },
+          "map": {
+            "width": 600,
+            "height": 600,
+            "sha256": "13b069a9d0f21483c33c89ea2f844249276a5186b4a766a02a3dc205e8102e98"
+          },
+          "foreground": {
+            "width": 600,
+            "height": 600,
+            "sha256": "5491b1fb748512b8e9384a43c89416f5856520403066a7ea9d8cac11e8dc5154"
+          },
+          "canvas": {
+            "width": 600,
+            "height": 600,
+            "sha256": "eda525bab6d74d439bd683b578242e87fd3146fc4d631b7c81d9f76dd4d47a2d"
+          },
+          "debug": {
+            "width": 600,
+            "height": 600,
+            "sha256": "eda525bab6d74d439bd683b578242e87fd3146fc4d631b7c81d9f76dd4d47a2d"
+          },
+          "ui": {
+            "width": 600,
+            "height": 600,
+            "sha256": "eda525bab6d74d439bd683b578242e87fd3146fc4d631b7c81d9f76dd4d47a2d"
+          }
+        },
+        "svg": {
+          "elements": 602,
+          "sha256": "c1abdc0657256eb1fb68ac9eab47849acf8c11df4c1590299a103dd5a5cac935"
+        },
+        "png": {
+          "width": 1200,
+          "height": 1200,
+          "pixelsSha256": "22aef21460ef017b0b2fdab8fa3470fd455005aa69703ab64f31641aae88608b",
+          "bytesSha256": "daf70190aefa03d0b2aab60d05588a5632cee7b744e41b4ef400e25497a39e66"
+        }
+      },
+      "candidate": {
+        "raster": {
+          "background": {
+            "width": 600,
+            "height": 600,
+            "sha256": "680a1c22a8e114ea0c637847e8cc506794073a55f4350364c8a0421e7dbcc8f0"
+          },
+          "map": {
+            "width": 600,
+            "height": 600,
+            "sha256": "13b069a9d0f21483c33c89ea2f844249276a5186b4a766a02a3dc205e8102e98"
+          },
+          "foreground": {
+            "width": 600,
+            "height": 600,
+            "sha256": "5491b1fb748512b8e9384a43c89416f5856520403066a7ea9d8cac11e8dc5154"
+          },
+          "canvas": {
+            "width": 600,
+            "height": 600,
+            "sha256": "eda525bab6d74d439bd683b578242e87fd3146fc4d631b7c81d9f76dd4d47a2d"
+          },
+          "debug": {
+            "width": 600,
+            "height": 600,
+            "sha256": "eda525bab6d74d439bd683b578242e87fd3146fc4d631b7c81d9f76dd4d47a2d"
+          },
+          "ui": {
+            "width": 600,
+            "height": 600,
+            "sha256": "eda525bab6d74d439bd683b578242e87fd3146fc4d631b7c81d9f76dd4d47a2d"
+          }
+        },
+        "profile": {
+          "passed": true,
+          "featureCalls": 118,
+          "skippedHooks": []
+        },
+        "svg": {
+          "elements": 602,
+          "sha256": "c1abdc0657256eb1fb68ac9eab47849acf8c11df4c1590299a103dd5a5cac935"
+        },
+        "png": {
+          "width": 1200,
+          "height": 1200,
+          "pixelsSha256": "22aef21460ef017b0b2fdab8fa3470fd455005aa69703ab64f31641aae88608b",
+          "bytesSha256": "daf70190aefa03d0b2aab60d05588a5632cee7b744e41b4ef400e25497a39e66"
+        }
+      }
+    },
+    {
+      "format": "linear",
+      "decoration": "arc",
+      "zoom": 1000,
+      "status": "passed",
+      "baseline": {
+        "raster": {
+          "background": {
+            "width": 600,
+            "height": 600,
+            "sha256": "680a1c22a8e114ea0c637847e8cc506794073a55f4350364c8a0421e7dbcc8f0"
+          },
+          "map": {
+            "width": 600,
+            "height": 600,
+            "sha256": "6711e36197cf77ab3f2a6853025a96de147306f2bd27a121bd2b61e23fc37cb6"
+          },
+          "foreground": {
+            "width": 600,
+            "height": 600,
+            "sha256": "a54f313724013b38a2973a4a884aa64d2956a00031f8010cb2c063e74f5c8be2"
+          },
+          "canvas": {
+            "width": 600,
+            "height": 600,
+            "sha256": "eda525bab6d74d439bd683b578242e87fd3146fc4d631b7c81d9f76dd4d47a2d"
+          },
+          "debug": {
+            "width": 600,
+            "height": 600,
+            "sha256": "eda525bab6d74d439bd683b578242e87fd3146fc4d631b7c81d9f76dd4d47a2d"
+          },
+          "ui": {
+            "width": 600,
+            "height": 600,
+            "sha256": "eda525bab6d74d439bd683b578242e87fd3146fc4d631b7c81d9f76dd4d47a2d"
+          }
+        }
+      },
+      "candidate": {
+        "raster": {
+          "background": {
+            "width": 600,
+            "height": 600,
+            "sha256": "680a1c22a8e114ea0c637847e8cc506794073a55f4350364c8a0421e7dbcc8f0"
+          },
+          "map": {
+            "width": 600,
+            "height": 600,
+            "sha256": "6711e36197cf77ab3f2a6853025a96de147306f2bd27a121bd2b61e23fc37cb6"
+          },
+          "foreground": {
+            "width": 600,
+            "height": 600,
+            "sha256": "a54f313724013b38a2973a4a884aa64d2956a00031f8010cb2c063e74f5c8be2"
+          },
+          "canvas": {
+            "width": 600,
+            "height": 600,
+            "sha256": "eda525bab6d74d439bd683b578242e87fd3146fc4d631b7c81d9f76dd4d47a2d"
+          },
+          "debug": {
+            "width": 600,
+            "height": 600,
+            "sha256": "eda525bab6d74d439bd683b578242e87fd3146fc4d631b7c81d9f76dd4d47a2d"
+          },
+          "ui": {
+            "width": 600,
+            "height": 600,
+            "sha256": "eda525bab6d74d439bd683b578242e87fd3146fc4d631b7c81d9f76dd4d47a2d"
+          }
+        },
+        "profile": {
+          "passed": true,
+          "featureCalls": 3,
+          "skippedHooks": []
+        }
+      }
+    },
+    {
+      "format": "linear",
+      "decoration": "arrow",
+      "zoom": 1,
+      "status": "passed",
+      "baseline": {
+        "raster": {
+          "background": {
+            "width": 600,
+            "height": 600,
+            "sha256": "680a1c22a8e114ea0c637847e8cc506794073a55f4350364c8a0421e7dbcc8f0"
+          },
+          "map": {
+            "width": 600,
+            "height": 600,
+            "sha256": "110b1b8e53e326deed00ca7aa01a192c04103f85b45c70b215fdfee94e5d2ae5"
+          },
+          "foreground": {
+            "width": 600,
+            "height": 600,
+            "sha256": "e66d55e8b6f0973b5510e525805096ad3085262d1e2636122d59445ad34c2af4"
+          },
+          "canvas": {
+            "width": 600,
+            "height": 600,
+            "sha256": "eda525bab6d74d439bd683b578242e87fd3146fc4d631b7c81d9f76dd4d47a2d"
+          },
+          "debug": {
+            "width": 600,
+            "height": 600,
+            "sha256": "eda525bab6d74d439bd683b578242e87fd3146fc4d631b7c81d9f76dd4d47a2d"
+          },
+          "ui": {
+            "width": 600,
+            "height": 600,
+            "sha256": "eda525bab6d74d439bd683b578242e87fd3146fc4d631b7c81d9f76dd4d47a2d"
+          }
+        }
+      },
+      "candidate": {
+        "raster": {
+          "background": {
+            "width": 600,
+            "height": 600,
+            "sha256": "680a1c22a8e114ea0c637847e8cc506794073a55f4350364c8a0421e7dbcc8f0"
+          },
+          "map": {
+            "width": 600,
+            "height": 600,
+            "sha256": "110b1b8e53e326deed00ca7aa01a192c04103f85b45c70b215fdfee94e5d2ae5"
+          },
+          "foreground": {
+            "width": 600,
+            "height": 600,
+            "sha256": "e66d55e8b6f0973b5510e525805096ad3085262d1e2636122d59445ad34c2af4"
+          },
+          "canvas": {
+            "width": 600,
+            "height": 600,
+            "sha256": "eda525bab6d74d439bd683b578242e87fd3146fc4d631b7c81d9f76dd4d47a2d"
+          },
+          "debug": {
+            "width": 600,
+            "height": 600,
+            "sha256": "eda525bab6d74d439bd683b578242e87fd3146fc4d631b7c81d9f76dd4d47a2d"
+          },
+          "ui": {
+            "width": 600,
+            "height": 600,
+            "sha256": "eda525bab6d74d439bd683b578242e87fd3146fc4d631b7c81d9f76dd4d47a2d"
+          }
+        },
+        "profile": {
+          "passed": true,
+          "featureCalls": 1000,
+          "skippedHooks": []
+        }
+      }
+    },
+    {
+      "format": "linear",
+      "decoration": "arrow",
+      "zoom": 10,
+      "status": "passed",
+      "baseline": {
+        "raster": {
+          "background": {
+            "width": 600,
+            "height": 600,
+            "sha256": "680a1c22a8e114ea0c637847e8cc506794073a55f4350364c8a0421e7dbcc8f0"
+          },
+          "map": {
+            "width": 600,
+            "height": 600,
+            "sha256": "9ec9d3752bd85c621ed9d37b8fbb553c6afbd842f02082790246cc8103a58d06"
+          },
+          "foreground": {
+            "width": 600,
+            "height": 600,
+            "sha256": "5491b1fb748512b8e9384a43c89416f5856520403066a7ea9d8cac11e8dc5154"
+          },
+          "canvas": {
+            "width": 600,
+            "height": 600,
+            "sha256": "eda525bab6d74d439bd683b578242e87fd3146fc4d631b7c81d9f76dd4d47a2d"
+          },
+          "debug": {
+            "width": 600,
+            "height": 600,
+            "sha256": "eda525bab6d74d439bd683b578242e87fd3146fc4d631b7c81d9f76dd4d47a2d"
+          },
+          "ui": {
+            "width": 600,
+            "height": 600,
+            "sha256": "eda525bab6d74d439bd683b578242e87fd3146fc4d631b7c81d9f76dd4d47a2d"
+          }
+        },
+        "svg": {
+          "elements": 602,
+          "sha256": "be1a0814b39316c17c795b4422abbcbe1a71e6078f221c2e32f77bd9567f080d"
+        },
+        "png": {
+          "width": 1200,
+          "height": 1200,
+          "pixelsSha256": "5062d92d32e150eba25c8e209090095f5ffe32736c77f7e8d1a9acb2da1d5040",
+          "bytesSha256": "78b8dced8283bea7f087a6ebc37750990d2d096da99a702826db98c4e50ba91b"
+        }
+      },
+      "candidate": {
+        "raster": {
+          "background": {
+            "width": 600,
+            "height": 600,
+            "sha256": "680a1c22a8e114ea0c637847e8cc506794073a55f4350364c8a0421e7dbcc8f0"
+          },
+          "map": {
+            "width": 600,
+            "height": 600,
+            "sha256": "9ec9d3752bd85c621ed9d37b8fbb553c6afbd842f02082790246cc8103a58d06"
+          },
+          "foreground": {
+            "width": 600,
+            "height": 600,
+            "sha256": "5491b1fb748512b8e9384a43c89416f5856520403066a7ea9d8cac11e8dc5154"
+          },
+          "canvas": {
+            "width": 600,
+            "height": 600,
+            "sha256": "eda525bab6d74d439bd683b578242e87fd3146fc4d631b7c81d9f76dd4d47a2d"
+          },
+          "debug": {
+            "width": 600,
+            "height": 600,
+            "sha256": "eda525bab6d74d439bd683b578242e87fd3146fc4d631b7c81d9f76dd4d47a2d"
+          },
+          "ui": {
+            "width": 600,
+            "height": 600,
+            "sha256": "eda525bab6d74d439bd683b578242e87fd3146fc4d631b7c81d9f76dd4d47a2d"
+          }
+        },
+        "profile": {
+          "passed": true,
+          "featureCalls": 118,
+          "skippedHooks": []
+        },
+        "svg": {
+          "elements": 602,
+          "sha256": "be1a0814b39316c17c795b4422abbcbe1a71e6078f221c2e32f77bd9567f080d"
+        },
+        "png": {
+          "width": 1200,
+          "height": 1200,
+          "pixelsSha256": "5062d92d32e150eba25c8e209090095f5ffe32736c77f7e8d1a9acb2da1d5040",
+          "bytesSha256": "78b8dced8283bea7f087a6ebc37750990d2d096da99a702826db98c4e50ba91b"
+        }
+      }
+    },
+    {
+      "format": "linear",
+      "decoration": "arrow",
+      "zoom": 1000,
+      "status": "passed",
+      "baseline": {
+        "raster": {
+          "background": {
+            "width": 600,
+            "height": 600,
+            "sha256": "680a1c22a8e114ea0c637847e8cc506794073a55f4350364c8a0421e7dbcc8f0"
+          },
+          "map": {
+            "width": 600,
+            "height": 600,
+            "sha256": "62c5509d20bcaec14d14a6a989743576161ace9a1e581539774a92c0f8f64221"
+          },
+          "foreground": {
+            "width": 600,
+            "height": 600,
+            "sha256": "a54f313724013b38a2973a4a884aa64d2956a00031f8010cb2c063e74f5c8be2"
+          },
+          "canvas": {
+            "width": 600,
+            "height": 600,
+            "sha256": "eda525bab6d74d439bd683b578242e87fd3146fc4d631b7c81d9f76dd4d47a2d"
+          },
+          "debug": {
+            "width": 600,
+            "height": 600,
+            "sha256": "eda525bab6d74d439bd683b578242e87fd3146fc4d631b7c81d9f76dd4d47a2d"
+          },
+          "ui": {
+            "width": 600,
+            "height": 600,
+            "sha256": "eda525bab6d74d439bd683b578242e87fd3146fc4d631b7c81d9f76dd4d47a2d"
+          }
+        }
+      },
+      "candidate": {
+        "raster": {
+          "background": {
+            "width": 600,
+            "height": 600,
+            "sha256": "680a1c22a8e114ea0c637847e8cc506794073a55f4350364c8a0421e7dbcc8f0"
+          },
+          "map": {
+            "width": 600,
+            "height": 600,
+            "sha256": "62c5509d20bcaec14d14a6a989743576161ace9a1e581539774a92c0f8f64221"
+          },
+          "foreground": {
+            "width": 600,
+            "height": 600,
+            "sha256": "a54f313724013b38a2973a4a884aa64d2956a00031f8010cb2c063e74f5c8be2"
+          },
+          "canvas": {
+            "width": 600,
+            "height": 600,
+            "sha256": "eda525bab6d74d439bd683b578242e87fd3146fc4d631b7c81d9f76dd4d47a2d"
+          },
+          "debug": {
+            "width": 600,
+            "height": 600,
+            "sha256": "eda525bab6d74d439bd683b578242e87fd3146fc4d631b7c81d9f76dd4d47a2d"
+          },
+          "ui": {
+            "width": 600,
+            "height": 600,
+            "sha256": "eda525bab6d74d439bd683b578242e87fd3146fc4d631b7c81d9f76dd4d47a2d"
+          }
+        },
+        "profile": {
+          "passed": true,
+          "featureCalls": 3,
+          "skippedHooks": []
+        }
+      }
+    }
+  ],
+  "assets": [
+    {
+      "root": "/home/jason/workspace/cgview-js",
+      "stylesheet": {
+        "path": "/home/jason/workspace/cgview-js/docs/dist/cgview.css",
+        "sha256": "18cdb74fe75bbcd9de234024c6b75b842b5da79ac14409c911ed76523a397161"
+      },
+      "scripts": [
+        {
+          "path": "/home/jason/workspace/cgview-js/docs/scripts/d3.min.js",
+          "sha256": "af0db8f55c4891e139e1b28cd829762fb048c0879560d7c539a27c8add4e0efa"
+        },
+        {
+          "path": "/home/jason/workspace/cgview-js/docs/scripts/svgcanvas.iife.js",
+          "sha256": "bd12c59be4fe6474a968c471f98de428cdba141721e3bdfb85ff83857818dc69"
+        },
+        {
+          "path": "/home/jason/workspace/cgview-js/docs/dist/cgview.min.js",
+          "sha256": "a116e4c5d9bf6dbdb84b0eb97c45b6a57fb552623cbadbc1dc7d92228bcc79b9"
+        },
+        {
+          "path": "/home/jason/workspace/cgview-js-worktrees/v1.9-gpu/docs/test/rendering-profile.js",
+          "sha256": "aade2b6062b0ba509e4e0903af5885766680b9653da1b97ceec1fe8fc3cfcb64"
+        },
+        {
+          "path": "/home/jason/workspace/cgview-js-worktrees/v1.9-gpu/docs/test/rendering-benchmark.js",
+          "sha256": "f93b40ece9cbafa8f537a1aaced39c2e3aaa939582e57f72b1ecc748bcf4c43a"
+        }
+      ]
+    },
+    {
+      "root": "/home/jason/workspace/cgview-js-worktrees/v1.9-gpu",
+      "stylesheet": {
+        "path": "/home/jason/workspace/cgview-js-worktrees/v1.9-gpu/docs/dist/cgview.css",
+        "sha256": "18cdb74fe75bbcd9de234024c6b75b842b5da79ac14409c911ed76523a397161"
+      },
+      "scripts": [
+        {
+          "path": "/home/jason/workspace/cgview-js-worktrees/v1.9-gpu/docs/scripts/d3.min.js",
+          "sha256": "af0db8f55c4891e139e1b28cd829762fb048c0879560d7c539a27c8add4e0efa"
+        },
+        {
+          "path": "/home/jason/workspace/cgview-js-worktrees/v1.9-gpu/docs/scripts/svgcanvas.iife.js",
+          "sha256": "bd12c59be4fe6474a968c471f98de428cdba141721e3bdfb85ff83857818dc69"
+        },
+        {
+          "path": "/home/jason/workspace/cgview-js-worktrees/v1.9-gpu/docs/dist/cgview.min.js",
+          "sha256": "67d706d918f4f6bb460c9326ead88a4fe5315e76f4c8efe6b6c094ce67f1bd55"
+        },
+        {
+          "path": "/home/jason/workspace/cgview-js-worktrees/v1.9-gpu/docs/test/rendering-profile.js",
+          "sha256": "aade2b6062b0ba509e4e0903af5885766680b9653da1b97ceec1fe8fc3cfcb64"
+        },
+        {
+          "path": "/home/jason/workspace/cgview-js-worktrees/v1.9-gpu/docs/test/rendering-benchmark.js",
+          "sha256": "f93b40ece9cbafa8f537a1aaced39c2e3aaa939582e57f72b1ecc748bcf4c43a"
+        }
+      ]
+    }
+  ],
+  "bundles": [
+    {
+      "root": "/home/jason/workspace/cgview-js",
+      "sha256": "a116e4c5d9bf6dbdb84b0eb97c45b6a57fb552623cbadbc1dc7d92228bcc79b9"
+    },
+    {
+      "root": "/home/jason/workspace/cgview-js-worktrees/v1.9-gpu",
+      "sha256": "67d706d918f4f6bb460c9326ead88a4fe5315e76f4c8efe6b6c094ce67f1bd55"
+    }
+  ],
+  "chromium": "151.0.7922.34"
+}

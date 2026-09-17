@@ -1,0 +1,529 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-09-17T21:49:12.831Z",
+  "status": "complete",
+  "options": {
+    "counts": [
+      2000000
+    ],
+    "formats": [
+      "circular"
+    ],
+    "decorations": [
+      "arc"
+    ],
+    "zooms": [
+      1,
+      10,
+      1000
+    ],
+    "iterations": 3,
+    "warmups": 1,
+    "frames": 6,
+    "seed": 42,
+    "labels": 0,
+    "plotPoints": 0,
+    "shading": false,
+    "profile": false,
+    "width": 600,
+    "height": 600,
+    "timeout": 600,
+    "output": "/home/jason/workspace/cgview-js-worktrees/v1.9-gpu/.benchmark-results/stage1-2m.json",
+    "baselineRoot": "/home/jason/workspace/cgview-js"
+  },
+  "environment": {
+    "node": "v24.21.0",
+    "chromium": "151.0.7922.34",
+    "platform": "linux",
+    "architecture": "x64",
+    "os": {
+      "type": "Linux",
+      "release": "6.8.0-138-generic",
+      "version": "#138-Ubuntu SMP PREEMPT_DYNAMIC Fri Jul 31 22:41:49 UTC 2026"
+    },
+    "cpu": {
+      "model": "Intel Xeon Processor (SapphireRapids)",
+      "logicalCores": 16,
+      "speedMHz": 0
+    },
+    "memory": {
+      "totalBytes": 33650962432,
+      "freeBytesAtStart": 29164081152
+    },
+    "headless": true,
+    "deviceScaleFactor": 1,
+    "launchArguments": [
+      "--enable-precise-memory-info"
+    ],
+    "gpu": {
+      "available": true,
+      "devices": [
+        {
+          "vendorId": 65535,
+          "deviceId": 65535,
+          "vendorString": "Google Inc. (Google)",
+          "deviceString": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver-5.0.0)",
+          "driverVendor": "SwANGLE",
+          "driverVersion": "5.0.0"
+        }
+      ],
+      "featureStatus": {
+        "2d_canvas": "unavailable_software",
+        "direct_rendering_display_compositor": "disabled_off_ok",
+        "gpu_compositing": "disabled_software",
+        "multiple_raster_threads": "enabled_on",
+        "opengl": "disabled_off",
+        "rasterization": "disabled_software",
+        "raw_draw": "disabled_off_ok",
+        "skia_graphite": "disabled_off",
+        "trees_in_viz": "disabled_off",
+        "video_decode": "disabled_software",
+        "video_encode": "disabled_software",
+        "vulkan": "disabled_off",
+        "webgl": "unavailable_software",
+        "webgpu": "unavailable_software",
+        "webgpu_on_vk_via_gl_interop": "disabled_off",
+        "webnn": "unavailable_software"
+      },
+      "auxAttributes": {
+        "amdSwitchable": false,
+        "canSupportThreadedTextureMailbox": false,
+        "directRenderingVersion": "",
+        "displayType": "ANGLE_SWIFTSHADER",
+        "glExtensions": "GL_AMD_performance_monitor GL_ANGLE_base_vertex_base_instance_shader_builtin GL_ANGLE_blob_cache GL_ANGLE_client_arrays GL_ANGLE_clip_cull_distance GL_ANGLE_compressed_texture_etc GL_ANGLE_copy_texture_3d GL_ANGLE_depth_texture GL_ANGLE_framebuffer_blit GL_ANGLE_framebuffer_multisample GL_ANGLE_get_image GL_ANGLE_get_serialized_context_string GL_ANGLE_get_tex_level_parameter GL_ANGLE_instanced_arrays GL_ANGLE_memory_object_flags GL_ANGLE_memory_size GL_ANGLE_multi_draw GL_ANGLE_pack_reverse_row_order GL_ANGLE_polygon_mode GL_ANGLE_program_binary_readiness_query GL_ANGLE_program_cache_control GL_ANGLE_read_only_depth_stencil_feedback_loops GL_ANGLE_relaxed_vertex_attribute_type GL_ANGLE_renderability_validation GL_ANGLE_request_extension GL_ANGLE_rgbx_internal_format GL_ANGLE_robust_client_memory GL_ANGLE_robust_fragment_shader_output GL_ANGLE_robust_resource_initialization GL_ANGLE_shader_pixel_local_storage GL_ANGLE_shader_pixel_local_storage_coherent GL_ANGLE_stencil_texturing GL_ANGLE_texture_compression_dxt3 GL_ANGLE_texture_compression_dxt5 GL_ANGLE_texture_multisample GL_ANGLE_texture_usage GL_ANGLE_translated_shader_source GL_ANGLE_vulkan_image GL_ANGLE_yuv_internal_format GL_APPLE_clip_distance GL_ARM_rgba8 GL_ARM_shader_framebuffer_fetch GL_ARM_shader_framebuffer_fetch_depth_stencil GL_CHROMIUM_bind_generates_resource GL_CHROMIUM_bind_uniform_location GL_CHROMIUM_copy_compressed_texture GL_CHROMIUM_copy_texture GL_CHROMIUM_lose_context GL_EXT_EGL_image_array GL_EXT_EGL_image_external_wrap_modes GL_EXT_EGL_image_storage GL_EXT_base_instance GL_EXT_blend_minmax GL_EXT_buffer_storage GL_EXT_clear_texture GL_EXT_clip_control GL_EXT_clip_cull_distance GL_EXT_color_buffer_float GL_EXT_color_buffer_half_float GL_EXT_compressed_ETC1_RGB8_sub_texture GL_EXT_conservative_depth GL_EXT_copy_image GL_EXT_debug_label GL_EXT_debug_marker GL_EXT_depth_clamp GL_EXT_discard_framebuffer GL_EXT_disjoint_timer_query GL_EXT_draw_buffers GL_EXT_draw_buffers_indexed GL_EXT_draw_elements_base_vertex GL_EXT_float_blend GL_EXT_frag_depth GL_EXT_instanced_arrays GL_EXT_map_buffer_range GL_EXT_memory_object GL_EXT_memory_object_fd GL_EXT_occlusion_query_boolean GL_EXT_polygon_offset_clamp GL_EXT_read_format_bgra GL_EXT_robustness GL_EXT_sRGB GL_EXT_sRGB_write_control GL_EXT_semaphore GL_EXT_semaphore_fd GL_EXT_separate_shader_objects GL_EXT_shader_framebuffer_fetch GL_EXT_shader_framebuffer_fetch_non_coherent GL_EXT_shader_non_constant_global_initializers GL_EXT_shader_texture_lod GL_EXT_shadow_samplers GL_EXT_texture_border_clamp GL_EXT_texture_compression_bptc GL_EXT_texture_compression_dxt1 GL_EXT_texture_compression_rgtc GL_EXT_texture_compression_s3tc_srgb GL_EXT_texture_cube_map_array GL_EXT_texture_filter_anisotropic GL_EXT_texture_format_BGRA8888 GL_EXT_texture_lod_bias GL_EXT_texture_mirror_clamp_to_edge GL_EXT_texture_rg GL_EXT_texture_sRGB_R8 GL_EXT_texture_sRGB_RG8 GL_EXT_texture_sRGB_decode GL_EXT_texture_shadow_lod GL_EXT_texture_storage GL_EXT_texture_type_2_10_10_10_REV GL_EXT_unpack_subimage GL_KHR_blend_equation_advanced GL_KHR_debug GL_KHR_robust_buffer_access_behavior GL_KHR_robustness GL_KHR_texture_compression_astc_ldr GL_NV_fence GL_NV_framebuffer_blit GL_NV_pack_subimage GL_NV_pixel_buffer_object GL_NV_polygon_mode GL_NV_read_depth GL_NV_read_depth_stencil GL_NV_read_stencil GL_NV_shader_noperspective_interpolation GL_OES_EGL_image GL_OES_EGL_image_external GL_OES_EGL_image_external_essl3 GL_OES_EGL_sync GL_OES_compressed_EAC_R11_signed_texture GL_OES_compressed_EAC_R11_unsigned_texture GL_OES_compressed_EAC_RG11_signed_texture GL_OES_compressed_EAC_RG11_unsigned_texture GL_OES_compressed_ETC1_RGB8_texture GL_OES_compressed_ETC2_RGB8_texture GL_OES_compressed_ETC2_RGBA8_texture GL_OES_compressed_ETC2_punchthroughA_RGBA8_texture GL_OES_compressed_ETC2_punchthroughA_sRGB8_alpha_texture GL_OES_compressed_ETC2_sRGB8_alpha8_texture GL_OES_compressed_ETC2_sRGB8_texture GL_OES_compressed_paletted_texture GL_OES_copy_image GL_OES_depth24 GL_OES_depth32 GL_OES_depth_texture GL_OES_depth_texture_cube_map GL_OES_draw_buffers_indexed GL_OES_draw_elements_base_vertex GL_OES_element_index_uint GL_OES_fbo_render_mipmap GL_OES_get_program_binary GL_OES_mapbuffer GL_OES_packed_depth_stencil GL_OES_required_internalformat GL_OES_rgb8_rgba8 GL_OES_sample_shading GL_OES_sample_variables GL_OES_shader_multisample_interpolation GL_OES_standard_derivatives GL_OES_surfaceless_context GL_OES_texture_3D GL_OES_texture_border_clamp GL_OES_texture_cube_map_array GL_OES_texture_float GL_OES_texture_float_linear GL_OES_texture_half_float GL_OES_texture_half_float_linear GL_OES_texture_npot GL_OES_texture_stencil8 GL_OES_texture_storage_multisample_2d_array GL_OES_vertex_array_object GL_OES_vertex_half_float GL_OES_vertex_type_10_10_10_2 GL_OVR_multiview GL_OVR_multiview2 GL_QCOM_texture_lod_bias ",
+        "glImplementationParts": "(gl=egl-angle,angle=swiftshader)",
+        "glRenderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver-5.0.0)",
+        "glResetNotificationStrategy": 33362,
+        "glVendor": "Google Inc. (Google)",
+        "glVersion": "OpenGL ES 3.0 (ANGLE 2.1.28222 git hash: 6dab7c7e742b)",
+        "glWsExtensions": "EGL_EXT_create_context_robustness EGL_ANGLE_surface_orientation EGL_KHR_create_context EGL_KHR_image EGL_KHR_image_base EGL_EXT_image_gl_colorspace EGL_KHR_gl_colorspace EGL_KHR_gl_texture_2D_image EGL_KHR_gl_texture_cubemap_image EGL_KHR_gl_renderbuffer_image EGL_KHR_get_all_proc_addresses EGL_KHR_fence_sync EGL_KHR_wait_sync EGL_ANGLE_create_context_webgl_compatibility EGL_CHROMIUM_create_context_bind_generates_resource EGL_KHR_swap_buffers_with_damage EGL_EXT_pixel_format_float EGL_KHR_surfaceless_context EGL_ANGLE_display_texture_share_group EGL_ANGLE_display_semaphore_share_group EGL_ANGLE_create_context_client_arrays EGL_ANGLE_program_cache_control EGL_ANGLE_robust_resource_initialization EGL_ANGLE_create_context_extensions_enabled EGL_ANDROID_blob_cache EGL_ANDROID_recordable EGL_ANGLE_create_context_backwards_compatible EGL_KHR_no_config_context EGL_IMG_context_priority EGL_KHR_create_context_no_error EGL_KHR_reusable_sync EGL_EXT_buffer_age EGL_ANGLE_create_surface_swap_interval EGL_ANGLE_vulkan_image EGL_KHR_partial_update EGL_ANGLE_global_fence_sync EGL_ANGLE_memory_usage_report ",
+        "glWsVendor": "Google Inc. (Google)",
+        "glWsVersion": "1.5 (ANGLE 2.1.28222 git hash: 6dab7c7e742b)",
+        "hardwareSupportsVulkan": false,
+        "inProcessGpu": false,
+        "initializationTime": 0.011026,
+        "isAsan": false,
+        "isClangCoverage": false,
+        "jpegDecodeAcceleratorSupported": false,
+        "maxMsaaSamples": "4",
+        "optimus": false,
+        "passthroughCmdDecoder": true,
+        "pixelShaderVersion": "3.00",
+        "processCrashCount": 0,
+        "sandboxed": false,
+        "skiaBackendType": "None",
+        "subpixelFontRendering": true,
+        "targetCpuBits": 64,
+        "vertexShaderVersion": "3.00",
+        "visibilityCallbackCallCount": 0
+      },
+      "driverBugWorkarounds": []
+    }
+  },
+  "target": {
+    "root": "/home/jason/workspace/cgview-js",
+    "revision": "f2ace3428288d997a2ce2a076aaa207dcb304243",
+    "worktreeStatus": ""
+  },
+  "harness": {
+    "root": "/home/jason/workspace/cgview-js-worktrees/v1.9-gpu",
+    "revision": "f2ace3428288d997a2ce2a076aaa207dcb304243",
+    "worktreeStatus": " M package.json\n M src/Slot.js\n?? docs/development/\n?? docs/test/rendering-benchmark.js\n?? docs/test/rendering-profile.js\n?? scripts/benchmark-rendering-counts.mjs\n?? scripts/benchmark-rendering.mjs\n?? scripts/check-rendering-performance.mjs\n?? test/RenderingBenchmark.test.js\n?? test/RenderingProfile.test.js\n?? test/SlotDraw.test.js\n"
+  },
+  "bundleSha256": "a116e4c5d9bf6dbdb84b0eb97c45b6a57fb552623cbadbc1dc7d92228bcc79b9",
+  "scripts": [
+    {
+      "path": "/home/jason/workspace/cgview-js/docs/scripts/d3.min.js",
+      "sha256": "af0db8f55c4891e139e1b28cd829762fb048c0879560d7c539a27c8add4e0efa"
+    },
+    {
+      "path": "/home/jason/workspace/cgview-js/docs/scripts/svgcanvas.iife.js",
+      "sha256": "bd12c59be4fe6474a968c471f98de428cdba141721e3bdfb85ff83857818dc69"
+    },
+    {
+      "path": "/home/jason/workspace/cgview-js/docs/dist/cgview.min.js",
+      "sha256": "a116e4c5d9bf6dbdb84b0eb97c45b6a57fb552623cbadbc1dc7d92228bcc79b9"
+    },
+    {
+      "path": "/home/jason/workspace/cgview-js-worktrees/v1.9-gpu/docs/test/rendering-profile.js",
+      "sha256": "aade2b6062b0ba509e4e0903af5885766680b9653da1b97ceec1fe8fc3cfcb64"
+    },
+    {
+      "path": "/home/jason/workspace/cgview-js-worktrees/v1.9-gpu/docs/test/rendering-benchmark.js",
+      "sha256": "0dcef0cb07f38567dd1d4471293f955650e1cd3b2e7eaee3b58ce5be28afbec7"
+    }
+  ],
+  "stylesheet": {
+    "path": "/home/jason/workspace/cgview-js/docs/dist/cgview.css",
+    "sha256": "18cdb74fe75bbcd9de234024c6b75b842b5da79ac14409c911ed76523a397161"
+  },
+  "plannedScenarios": 1,
+  "scenarios": [
+    {
+      "id": "2000000-circular-arc",
+      "count": 2000000,
+      "format": "circular",
+      "decoration": "arc",
+      "dataset": {
+        "generator": "lcg-spaced-overlap-v1",
+        "seed": 42,
+        "count": 2000000,
+        "sequenceLength": 2000000000,
+        "featureFingerprint": "d566dee5",
+        "labels": 0,
+        "plotPoints": 0,
+        "minArcLength": 1,
+        "styles": 4,
+        "featureSpanBp": [
+          200,
+          1799
+        ]
+      },
+      "width": 600,
+      "height": 600,
+      "pixelRatio": 1,
+      "featureCount": 2000000,
+      "fastFeaturesPerSlot": 500,
+      "setup": {
+        "generationMs": 363.09999990463257,
+        "viewerCreationMs": 30,
+        "loadJSONSyncMs": 6378.700000047684,
+        "loadJSONSettledMs": 6378.800000190735
+      },
+      "memory": {
+        "before": {
+          "usedJSHeapSize": 7974651,
+          "totalJSHeapSize": 10979095,
+          "jsHeapSizeLimit": 4395630592
+        },
+        "withJSON": {
+          "usedJSHeapSize": 170231272,
+          "totalJSHeapSize": 220460596,
+          "jsHeapSizeLimit": 4395630592
+        },
+        "afterLoad": {
+          "usedJSHeapSize": 1118347544,
+          "totalJSHeapSize": 1165863904,
+          "jsHeapSizeLimit": 4395630592
+        },
+        "note": "Chromium JS heap observations without forced GC, not retained heap, process RSS, or Canvas/GPU memory."
+      },
+      "records": [
+        {
+          "zoom": 1,
+          "visibleFeatures": 2000000,
+          "slots": [
+            {
+              "features": 1001317,
+              "visibleFeatures": 1001317,
+              "range": {
+                "start": 1,
+                "stop": 2000000000,
+                "length": 2000000000
+              },
+              "thickness": 30,
+              "centerOffset": 168.5
+            },
+            {
+              "features": 998683,
+              "visibleFeatures": 998683,
+              "range": {
+                "start": 1,
+                "stop": 2000000000,
+                "length": 2000000000
+              },
+              "thickness": 30,
+              "centerOffset": 131.5
+            }
+          ],
+          "lookupMs": 346.7999999523163,
+          "drawFast": {
+            "samples": [
+              225.5,
+              256.10000014305115,
+              256.5
+            ],
+            "median": 256.10000014305115,
+            "p90": 256.5,
+            "min": 225.5,
+            "max": 256.5
+          },
+          "drawFull": {
+            "samples": [
+              5075.299999952316,
+              5068,
+              4928.299999952316
+            ],
+            "median": 5068,
+            "p90": 5075.299999952316,
+            "min": 4928.299999952316,
+            "max": 5075.299999952316
+          },
+          "drawExport": {
+            "samples": [
+              4757.299999952316,
+              4792.900000095367,
+              4713.5
+            ],
+            "median": 4757.299999952316,
+            "p90": 4792.900000095367,
+            "min": 4713.5,
+            "max": 4792.900000095367
+          },
+          "interaction": {
+            "cpu": {
+              "samples": [
+                253.20000004768372,
+                255.09999990463257,
+                254.29999995231628,
+                254.10000014305115,
+                253.09999990463257,
+                253.70000004768372
+              ],
+              "median": 253.70000004768372,
+              "p90": 255.09999990463257,
+              "min": 253.09999990463257,
+              "max": 255.09999990463257
+            },
+            "frameIntervals": {
+              "samples": [
+                249.90000000000146,
+                266.6999999999971,
+                266.70000000000437,
+                250,
+                250,
+                266.59999999999854
+              ],
+              "median": 250,
+              "p90": 266.70000000000437,
+              "min": 249.90000000000146,
+              "max": 266.70000000000437
+            },
+            "description": "Scripted layout zoom/pan plus drawFast in RAF; excludes DOM input dispatch, includes browser scheduling/raster pressure in intervals, not GPU completion or displayed FPS."
+          },
+          "hitTesting": {
+            "queries": 200,
+            "totalMs": 2.9000000953674316,
+            "hits": 70
+          },
+          "memory": {
+            "usedJSHeapSize": 1095393370,
+            "totalJSHeapSize": 1158442106,
+            "jsHeapSizeLimit": 4395630592
+          }
+        },
+        {
+          "zoom": 10,
+          "visibleFeatures": 185637,
+          "slots": [
+            {
+              "features": 1001317,
+              "visibleFeatures": 97269,
+              "range": {
+                "start": 645247910,
+                "stop": 839176614,
+                "length": 193928705
+              },
+              "thickness": 50,
+              "centerOffset": 1536
+            },
+            {
+              "features": 998683,
+              "visibleFeatures": 88368,
+              "range": {
+                "start": 652978979,
+                "stop": 830450375,
+                "length": 177471397
+              },
+              "thickness": 50,
+              "centerOffset": 1464
+            }
+          ],
+          "lookupMs": 25.59999990463257,
+          "drawFast": {
+            "samples": [
+              49.40000009536743,
+              46.09999990463257,
+              47.60000014305115
+            ],
+            "median": 47.60000014305115,
+            "p90": 49.40000009536743,
+            "min": 46.09999990463257,
+            "max": 49.40000009536743
+          },
+          "drawFull": {
+            "samples": [
+              578.7000000476837,
+              597.0999999046326,
+              644.2000000476837
+            ],
+            "median": 597.0999999046326,
+            "p90": 644.2000000476837,
+            "min": 578.7000000476837,
+            "max": 644.2000000476837
+          },
+          "drawExport": {
+            "samples": [
+              566.2999999523163,
+              536.2999999523163,
+              514.5
+            ],
+            "median": 536.2999999523163,
+            "p90": 566.2999999523163,
+            "min": 514.5,
+            "max": 566.2999999523163
+          },
+          "interaction": {
+            "cpu": {
+              "samples": [
+                44.700000047683716,
+                42.40000009536743,
+                42.59999990463257,
+                41.39999985694885,
+                44.09999990463257,
+                43.59999990463257
+              ],
+              "median": 42.59999990463257,
+              "p90": 44.700000047683716,
+              "min": 41.39999985694885,
+              "max": 44.700000047683716
+            },
+            "frameIntervals": {
+              "samples": [
+                49.900000000001455,
+                50,
+                50.099999999998545,
+                33.19999999999709,
+                50.10000000000582,
+                49.89999999999418
+              ],
+              "median": 49.900000000001455,
+              "p90": 50.10000000000582,
+              "min": 33.19999999999709,
+              "max": 50.10000000000582
+            },
+            "description": "Scripted layout zoom/pan plus drawFast in RAF; excludes DOM input dispatch, includes browser scheduling/raster pressure in intervals, not GPU completion or displayed FPS."
+          },
+          "hitTesting": {
+            "queries": 200,
+            "totalMs": 1,
+            "hits": 91
+          },
+          "memory": {
+            "usedJSHeapSize": 1104962086,
+            "totalJSHeapSize": 1158442154,
+            "jsHeapSizeLimit": 4395630592
+          }
+        },
+        {
+          "zoom": 1000,
+          "visibleFeatures": 1945,
+          "slots": [
+            {
+              "features": 1001317,
+              "visibleFeatures": 1003,
+              "range": {
+                "start": 738994917,
+                "stop": 740948230,
+                "length": 1953314
+              },
+              "thickness": 50,
+              "centerOffset": 150036
+            },
+            {
+              "features": 998683,
+              "visibleFeatures": 942,
+              "range": {
+                "start": 739053962,
+                "stop": 741002195,
+                "length": 1948234
+              },
+              "thickness": 50,
+              "centerOffset": 149964
+            }
+          ],
+          "lookupMs": 0.2999999523162842,
+          "drawFast": {
+            "samples": [
+              2,
+              1.4000000953674316,
+              1.7999999523162842
+            ],
+            "median": 1.7999999523162842,
+            "p90": 2,
+            "min": 1.4000000953674316,
+            "max": 2
+          },
+          "drawFull": {
+            "samples": [
+              10.300000190734863,
+              10.699999809265137,
+              10.5
+            ],
+            "median": 10.5,
+            "p90": 10.699999809265137,
+            "min": 10.300000190734863,
+            "max": 10.699999809265137
+          },
+          "drawExport": {
+            "samples": [
+              2.299999952316284,
+              2.4000000953674316,
+              3.3999998569488525
+            ],
+            "median": 2.4000000953674316,
+            "p90": 3.3999998569488525,
+            "min": 2.299999952316284,
+            "max": 3.3999998569488525
+          },
+          "interaction": {
+            "cpu": {
+              "samples": [
+                1.5,
+                1.7000000476837158,
+                1.2999999523162842,
+                1.5999999046325684,
+                1.3999998569488525,
+                1.7999999523162842
+              ],
+              "median": 1.5,
+              "p90": 1.7999999523162842,
+              "min": 1.2999999523162842,
+              "max": 1.7999999523162842
+            },
+            "frameIntervals": {
+              "samples": [
+                16.69999999999709,
+                16.599999999998545,
+                16.700000000004366,
+                16.69999999999709,
+                16.700000000004366,
+                16.599999999998545
+              ],
+              "median": 16.69999999999709,
+              "p90": 16.700000000004366,
+              "min": 16.599999999998545,
+              "max": 16.700000000004366
+            },
+            "description": "Scripted layout zoom/pan plus drawFast in RAF; excludes DOM input dispatch, includes browser scheduling/raster pressure in intervals, not GPU completion or displayed FPS."
+          },
+          "hitTesting": {
+            "queries": 200,
+            "totalMs": 0.5,
+            "hits": 82
+          },
+          "memory": {
+            "usedJSHeapSize": 1094896974,
+            "totalJSHeapSize": 1158704298,
+            "jsHeapSizeLimit": 4395630592
+          }
+        }
+      ],
+      "status": "complete",
+      "startedAt": "2026-09-17T21:49:12.911Z",
+      "elapsedMs": 60131.78537799999
+    }
+  ],
+  "updatedAt": "2026-09-17T21:50:13.046Z",
+  "completedAt": "2026-09-17T21:50:13.046Z"
+}
