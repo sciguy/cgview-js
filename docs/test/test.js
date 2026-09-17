@@ -81,6 +81,13 @@ const fullSizeCheckbox = document.getElementById('option-full-size');
 // Debug Print
 const debugModeCheckbox = document.getElementById('option-debug');
 debugModeCheckbox.checked = debug;
+// Safari arc rendering: reflect the active viewer setting, then allow overrides.
+const safariArcFixCheckbox = document.getElementById('option-safari-arc-fix');
+safariArcFixCheckbox.checked = cgv._useSafariArcWorkaround;
+safariArcFixCheckbox.addEventListener('change', (e) => {
+  cgv._useSafariArcWorkaround = e.target.checked;
+  cgv.draw();
+});
 // Draw Range
 const drawRangeCheckbox = document.getElementById('test-draw-range');
 drawRangeCheckbox.checked = drawRange;
