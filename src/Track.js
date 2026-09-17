@@ -252,6 +252,8 @@ class Track extends CGObject {
    * @member {String} - Get or set the position. Feature tracks accept 'inside',
    * 'outside', 'around', or 'along'; 'both' is a deprecated alias for 'around'.
    * Plot tracks accept 'inside' or 'outside'.
+   * The first visible track at 'along' expands as needed to extend 5 pixels
+   * beyond each edge of the visible backbone, preserving divider spacing.
    */
   get position() {
     return this._position;
@@ -342,7 +344,8 @@ class Track extends CGObject {
    * thickness. This getter does not change the
    * view or store a second thickness. Returns undefined while loading, for a
    * hidden/removed track, or when the track has no visible slots. Current
-   * rendered thickness is available as slot.thickness.
+   * rendered thickness is available as slot.thickness. Along-backbone clearance
+   * can increase rendered thickness beyond this ratio-based allocation.
    */
   get computedInitialSlotThickness() {
     if (this.viewer.loading) { return undefined; }
@@ -362,6 +365,8 @@ class Track extends CGObject {
    * thicknessRatio and settings are saved. Updates are synchronous, preserve
    * the zoomed focal position, and emit tracks-update and (when changed)
    * settings-update after layout. Call viewer.draw() to render the result.
+   * An along-backbone track can render wider than its allocation or shared cap
+   * to retain 5 pixels of clearance on each edge of the visible backbone.
    *
    * @param {Number} value - Finite positive ratio or overview pixels per slot.
    * @param {Object} options - An explicit mode is required.
