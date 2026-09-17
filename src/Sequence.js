@@ -1256,6 +1256,13 @@ class Sequence extends CGObject {
   draw() {
     const backbone = this.viewer.backbone;
     const pixelsPerBp = backbone.pixelsPerBp();
+    const debugCounts = this.viewer.debug?.data.n;
+    if (debugCounts) {
+      // Viewport geometry is independent of sequence visibility and draw padding.
+      debugCounts.visibleBp = this.canvas.visibleRangeForCenterOffset(backbone.adjustedCenterOffset)?.length ?? 0;
+      debugCounts.baseDrawCount = 0;
+      debugCounts.aaDrawCount = 0;
+    }
     if (!this.visible) { return; }
     // Start fading at half the former appearance cutoff and finish at that cutoff.
     // Smoothstep keeps both ends continuous, including when zooming back out.
@@ -1339,6 +1346,8 @@ class Sequence extends CGObject {
         bp++;
       }
       ctx.restore();
+      // Each iteration draws one nucleotide on each strand.
+      if (debugCounts) { debugCounts.baseDrawCount = range.length * 2; }
       this.translation.draw(range, centerOffset, pixelsPerBp);
     }
   }

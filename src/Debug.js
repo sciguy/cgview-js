@@ -27,7 +27,11 @@ import utils from './Utils';
  *  - time: time for drawing
  *  - zoom: zoom and drag info
  *  - position: position of mouse, etc
- *  - n: number of features in slots, etc
+ *  - n: feature/label counts and sequence drawing counts:
+ *    visibleBp is the backbone viewport range length without drawing padding.
+ *    baseDrawCount counts nucleotide letters/cells across both strands;
+ *    aaDrawCount counts amino-acid letters/cells across all six frames.
+ *    Draw counts include off-screen drawing padding and are zero when hidden.
  * @private
  */
 class Debug {
