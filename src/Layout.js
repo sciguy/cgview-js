@@ -27,6 +27,8 @@ import TrackLabelRenderer from './TrackLabelRenderer';
 import utils from './Utils';
 import * as d3 from 'd3';
 
+const ALONG_BACKBONE_PADDING = 5;
+
 // NOTES:
 //  - _adjustProportions is called when components: dividers, backbone, tracks/slots
 //      - change in number, visibility or thickness
@@ -1024,13 +1026,18 @@ class Layout {
     }
 
     slot.clear();
-    // Redraw the Backbone if this is the first slot and the slot is 'along' the backbone
-    if (layout._slotIndex === 0 && slot.position === 'along') {
-      this.backbone.draw();
+    const alongBackbone = layout._slotIndex === 0 && slot.position === 'along' && slot.inside;
+    if (alongBackbone) {
+      layout.backbone.draw();
     }
 
-    slot.draw(layout.canvas);
-    layout._slotIndex++;
+    // Centered slots overlap. Clear once and redraw the whole track before
+    // sequence detail, so a later strand cannot erase earlier features/bases.
+    do {
+      slots[layout._slotIndex].draw(layout.canvas);
+      layout._slotIndex++;
+    } while (alongBackbone && slots[layout._slotIndex]?.track === slot.track);
+
     if (layout._slotIndex < slots.length) {
       layout._slotTimeoutID = setTimeout(layout.drawSlotWithTimeOut, 0, layout);
     } else {
@@ -1062,10 +1069,16 @@ class Layout {
         bbOffset += dividers.track.adjustedSpacing;
         for (let j = 0, slotsLength = slots.length; j < slotsLength; j++) {
           const slot = slots[j];
-          const slotThickness = this._calculateSlotThickness(slot.proportionOfMap);
+          const alongBackbone = i === 0 && slot.position === 'along';
+          let slotThickness = this._calculateSlotThickness(slot.proportionOfMap);
+          // Keep feature edges outside the growing backbone. Use the expanded
+          // width below so neighboring tracks retain their divider padding.
+          if (alongBackbone && this.backbone.visible) {
+            slotThickness = Math.max(slotThickness, this.backbone.adjustedThickness + 2 * ALONG_BACKBONE_PADDING);
+          }
           slot._thickness = slotThickness;
 
-          if (i === 0 && slot.position === 'along') {
+          if (alongBackbone) {
             bbOffset = 0;
           } else {
             bbOffset += (slotThickness / 2);
