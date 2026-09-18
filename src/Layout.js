@@ -27,6 +27,8 @@ import TrackLabelRenderer from './TrackLabelRenderer';
 import utils from './Utils';
 import * as d3 from 'd3';
 
+const ALONG_BACKBONE_PADDING = 5;
+
 // NOTES:
 //  - _adjustProportions is called when components: dividers, backbone, tracks/slots
 //      - change in number, visibility or thickness
@@ -555,7 +557,7 @@ class Layout {
       }
     }
     if (position === 'both') {
-      space += this.backbone.adjustedThickness;
+      space += this.backbone.layoutThickness;
     }
 
     // console.log('_nonSlotSpace', position, space);
@@ -894,11 +896,11 @@ class Layout {
     // ctx.textBaseline = 'top';
 
     // Draw Backbone
-    const previousBackboneThickness = backbone.adjustedThickness;
+    const previousBackboneThickness = backbone.layoutThickness;
     backbone.draw(fast);
 
     // Refresh slot offsets when zoom or sequence-detail thickness changes.
-    this.updateLayout(backbone.adjustedThickness !== previousBackboneThickness);
+    this.updateLayout(backbone.layoutThickness !== previousBackboneThickness);
 
     // Divider rings
     viewer.dividers.draw();
@@ -1024,13 +1026,18 @@ class Layout {
     }
 
     slot.clear();
-    // Redraw the Backbone if this is the first slot and the slot is 'along' the backbone
-    if (layout._slotIndex === 0 && slot.position === 'along') {
-      this.backbone.draw();
+    const alongBackbone = layout._slotIndex === 0 && slot.position === 'along' && slot.inside;
+    if (alongBackbone) {
+      layout.backbone.draw();
     }
 
-    slot.draw(layout.canvas);
-    layout._slotIndex++;
+    // Centered slots overlap. Clear once and redraw the whole track before
+    // sequence detail, so a later strand cannot erase earlier features/bases.
+    do {
+      slots[layout._slotIndex].draw(layout.canvas);
+      layout._slotIndex++;
+    } while (alongBackbone && slots[layout._slotIndex]?.track === slot.track);
+
     if (layout._slotIndex < slots.length) {
       layout._slotTimeoutID = setTimeout(layout.drawSlotWithTimeOut, 0, layout);
     } else {
@@ -1050,7 +1057,8 @@ class Layout {
     const viewer = this.viewer;
     const dividers = viewer.dividers;
     const direction = (position === 'outside') ? 1 : -1;
-    let bbOffset = this.backbone.adjustedThickness / 2;
+    const backboneThickness = this.backbone.layoutThickness;
+    let bbOffset = backboneThickness / 2;
     // let bbOffset = 0;
     // Distance between slots
     const slotGap = (dividers.slot.adjustedSpacing * 2) + dividers.slot.adjustedThickness;
@@ -1062,10 +1070,16 @@ class Layout {
         bbOffset += dividers.track.adjustedSpacing;
         for (let j = 0, slotsLength = slots.length; j < slotsLength; j++) {
           const slot = slots[j];
-          const slotThickness = this._calculateSlotThickness(slot.proportionOfMap);
+          const alongBackbone = i === 0 && slot.position === 'along';
+          let slotThickness = this._calculateSlotThickness(slot.proportionOfMap);
+          // Enclose visible backbone or sequence detail, including when the
+          // backbone is hidden. Neighboring tracks keep their divider padding.
+          if (alongBackbone && backboneThickness > 0) {
+            slotThickness = Math.max(slotThickness, backboneThickness + 2 * ALONG_BACKBONE_PADDING);
+          }
           slot._thickness = slotThickness;
 
-          if (i === 0 && slot.position === 'along') {
+          if (alongBackbone) {
             bbOffset = 0;
           } else {
             bbOffset += (slotThickness / 2);

@@ -1,0 +1,1442 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-09-17T21:46:00.312Z",
+  "status": "complete",
+  "options": {
+    "iterations": 20,
+    "warmups": 4,
+    "output": "/home/jason/workspace/cgview-js-worktrees/v1.9-gpu/.benchmark-results/stage1-count-paired.json",
+    "baselineRoot": "/home/jason/workspace/cgview-js"
+  },
+  "description": "Paired Slot.draw substitution on one current Viewer and heap per case. Synchronous Canvas export drawing, not file encoding, GPU completion, or end-to-end checkout comparison.",
+  "environment": {
+    "node": "v24.21.0",
+    "platform": "linux",
+    "architecture": "x64",
+    "os": "6.8.0-138-generic",
+    "cpu": "Intel Xeon Processor (SapphireRapids)",
+    "chromium": "151.0.7922.34"
+  },
+  "scenarios": [
+    {
+      "format": "circular",
+      "decoration": "arc",
+      "status": "complete",
+      "dataset": {
+        "generator": "lcg-spaced-overlap-v1",
+        "seed": 42,
+        "count": 1000000,
+        "sequenceLength": 1000000000,
+        "featureFingerprint": "92372987",
+        "labels": 0,
+        "plotPoints": 0,
+        "minArcLength": 1,
+        "styles": 4,
+        "featureSpanBp": [
+          200,
+          1799
+        ]
+      },
+      "zoom": 10,
+      "width": 600,
+      "height": 600,
+      "pixelRatio": 1,
+      "featureCount": 1000000,
+      "visibleFeatures": 92815,
+      "visiblePerSlot": [
+        48324,
+        44491
+      ],
+      "paired": [
+        {
+          "round": 0,
+          "order": [
+            "baseline",
+            "candidate"
+          ],
+          "baseline": 254.29999995231628,
+          "candidate": 244.70000004768372,
+          "differenceMs": 9.599999904632568
+        },
+        {
+          "round": 1,
+          "order": [
+            "candidate",
+            "baseline"
+          ],
+          "candidate": 235.09999990463257,
+          "baseline": 256,
+          "differenceMs": 20.90000009536743
+        },
+        {
+          "round": 2,
+          "order": [
+            "baseline",
+            "candidate"
+          ],
+          "baseline": 255.09999990463257,
+          "candidate": 238.5,
+          "differenceMs": 16.59999990463257
+        },
+        {
+          "round": 3,
+          "order": [
+            "candidate",
+            "baseline"
+          ],
+          "candidate": 234.60000014305115,
+          "baseline": 253.69999980926514,
+          "differenceMs": 19.09999966621399
+        },
+        {
+          "round": 4,
+          "order": [
+            "baseline",
+            "candidate"
+          ],
+          "baseline": 253.10000014305115,
+          "candidate": 235,
+          "differenceMs": 18.100000143051147
+        },
+        {
+          "round": 5,
+          "order": [
+            "candidate",
+            "baseline"
+          ],
+          "candidate": 234.70000004768372,
+          "baseline": 254.5,
+          "differenceMs": 19.799999952316284
+        },
+        {
+          "round": 6,
+          "order": [
+            "baseline",
+            "candidate"
+          ],
+          "baseline": 252.20000004768372,
+          "candidate": 236.59999990463257,
+          "differenceMs": 15.600000143051147
+        },
+        {
+          "round": 7,
+          "order": [
+            "candidate",
+            "baseline"
+          ],
+          "candidate": 235.29999995231628,
+          "baseline": 256.39999985694885,
+          "differenceMs": 21.09999990463257
+        },
+        {
+          "round": 8,
+          "order": [
+            "baseline",
+            "candidate"
+          ],
+          "baseline": 259.89999985694885,
+          "candidate": 242.60000014305115,
+          "differenceMs": 17.299999713897705
+        },
+        {
+          "round": 9,
+          "order": [
+            "candidate",
+            "baseline"
+          ],
+          "candidate": 239,
+          "baseline": 253.59999990463257,
+          "differenceMs": 14.599999904632568
+        },
+        {
+          "round": 10,
+          "order": [
+            "baseline",
+            "candidate"
+          ],
+          "baseline": 251.30000019073486,
+          "candidate": 233.89999985694885,
+          "differenceMs": 17.40000033378601
+        },
+        {
+          "round": 11,
+          "order": [
+            "candidate",
+            "baseline"
+          ],
+          "candidate": 252.5,
+          "baseline": 248.89999985694885,
+          "differenceMs": -3.6000001430511475
+        },
+        {
+          "round": 12,
+          "order": [
+            "baseline",
+            "candidate"
+          ],
+          "baseline": 249.19999980926514,
+          "candidate": 234.10000014305115,
+          "differenceMs": 15.09999966621399
+        },
+        {
+          "round": 13,
+          "order": [
+            "candidate",
+            "baseline"
+          ],
+          "candidate": 234.90000009536743,
+          "baseline": 248.69999980926514,
+          "differenceMs": 13.799999713897705
+        },
+        {
+          "round": 14,
+          "order": [
+            "baseline",
+            "candidate"
+          ],
+          "baseline": 248.40000009536743,
+          "candidate": 232.59999990463257,
+          "differenceMs": 15.800000190734863
+        },
+        {
+          "round": 15,
+          "order": [
+            "candidate",
+            "baseline"
+          ],
+          "candidate": 233.5,
+          "baseline": 248.59999990463257,
+          "differenceMs": 15.099999904632568
+        },
+        {
+          "round": 16,
+          "order": [
+            "baseline",
+            "candidate"
+          ],
+          "baseline": 249,
+          "candidate": 233.20000004768372,
+          "differenceMs": 15.799999952316284
+        },
+        {
+          "round": 17,
+          "order": [
+            "candidate",
+            "baseline"
+          ],
+          "candidate": 233.79999995231628,
+          "baseline": 247.59999990463257,
+          "differenceMs": 13.799999952316284
+        },
+        {
+          "round": 18,
+          "order": [
+            "baseline",
+            "candidate"
+          ],
+          "baseline": 247,
+          "candidate": 232.79999995231628,
+          "differenceMs": 14.200000047683716
+        },
+        {
+          "round": 19,
+          "order": [
+            "candidate",
+            "baseline"
+          ],
+          "candidate": 235.29999995231628,
+          "baseline": 248.5,
+          "differenceMs": 13.200000047683716
+        }
+      ],
+      "baseline": {
+        "samples": [
+          254.29999995231628,
+          256,
+          255.09999990463257,
+          253.69999980926514,
+          253.10000014305115,
+          254.5,
+          252.20000004768372,
+          256.39999985694885,
+          259.89999985694885,
+          253.59999990463257,
+          251.30000019073486,
+          248.89999985694885,
+          249.19999980926514,
+          248.69999980926514,
+          248.40000009536743,
+          248.59999990463257,
+          249,
+          247.59999990463257,
+          247,
+          248.5
+        ],
+        "median": 251.30000019073486,
+        "p90": 256,
+        "min": 247,
+        "max": 259.89999985694885
+      },
+      "candidate": {
+        "samples": [
+          244.70000004768372,
+          235.09999990463257,
+          238.5,
+          234.60000014305115,
+          235,
+          234.70000004768372,
+          236.59999990463257,
+          235.29999995231628,
+          242.60000014305115,
+          239,
+          233.89999985694885,
+          252.5,
+          234.10000014305115,
+          234.90000009536743,
+          232.59999990463257,
+          233.5,
+          233.20000004768372,
+          233.79999995231628,
+          232.79999995231628,
+          235.29999995231628
+        ],
+        "median": 234.90000009536743,
+        "p90": 242.60000014305115,
+        "min": 232.59999990463257,
+        "max": 252.5
+      },
+      "pairedDifference": {
+        "samples": [
+          9.599999904632568,
+          20.90000009536743,
+          16.59999990463257,
+          19.09999966621399,
+          18.100000143051147,
+          19.799999952316284,
+          15.600000143051147,
+          21.09999990463257,
+          17.299999713897705,
+          14.599999904632568,
+          17.40000033378601,
+          -3.6000001430511475,
+          15.09999966621399,
+          13.799999713897705,
+          15.800000190734863,
+          15.099999904632568,
+          15.799999952316284,
+          13.799999952316284,
+          14.200000047683716,
+          13.200000047683716
+        ],
+        "median": 15.600000143051147,
+        "p90": 19.799999952316284,
+        "min": -3.6000001430511475,
+        "max": 21.09999990463257
+      },
+      "countProbe": {
+        "samples": [
+          15.400000095367432,
+          14.5,
+          14.099999904632568,
+          13.100000143051147,
+          13.5,
+          13,
+          13.5,
+          13.299999952316284,
+          13.400000095367432,
+          13.5,
+          13.5,
+          13.599999904632568,
+          13.5,
+          13.599999904632568,
+          13.300000190734863,
+          13.399999856948853,
+          14.799999952316284,
+          13.800000190734863,
+          14.099999904632568,
+          13.799999952316284
+        ],
+        "median": 13.5,
+        "p90": 14.5,
+        "min": 13,
+        "max": 15.400000095367432
+      },
+      "pixels": {
+        "equal": true,
+        "baselineSha256": "06ef063f382537611674098123916301f73cc305cae4083d6ecc3feaed35c493",
+        "candidateSha256": "06ef063f382537611674098123916301f73cc305cae4083d6ecc3feaed35c493"
+      },
+      "methods": {
+        "baseline": "ce4cbf096f1e9d4ea086c785465d3883f1dfafa5bd2d8ad266d324ca569249a1",
+        "candidate": "2f3767f9edf9303b2a6d01f625de2fbeffd034be77c635d79388e3a7f73a92f6"
+      }
+    },
+    {
+      "format": "circular",
+      "decoration": "arrow",
+      "status": "complete",
+      "dataset": {
+        "generator": "lcg-spaced-overlap-v1",
+        "seed": 42,
+        "count": 1000000,
+        "sequenceLength": 1000000000,
+        "featureFingerprint": "92372987",
+        "labels": 0,
+        "plotPoints": 0,
+        "minArcLength": 1,
+        "styles": 4,
+        "featureSpanBp": [
+          200,
+          1799
+        ]
+      },
+      "zoom": 10,
+      "width": 600,
+      "height": 600,
+      "pixelRatio": 1,
+      "featureCount": 1000000,
+      "visibleFeatures": 92815,
+      "visiblePerSlot": [
+        48324,
+        44491
+      ],
+      "paired": [
+        {
+          "round": 0,
+          "order": [
+            "baseline",
+            "candidate"
+          ],
+          "baseline": 341.39999985694885,
+          "candidate": 331.40000009536743,
+          "differenceMs": 9.999999761581421
+        },
+        {
+          "round": 1,
+          "order": [
+            "candidate",
+            "baseline"
+          ],
+          "candidate": 298.7999999523163,
+          "baseline": 345.5,
+          "differenceMs": 46.700000047683716
+        },
+        {
+          "round": 2,
+          "order": [
+            "baseline",
+            "candidate"
+          ],
+          "baseline": 370.30000019073486,
+          "candidate": 294.2999999523163,
+          "differenceMs": 76.00000023841858
+        },
+        {
+          "round": 3,
+          "order": [
+            "candidate",
+            "baseline"
+          ],
+          "candidate": 292.39999985694885,
+          "baseline": 309.59999990463257,
+          "differenceMs": 17.200000047683716
+        },
+        {
+          "round": 4,
+          "order": [
+            "baseline",
+            "candidate"
+          ],
+          "baseline": 302.09999990463257,
+          "candidate": 290.7000000476837,
+          "differenceMs": 11.399999856948853
+        },
+        {
+          "round": 5,
+          "order": [
+            "candidate",
+            "baseline"
+          ],
+          "candidate": 294.2999999523163,
+          "baseline": 309,
+          "differenceMs": 14.700000047683716
+        },
+        {
+          "round": 6,
+          "order": [
+            "baseline",
+            "candidate"
+          ],
+          "baseline": 315.7000000476837,
+          "candidate": 319,
+          "differenceMs": -3.299999952316284
+        },
+        {
+          "round": 7,
+          "order": [
+            "candidate",
+            "baseline"
+          ],
+          "candidate": 300.5,
+          "baseline": 302.2000000476837,
+          "differenceMs": 1.7000000476837158
+        },
+        {
+          "round": 8,
+          "order": [
+            "baseline",
+            "candidate"
+          ],
+          "baseline": 301.2999999523163,
+          "candidate": 287.2999999523163,
+          "differenceMs": 14
+        },
+        {
+          "round": 9,
+          "order": [
+            "candidate",
+            "baseline"
+          ],
+          "candidate": 293.7000000476837,
+          "baseline": 325.2999999523163,
+          "differenceMs": 31.59999990463257
+        },
+        {
+          "round": 10,
+          "order": [
+            "baseline",
+            "candidate"
+          ],
+          "baseline": 320.40000009536743,
+          "candidate": 300.89999985694885,
+          "differenceMs": 19.50000023841858
+        },
+        {
+          "round": 11,
+          "order": [
+            "candidate",
+            "baseline"
+          ],
+          "candidate": 292.90000009536743,
+          "baseline": 324.5,
+          "differenceMs": 31.59999990463257
+        },
+        {
+          "round": 12,
+          "order": [
+            "baseline",
+            "candidate"
+          ],
+          "baseline": 345.69999980926514,
+          "candidate": 328.7000000476837,
+          "differenceMs": 16.99999976158142
+        },
+        {
+          "round": 13,
+          "order": [
+            "candidate",
+            "baseline"
+          ],
+          "candidate": 291.80000019073486,
+          "baseline": 308.40000009536743,
+          "differenceMs": 16.59999990463257
+        },
+        {
+          "round": 14,
+          "order": [
+            "baseline",
+            "candidate"
+          ],
+          "baseline": 340,
+          "candidate": 296,
+          "differenceMs": 44
+        },
+        {
+          "round": 15,
+          "order": [
+            "candidate",
+            "baseline"
+          ],
+          "candidate": 300.59999990463257,
+          "baseline": 345,
+          "differenceMs": 44.40000009536743
+        },
+        {
+          "round": 16,
+          "order": [
+            "baseline",
+            "candidate"
+          ],
+          "baseline": 317.89999985694885,
+          "candidate": 291.5,
+          "differenceMs": 26.399999856948853
+        },
+        {
+          "round": 17,
+          "order": [
+            "candidate",
+            "baseline"
+          ],
+          "candidate": 291.2999999523163,
+          "baseline": 308.40000009536743,
+          "differenceMs": 17.100000143051147
+        },
+        {
+          "round": 18,
+          "order": [
+            "baseline",
+            "candidate"
+          ],
+          "baseline": 347.90000009536743,
+          "candidate": 307.2000000476837,
+          "differenceMs": 40.700000047683716
+        },
+        {
+          "round": 19,
+          "order": [
+            "candidate",
+            "baseline"
+          ],
+          "candidate": 331.7000000476837,
+          "baseline": 335.60000014305115,
+          "differenceMs": 3.9000000953674316
+        }
+      ],
+      "baseline": {
+        "samples": [
+          341.39999985694885,
+          345.5,
+          370.30000019073486,
+          309.59999990463257,
+          302.09999990463257,
+          309,
+          315.7000000476837,
+          302.2000000476837,
+          301.2999999523163,
+          325.2999999523163,
+          320.40000009536743,
+          324.5,
+          345.69999980926514,
+          308.40000009536743,
+          340,
+          345,
+          317.89999985694885,
+          308.40000009536743,
+          347.90000009536743,
+          335.60000014305115
+        ],
+        "median": 320.40000009536743,
+        "p90": 345.69999980926514,
+        "min": 301.2999999523163,
+        "max": 370.30000019073486
+      },
+      "candidate": {
+        "samples": [
+          331.40000009536743,
+          298.7999999523163,
+          294.2999999523163,
+          292.39999985694885,
+          290.7000000476837,
+          294.2999999523163,
+          319,
+          300.5,
+          287.2999999523163,
+          293.7000000476837,
+          300.89999985694885,
+          292.90000009536743,
+          328.7000000476837,
+          291.80000019073486,
+          296,
+          300.59999990463257,
+          291.5,
+          291.2999999523163,
+          307.2000000476837,
+          331.7000000476837
+        ],
+        "median": 294.2999999523163,
+        "p90": 328.7000000476837,
+        "min": 287.2999999523163,
+        "max": 331.7000000476837
+      },
+      "pairedDifference": {
+        "samples": [
+          9.999999761581421,
+          46.700000047683716,
+          76.00000023841858,
+          17.200000047683716,
+          11.399999856948853,
+          14.700000047683716,
+          -3.299999952316284,
+          1.7000000476837158,
+          14,
+          31.59999990463257,
+          19.50000023841858,
+          31.59999990463257,
+          16.99999976158142,
+          16.59999990463257,
+          44,
+          44.40000009536743,
+          26.399999856948853,
+          17.100000143051147,
+          40.700000047683716,
+          3.9000000953674316
+        ],
+        "median": 17.100000143051147,
+        "p90": 44.40000009536743,
+        "min": -3.299999952316284,
+        "max": 76.00000023841858
+      },
+      "countProbe": {
+        "samples": [
+          18.199999809265137,
+          15.299999952316284,
+          14.799999952316284,
+          15.5,
+          15.199999809265137,
+          15.300000190734863,
+          14.599999904632568,
+          14.599999904632568,
+          15,
+          15.900000095367432,
+          16,
+          14.799999952316284,
+          14.900000095367432,
+          13.700000047683716,
+          14.799999952316284,
+          15.299999952316284,
+          13.599999904632568,
+          16.100000143051147,
+          14.899999856948853,
+          13.600000143051147
+        ],
+        "median": 14.900000095367432,
+        "p90": 16,
+        "min": 13.599999904632568,
+        "max": 18.199999809265137
+      },
+      "pixels": {
+        "equal": true,
+        "baselineSha256": "9f1f141453337afa97c3667cd9eb39c0c4d86c7bd080358ac7108520d27a68cc",
+        "candidateSha256": "9f1f141453337afa97c3667cd9eb39c0c4d86c7bd080358ac7108520d27a68cc"
+      },
+      "methods": {
+        "baseline": "ce4cbf096f1e9d4ea086c785465d3883f1dfafa5bd2d8ad266d324ca569249a1",
+        "candidate": "2f3767f9edf9303b2a6d01f625de2fbeffd034be77c635d79388e3a7f73a92f6"
+      }
+    },
+    {
+      "format": "linear",
+      "decoration": "arc",
+      "status": "complete",
+      "dataset": {
+        "generator": "lcg-spaced-overlap-v1",
+        "seed": 42,
+        "count": 1000000,
+        "sequenceLength": 1000000000,
+        "featureFingerprint": "92372987",
+        "labels": 0,
+        "plotPoints": 0,
+        "minArcLength": 1,
+        "styles": 4,
+        "featureSpanBp": [
+          200,
+          1799
+        ]
+      },
+      "zoom": 10,
+      "width": 600,
+      "height": 600,
+      "pixelRatio": 1,
+      "featureCount": 1000000,
+      "visibleFeatures": 116668,
+      "visiblePerSlot": [
+        58140,
+        58528
+      ],
+      "paired": [
+        {
+          "round": 0,
+          "order": [
+            "baseline",
+            "candidate"
+          ],
+          "baseline": 201.5,
+          "candidate": 185,
+          "differenceMs": 16.5
+        },
+        {
+          "round": 1,
+          "order": [
+            "candidate",
+            "baseline"
+          ],
+          "candidate": 185,
+          "baseline": 205.79999995231628,
+          "differenceMs": 20.799999952316284
+        },
+        {
+          "round": 2,
+          "order": [
+            "baseline",
+            "candidate"
+          ],
+          "baseline": 230.69999980926514,
+          "candidate": 184.29999995231628,
+          "differenceMs": 46.39999985694885
+        },
+        {
+          "round": 3,
+          "order": [
+            "candidate",
+            "baseline"
+          ],
+          "candidate": 184.29999995231628,
+          "baseline": 200.5,
+          "differenceMs": 16.200000047683716
+        },
+        {
+          "round": 4,
+          "order": [
+            "baseline",
+            "candidate"
+          ],
+          "baseline": 202,
+          "candidate": 183.10000014305115,
+          "differenceMs": 18.899999856948853
+        },
+        {
+          "round": 5,
+          "order": [
+            "candidate",
+            "baseline"
+          ],
+          "candidate": 184.20000004768372,
+          "baseline": 201.5,
+          "differenceMs": 17.299999952316284
+        },
+        {
+          "round": 6,
+          "order": [
+            "baseline",
+            "candidate"
+          ],
+          "baseline": 202.79999995231628,
+          "candidate": 183.89999985694885,
+          "differenceMs": 18.90000009536743
+        },
+        {
+          "round": 7,
+          "order": [
+            "candidate",
+            "baseline"
+          ],
+          "candidate": 183.70000004768372,
+          "baseline": 202,
+          "differenceMs": 18.299999952316284
+        },
+        {
+          "round": 8,
+          "order": [
+            "baseline",
+            "candidate"
+          ],
+          "baseline": 201.10000014305115,
+          "candidate": 184.29999995231628,
+          "differenceMs": 16.800000190734863
+        },
+        {
+          "round": 9,
+          "order": [
+            "candidate",
+            "baseline"
+          ],
+          "candidate": 184.29999995231628,
+          "baseline": 202.5,
+          "differenceMs": 18.200000047683716
+        },
+        {
+          "round": 10,
+          "order": [
+            "baseline",
+            "candidate"
+          ],
+          "baseline": 202.09999990463257,
+          "candidate": 183.89999985694885,
+          "differenceMs": 18.200000047683716
+        },
+        {
+          "round": 11,
+          "order": [
+            "candidate",
+            "baseline"
+          ],
+          "candidate": 183.60000014305115,
+          "baseline": 202.60000014305115,
+          "differenceMs": 19
+        },
+        {
+          "round": 12,
+          "order": [
+            "baseline",
+            "candidate"
+          ],
+          "baseline": 202.39999985694885,
+          "candidate": 184.90000009536743,
+          "differenceMs": 17.49999976158142
+        },
+        {
+          "round": 13,
+          "order": [
+            "candidate",
+            "baseline"
+          ],
+          "candidate": 184.70000004768372,
+          "baseline": 202.89999985694885,
+          "differenceMs": 18.199999809265137
+        },
+        {
+          "round": 14,
+          "order": [
+            "baseline",
+            "candidate"
+          ],
+          "baseline": 203.59999990463257,
+          "candidate": 186.29999995231628,
+          "differenceMs": 17.299999952316284
+        },
+        {
+          "round": 15,
+          "order": [
+            "candidate",
+            "baseline"
+          ],
+          "candidate": 185.59999990463257,
+          "baseline": 203.40000009536743,
+          "differenceMs": 17.800000190734863
+        },
+        {
+          "round": 16,
+          "order": [
+            "baseline",
+            "candidate"
+          ],
+          "baseline": 204.40000009536743,
+          "candidate": 185,
+          "differenceMs": 19.40000009536743
+        },
+        {
+          "round": 17,
+          "order": [
+            "candidate",
+            "baseline"
+          ],
+          "candidate": 184.89999985694885,
+          "baseline": 205.90000009536743,
+          "differenceMs": 21.00000023841858
+        },
+        {
+          "round": 18,
+          "order": [
+            "baseline",
+            "candidate"
+          ],
+          "baseline": 202,
+          "candidate": 184,
+          "differenceMs": 18
+        },
+        {
+          "round": 19,
+          "order": [
+            "candidate",
+            "baseline"
+          ],
+          "candidate": 183.70000004768372,
+          "baseline": 198.70000004768372,
+          "differenceMs": 15
+        }
+      ],
+      "baseline": {
+        "samples": [
+          201.5,
+          205.79999995231628,
+          230.69999980926514,
+          200.5,
+          202,
+          201.5,
+          202.79999995231628,
+          202,
+          201.10000014305115,
+          202.5,
+          202.09999990463257,
+          202.60000014305115,
+          202.39999985694885,
+          202.89999985694885,
+          203.59999990463257,
+          203.40000009536743,
+          204.40000009536743,
+          205.90000009536743,
+          202,
+          198.70000004768372
+        ],
+        "median": 202.39999985694885,
+        "p90": 205.79999995231628,
+        "min": 198.70000004768372,
+        "max": 230.69999980926514
+      },
+      "candidate": {
+        "samples": [
+          185,
+          185,
+          184.29999995231628,
+          184.29999995231628,
+          183.10000014305115,
+          184.20000004768372,
+          183.89999985694885,
+          183.70000004768372,
+          184.29999995231628,
+          184.29999995231628,
+          183.89999985694885,
+          183.60000014305115,
+          184.90000009536743,
+          184.70000004768372,
+          186.29999995231628,
+          185.59999990463257,
+          185,
+          184.89999985694885,
+          184,
+          183.70000004768372
+        ],
+        "median": 184.29999995231628,
+        "p90": 185,
+        "min": 183.10000014305115,
+        "max": 186.29999995231628
+      },
+      "pairedDifference": {
+        "samples": [
+          16.5,
+          20.799999952316284,
+          46.39999985694885,
+          16.200000047683716,
+          18.899999856948853,
+          17.299999952316284,
+          18.90000009536743,
+          18.299999952316284,
+          16.800000190734863,
+          18.200000047683716,
+          18.200000047683716,
+          19,
+          17.49999976158142,
+          18.199999809265137,
+          17.299999952316284,
+          17.800000190734863,
+          19.40000009536743,
+          21.00000023841858,
+          18,
+          15
+        ],
+        "median": 18.199999809265137,
+        "p90": 20.799999952316284,
+        "min": 15,
+        "max": 46.39999985694885
+      },
+      "countProbe": {
+        "samples": [
+          17,
+          14.200000047683716,
+          11.799999952316284,
+          9.5,
+          10.100000143051147,
+          10,
+          9.599999904632568,
+          9.700000047683716,
+          9.299999952316284,
+          9,
+          9.100000143051147,
+          8.799999952316284,
+          8.799999952316284,
+          8.799999952316284,
+          8.700000047683716,
+          9.599999904632568,
+          9.300000190734863,
+          9.099999904632568,
+          8.900000095367432,
+          9.099999904632568
+        ],
+        "median": 9.299999952316284,
+        "p90": 11.799999952316284,
+        "min": 8.700000047683716,
+        "max": 17
+      },
+      "pixels": {
+        "equal": true,
+        "baselineSha256": "d812c47545f5eff61e60ed39a32ddeef7b5414e73ced4b1b9f59e9600b0e8d4a",
+        "candidateSha256": "d812c47545f5eff61e60ed39a32ddeef7b5414e73ced4b1b9f59e9600b0e8d4a"
+      },
+      "methods": {
+        "baseline": "ce4cbf096f1e9d4ea086c785465d3883f1dfafa5bd2d8ad266d324ca569249a1",
+        "candidate": "2f3767f9edf9303b2a6d01f625de2fbeffd034be77c635d79388e3a7f73a92f6"
+      }
+    },
+    {
+      "format": "linear",
+      "decoration": "arrow",
+      "status": "complete",
+      "dataset": {
+        "generator": "lcg-spaced-overlap-v1",
+        "seed": 42,
+        "count": 1000000,
+        "sequenceLength": 1000000000,
+        "featureFingerprint": "92372987",
+        "labels": 0,
+        "plotPoints": 0,
+        "minArcLength": 1,
+        "styles": 4,
+        "featureSpanBp": [
+          200,
+          1799
+        ]
+      },
+      "zoom": 10,
+      "width": 600,
+      "height": 600,
+      "pixelRatio": 1,
+      "featureCount": 1000000,
+      "visibleFeatures": 116668,
+      "visiblePerSlot": [
+        58140,
+        58528
+      ],
+      "paired": [
+        {
+          "round": 0,
+          "order": [
+            "baseline",
+            "candidate"
+          ],
+          "baseline": 392.2999999523163,
+          "candidate": 331.2000000476837,
+          "differenceMs": 61.09999990463257
+        },
+        {
+          "round": 1,
+          "order": [
+            "candidate",
+            "baseline"
+          ],
+          "candidate": 339.7999999523163,
+          "baseline": 353.7999999523163,
+          "differenceMs": 14
+        },
+        {
+          "round": 2,
+          "order": [
+            "baseline",
+            "candidate"
+          ],
+          "baseline": 353.60000014305115,
+          "candidate": 331.2999999523163,
+          "differenceMs": 22.300000190734863
+        },
+        {
+          "round": 3,
+          "order": [
+            "candidate",
+            "baseline"
+          ],
+          "candidate": 336.7999999523163,
+          "baseline": 348.90000009536743,
+          "differenceMs": 12.100000143051147
+        },
+        {
+          "round": 4,
+          "order": [
+            "baseline",
+            "candidate"
+          ],
+          "baseline": 371.90000009536743,
+          "candidate": 335.2000000476837,
+          "differenceMs": 36.700000047683716
+        },
+        {
+          "round": 5,
+          "order": [
+            "candidate",
+            "baseline"
+          ],
+          "candidate": 340.09999990463257,
+          "baseline": 379.59999990463257,
+          "differenceMs": 39.5
+        },
+        {
+          "round": 6,
+          "order": [
+            "baseline",
+            "candidate"
+          ],
+          "baseline": 356.7000000476837,
+          "candidate": 365.7999999523163,
+          "differenceMs": -9.099999904632568
+        },
+        {
+          "round": 7,
+          "order": [
+            "candidate",
+            "baseline"
+          ],
+          "candidate": 340.69999980926514,
+          "baseline": 353.09999990463257,
+          "differenceMs": 12.400000095367432
+        },
+        {
+          "round": 8,
+          "order": [
+            "baseline",
+            "candidate"
+          ],
+          "baseline": 364.2999999523163,
+          "candidate": 350.40000009536743,
+          "differenceMs": 13.899999856948853
+        },
+        {
+          "round": 9,
+          "order": [
+            "candidate",
+            "baseline"
+          ],
+          "candidate": 337.10000014305115,
+          "baseline": 356.2999999523163,
+          "differenceMs": 19.199999809265137
+        },
+        {
+          "round": 10,
+          "order": [
+            "baseline",
+            "candidate"
+          ],
+          "baseline": 358.59999990463257,
+          "candidate": 349,
+          "differenceMs": 9.599999904632568
+        },
+        {
+          "round": 11,
+          "order": [
+            "candidate",
+            "baseline"
+          ],
+          "candidate": 343,
+          "baseline": 361.2999999523163,
+          "differenceMs": 18.299999952316284
+        },
+        {
+          "round": 12,
+          "order": [
+            "baseline",
+            "candidate"
+          ],
+          "baseline": 352,
+          "candidate": 337.90000009536743,
+          "differenceMs": 14.099999904632568
+        },
+        {
+          "round": 13,
+          "order": [
+            "candidate",
+            "baseline"
+          ],
+          "candidate": 339.10000014305115,
+          "baseline": 364.5,
+          "differenceMs": 25.399999856948853
+        },
+        {
+          "round": 14,
+          "order": [
+            "baseline",
+            "candidate"
+          ],
+          "baseline": 363,
+          "candidate": 332.10000014305115,
+          "differenceMs": 30.899999856948853
+        },
+        {
+          "round": 15,
+          "order": [
+            "candidate",
+            "baseline"
+          ],
+          "candidate": 329.89999985694885,
+          "baseline": 347.2000000476837,
+          "differenceMs": 17.300000190734863
+        },
+        {
+          "round": 16,
+          "order": [
+            "baseline",
+            "candidate"
+          ],
+          "baseline": 361.2999999523163,
+          "candidate": 333.7999999523163,
+          "differenceMs": 27.5
+        },
+        {
+          "round": 17,
+          "order": [
+            "candidate",
+            "baseline"
+          ],
+          "candidate": 339.5,
+          "baseline": 355.39999985694885,
+          "differenceMs": 15.899999856948853
+        },
+        {
+          "round": 18,
+          "order": [
+            "baseline",
+            "candidate"
+          ],
+          "baseline": 351,
+          "candidate": 330.90000009536743,
+          "differenceMs": 20.09999990463257
+        },
+        {
+          "round": 19,
+          "order": [
+            "candidate",
+            "baseline"
+          ],
+          "candidate": 333.5,
+          "baseline": 363.2000000476837,
+          "differenceMs": 29.700000047683716
+        }
+      ],
+      "baseline": {
+        "samples": [
+          392.2999999523163,
+          353.7999999523163,
+          353.60000014305115,
+          348.90000009536743,
+          371.90000009536743,
+          379.59999990463257,
+          356.7000000476837,
+          353.09999990463257,
+          364.2999999523163,
+          356.2999999523163,
+          358.59999990463257,
+          361.2999999523163,
+          352,
+          364.5,
+          363,
+          347.2000000476837,
+          361.2999999523163,
+          355.39999985694885,
+          351,
+          363.2000000476837
+        ],
+        "median": 356.7000000476837,
+        "p90": 371.90000009536743,
+        "min": 347.2000000476837,
+        "max": 392.2999999523163
+      },
+      "candidate": {
+        "samples": [
+          331.2000000476837,
+          339.7999999523163,
+          331.2999999523163,
+          336.7999999523163,
+          335.2000000476837,
+          340.09999990463257,
+          365.7999999523163,
+          340.69999980926514,
+          350.40000009536743,
+          337.10000014305115,
+          349,
+          343,
+          337.90000009536743,
+          339.10000014305115,
+          332.10000014305115,
+          329.89999985694885,
+          333.7999999523163,
+          339.5,
+          330.90000009536743,
+          333.5
+        ],
+        "median": 337.10000014305115,
+        "p90": 349,
+        "min": 329.89999985694885,
+        "max": 365.7999999523163
+      },
+      "pairedDifference": {
+        "samples": [
+          61.09999990463257,
+          14,
+          22.300000190734863,
+          12.100000143051147,
+          36.700000047683716,
+          39.5,
+          -9.099999904632568,
+          12.400000095367432,
+          13.899999856948853,
+          19.199999809265137,
+          9.599999904632568,
+          18.299999952316284,
+          14.099999904632568,
+          25.399999856948853,
+          30.899999856948853,
+          17.300000190734863,
+          27.5,
+          15.899999856948853,
+          20.09999990463257,
+          29.700000047683716
+        ],
+        "median": 18.299999952316284,
+        "p90": 36.700000047683716,
+        "min": -9.099999904632568,
+        "max": 61.09999990463257
+      },
+      "countProbe": {
+        "samples": [
+          26.09999990463257,
+          20.5,
+          19.300000190734863,
+          19.299999952316284,
+          21.40000009536743,
+          22.799999952316284,
+          19,
+          19.299999952316284,
+          21.700000047683716,
+          20,
+          22.90000009536743,
+          19.299999952316284,
+          19.200000047683716,
+          19.899999856948853,
+          22.200000047683716,
+          19.40000009536743,
+          18.899999856948853,
+          18.59999990463257,
+          19.40000009536743,
+          18
+        ],
+        "median": 19.40000009536743,
+        "p90": 22.799999952316284,
+        "min": 18,
+        "max": 26.09999990463257
+      },
+      "pixels": {
+        "equal": true,
+        "baselineSha256": "61c995411aa1d504728aa0ab78f4ad0a6cfb666c9871840ee7a9a3af7af7ed44",
+        "candidateSha256": "61c995411aa1d504728aa0ab78f4ad0a6cfb666c9871840ee7a9a3af7af7ed44"
+      },
+      "methods": {
+        "baseline": "ce4cbf096f1e9d4ea086c785465d3883f1dfafa5bd2d8ad266d324ca569249a1",
+        "candidate": "2f3767f9edf9303b2a6d01f625de2fbeffd034be77c635d79388e3a7f73a92f6"
+      }
+    }
+  ],
+  "assetSha256": {
+    "css": "18cdb74fe75bbcd9de234024c6b75b842b5da79ac14409c911ed76523a397161",
+    "d3": "af0db8f55c4891e139e1b28cd829762fb048c0879560d7c539a27c8add4e0efa",
+    "svg": "bd12c59be4fe6474a968c471f98de428cdba141721e3bdfb85ff83857818dc69",
+    "candidate": "67d706d918f4f6bb460c9326ead88a4fe5315e76f4c8efe6b6c094ce67f1bd55",
+    "helper": "0dcef0cb07f38567dd1d4471293f955650e1cd3b2e7eaee3b58ce5be28afbec7",
+    "baseline": "a116e4c5d9bf6dbdb84b0eb97c45b6a57fb552623cbadbc1dc7d92228bcc79b9"
+  }
+}

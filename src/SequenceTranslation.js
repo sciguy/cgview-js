@@ -681,12 +681,12 @@ class SequenceTranslation extends CGObject {
       return;
     }
     if (!this._sequence || !this.viewer.backbone || this.viewer.loading) { return; }
-    const previousThickness = this.viewer.backbone.adjustedThickness;
+    const previousThickness = this.viewer.backbone.layoutThickness;
     this.viewer.backbone.refreshThickness();
     // Size-affecting translation settings have no current layout effect below
     // the detail threshold. The normal zoom draw will refresh the backbone as
     // soon as the scaled translation thickness becomes non-zero.
-    if (Math.abs(this.viewer.backbone.adjustedThickness - previousThickness) < 0.001) { return; }
+    if (Math.abs(this.viewer.backbone.layoutThickness - previousThickness) < 0.001) { return; }
     this.viewer.layout._adjustProportions({duration: 0});
   }
 

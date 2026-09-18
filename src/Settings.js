@@ -282,6 +282,8 @@ class Settings {
    * least layout.minSlotThickness (normally 1). Invalid values are ignored.
    * This cap can rescale all slots. Pixel sizing raises it when necessary;
    * zoomed neighbouring slots may consequently change thickness.
+   * The first visible along-backbone track can render wider to retain its
+   * 5 pixel clearance on each edge of the visible backbone or sequence detail.
    */
   get maxSlotThickness() {
     return this.viewer.layout.maxSlotThickness;
