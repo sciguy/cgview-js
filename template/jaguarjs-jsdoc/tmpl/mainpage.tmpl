@@ -35,7 +35,7 @@ var self = this;
             </table>
             <?js= data.readme ?>
             <h2>Documentation Generation Date</h2>
-            <pre><?js= (new Date()) ?></pre>
+            <pre><time id="generation-date" datetime="<?js= self.generationDate.toISOString() ?>"><?js= self.generationDate ?></time></pre>
         </article>
     </section>
 <?js } ?>

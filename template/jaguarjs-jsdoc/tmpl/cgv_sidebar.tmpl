@@ -1,8 +1,4 @@
-<?js
-var self = this;
-?>
-
-<nav id='sidebar-nav' class='collapse'>
-  <?js= this.partial('navigation.tmpl', self) ?>
+<nav id='sidebar-nav' class='collapse' data-navigation-url='<?js= this.navigationUrl ?>' aria-busy='true'>
+  <a class='side-link nav-index' href='index.html'>API Home</a>
+  <p role='status'>API navigation requires JavaScript.</p>
 </nav>
-

@@ -33,10 +33,10 @@ async function buildApi() {
       '--readme', 'README.md'
     ], { cwd: repositoryRoot, stdio: 'inherit' });
 
-    for (const filename of ['index.html', 'Viewer.html', 'Feature.html', 'Plot.html']) {
+    for (const filename of ['index.html', 'Viewer.html', 'Feature.html', 'Plot.html', 'navigation.html', 'scripts/main.js']) {
       await access(path.join(output, filename));
     }
-    const pages = (await readdir(output)).filter((filename) => filename.endsWith('.html'));
+    const pages = (await readdir(output)).filter((filename) => filename.endsWith('.html') && filename !== 'navigation.html');
 
     if (existing) {
       await rename(destination, backup);
@@ -52,7 +52,7 @@ async function buildApi() {
       }
       throw error;
     }
-    console.log(`Generated ${pages.length} API pages in docs/api.`);
+    console.log(`Generated ${pages.length} API pages and shared navigation in docs/api.`);
   } finally {
     if (canRemoveStaging) {
       await rm(staging, { recursive: true, force: true });

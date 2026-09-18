@@ -95,7 +95,7 @@ compatibility checks with `--ignore-engines`. This Node version is the developme
 toolchain target; browser use of the built CGView bundles does not require Node.
 
 After building, `yarn benchmark:rendering --help` describes the deterministic
-large-map benchmark and optional profiling. See the [rendering performance report](docs/development/rendering-performance.md)
+large-map benchmark and optional profiling. See the [rendering performance report](https://github.com/sciguy/cgview-js/blob/v1.9/docs/development/rendering-performance.md)
 for methodology, recorded results, and the current Stage 1 findings.
 
 ## License

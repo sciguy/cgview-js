@@ -16,12 +16,15 @@ ES module repository. Keep that package boundary when changing the template.
 
 ## Editing
 
-- `publish.js` prepares JSDoc's Salty doclet collection and generates API pages.
+- `publish.js` prepares JSDoc's Salty doclet collection and generates API pages
+  plus the shared `docs/api/navigation.html` fragment from `tmpl/navigation.tmpl`.
 - `tmpl/` contains the page templates. The `cgv_*` partials integrate the site
   navigation, and `mainpage.tmpl` defines the API quick links.
 - `static/styles/jaguar.css` is the authoritative API stylesheet. Edit it directly;
   the original LESS sources and Grunt build have been retired.
-- `static/scripts/main.js` implements native API navigation and literal search.
+- `static/scripts/main.js` loads the shared navigation, then initializes literal
+  search, current-page selection, and keyboard controls. Serve the docs over HTTP
+  so the browser can fetch the fragment.
 - `static/scripts/highlight.js` uses the shared Prism highlighter and preserves
   source URLs such as `Viewer.js.html#line500`.
 - `../jsdoc_conf.json` controls source discovery and template options.
@@ -32,6 +35,10 @@ Regenerate the API after template or static asset changes. Edit the sources here
 not the generated copies under `docs/api`. API descriptions and record attribute
 tables come from JSDoc comments in `../../src/`; run `yarn docs:build` after editing
 them to update both the API and the tables in `../../docs/docs.html`.
+
+Only the API homepage includes the documentation generation date, refreshed on
+each build. Unchanged sources produce identical output elsewhere; adding a method
+updates the shared navigation and affected API/source pages.
 
 ## Themes and browser assets
 
