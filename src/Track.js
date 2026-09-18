@@ -253,7 +253,8 @@ class Track extends CGObject {
    * 'outside', 'around', or 'along'; 'both' is a deprecated alias for 'around'.
    * Plot tracks accept 'inside' or 'outside'.
    * The first visible track at 'along' expands as needed to extend 5 pixels
-   * beyond each edge of the visible backbone, preserving divider spacing.
+   * beyond each edge of the visible backbone or sequence detail, preserving
+   * divider spacing even when the backbone is hidden.
    */
   get position() {
     return this._position;
@@ -366,7 +367,8 @@ class Track extends CGObject {
    * the zoomed focal position, and emit tracks-update and (when changed)
    * settings-update after layout. Call viewer.draw() to render the result.
    * An along-backbone track can render wider than its allocation or shared cap
-   * to retain 5 pixels of clearance on each edge of the visible backbone.
+   * to retain 5 pixels of clearance on each edge of the visible backbone or
+   * sequence detail.
    *
    * @param {Number} value - Finite positive ratio or overview pixels per slot.
    * @param {Object} options - An explicit mode is required.

@@ -71,6 +71,7 @@ class Backbone extends CGObject {
     this.colorAlternate = utils.defaultFor(options.colorAlternate, 'rgb(200,200,200)');
     this.thickness = utils.defaultFor(options.thickness, 5);
     this._bpThicknessAddition = 0;
+    this._sequenceThickness = 0;
     this._maxContigsForFastDraw = 500;
     // Default decoration is arrow for multiple contigs and arc for single contig
     const defaultDecoration = this.sequence.hasMultipleContigs ? 'arrow' : 'arc';
@@ -239,6 +240,17 @@ class Backbone extends CGObject {
   }
 
   /**
+   * Space reserved for the visible backbone or displayed sequence detail.
+   * Unlike adjustedThickness, this can be nonzero with a hidden backbone.
+   * Detail space is updated by refreshThickness before layout and drawing.
+   * @member {Number}
+   * @private
+   */
+  get layoutThickness() {
+    return Math.max(this.adjustedThickness, this._sequenceThickness);
+  }
+
+  /**
    * @member {Number} - Maximum thickness the backbone should become to allow viewing of the sequence
    */
   get maxThickness() {
@@ -312,8 +324,8 @@ class Backbone extends CGObject {
   draw(fast) {
     // this._visibleRange = this.canvas.visibleRangeForCenterOffset( this.adjustedCenterOffset, 100);
     this._visibleRange = this.canvas.visibleRangeForCenterOffset( this.adjustedCenterOffset, { margin: 100 });
+    this.refreshThickness();
     if (this.visibleRange && this.visible) {
-      this.refreshThickness();
       // Translation adds drawing space without enlarging decorative edge shading.
       const shadingWidth = (this.adjustedThickness -
         this.sequence.translation.scaledThickness(this.pixelsPerBp())) * 0.10;
@@ -359,6 +371,7 @@ class Backbone extends CGObject {
 
   refreshThickness() {
     const pixelsPerBp = this.pixelsPerBp();
+    this._sequenceThickness = this.sequence.scaledThickness(pixelsPerBp);
     if (pixelsPerBp > 1 && this.visible && this.sequence.visible) {
       // const zoomedThicknessWithoutAddition = Math.min(this.adjustedCenterOffset, this.viewer.maxZoomedRadius()) * (this.thickness / this.centerOffset);
       // FIXME: see adjustedThickness for note. Use 4 for now.

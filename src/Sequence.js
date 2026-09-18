@@ -573,6 +573,34 @@ class Sequence extends CGObject {
   }
 
   /**
+   * Return nucleotide opacity for both drawing and detail-space visibility.
+   * Pure calculation; does not change layout or canvas state.
+   * @param {Number} pixelsPerBp - Backbone pixels per base pair.
+   * @returns {Number} Opacity from 0 to 1; zero when sequence is hidden.
+   * @private
+   */
+  detailOpacity(pixelsPerBp) {
+    if (!this.visible || !Number.isFinite(pixelsPerBp)) { return 0; }
+    // Fade in from half the former appearance cutoff, with smooth endpoints.
+    const fullOpacityPixels = Math.max(1, (this.bpSpacing - this.bpMargin) * 0.25);
+    const progress = Math.max(0, Math.min(1, 2 * pixelsPerBp / fullOpacityPixels - 1));
+    return progress * progress * (3 - 2 * progress);
+  }
+
+  /**
+   * Compute space for displayed nucleotide rows and translation lanes, including
+   * their edge padding. Pure calculation, independent of backbone visibility.
+   * @param {Number} pixelsPerBp - Backbone pixels per base pair.
+   * @returns {Number} Thickness in screen pixels; zero before detail appears.
+   * @private
+   */
+  scaledThickness(pixelsPerBp) {
+    if (!this.detailOpacity(pixelsPerBp)) { return 0; }
+    return this.baseThickness * this.detailScaleFactor(pixelsPerBp) +
+      this.translation.scaledThickness(pixelsPerBp);
+  }
+
+  /**
    * Return true when nucleotide rows are large enough to reserve their shared
    * backbone space from other text.
    * @param {Number} [pixelsPerBp] - Backbone pixels per base pair.
@@ -1263,12 +1291,8 @@ class Sequence extends CGObject {
       debugCounts.baseDrawCount = 0;
       debugCounts.aaDrawCount = 0;
     }
-    if (!this.visible) { return; }
-    // Start fading at half the former appearance cutoff and finish at that cutoff.
-    // Smoothstep keeps both ends continuous, including when zooming back out.
-    const fullOpacityPixels = Math.max(1, (this.bpSpacing - this.bpMargin) * 0.25);
-    const opacityProgress = Math.max(0, Math.min(1, 2 * pixelsPerBp / fullOpacityPixels - 1));
-    if (!opacityProgress) { return; }
+    const opacity = this.detailOpacity(pixelsPerBp);
+    if (!opacity) { return; }
 
     const ctx = this.canvas.context('map');
     const scaleFactor = this.detailScaleFactor(pixelsPerBp);
@@ -1288,7 +1312,7 @@ class Sequence extends CGObject {
       const boxes = this.baseDisplayMode !== 'lettersOnly';
       const coloredBoxes = this.baseDisplayMode === 'coloredBoxes';
       ctx.save();
-      ctx.globalAlpha *= opacityProgress * opacityProgress * (3 - 2 * opacityProgress);
+      ctx.globalAlpha *= opacity;
       if (boxes) {
         ctx.strokeStyle = '#9ca3af';
         ctx.lineJoin = 'round';
