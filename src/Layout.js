@@ -557,7 +557,7 @@ class Layout {
       }
     }
     if (position === 'both') {
-      space += this.backbone.adjustedThickness;
+      space += this.backbone.layoutThickness;
     }
 
     // console.log('_nonSlotSpace', position, space);
@@ -896,11 +896,11 @@ class Layout {
     // ctx.textBaseline = 'top';
 
     // Draw Backbone
-    const previousBackboneThickness = backbone.adjustedThickness;
+    const previousBackboneThickness = backbone.layoutThickness;
     backbone.draw(fast);
 
     // Refresh slot offsets when zoom or sequence-detail thickness changes.
-    this.updateLayout(backbone.adjustedThickness !== previousBackboneThickness);
+    this.updateLayout(backbone.layoutThickness !== previousBackboneThickness);
 
     // Divider rings
     viewer.dividers.draw();
@@ -1057,7 +1057,8 @@ class Layout {
     const viewer = this.viewer;
     const dividers = viewer.dividers;
     const direction = (position === 'outside') ? 1 : -1;
-    let bbOffset = this.backbone.adjustedThickness / 2;
+    const backboneThickness = this.backbone.layoutThickness;
+    let bbOffset = backboneThickness / 2;
     // let bbOffset = 0;
     // Distance between slots
     const slotGap = (dividers.slot.adjustedSpacing * 2) + dividers.slot.adjustedThickness;
@@ -1071,10 +1072,10 @@ class Layout {
           const slot = slots[j];
           const alongBackbone = i === 0 && slot.position === 'along';
           let slotThickness = this._calculateSlotThickness(slot.proportionOfMap);
-          // Keep feature edges outside the growing backbone. Use the expanded
-          // width below so neighboring tracks retain their divider padding.
-          if (alongBackbone && this.backbone.visible) {
-            slotThickness = Math.max(slotThickness, this.backbone.adjustedThickness + 2 * ALONG_BACKBONE_PADDING);
+          // Enclose visible backbone or sequence detail, including when the
+          // backbone is hidden. Neighboring tracks keep their divider padding.
+          if (alongBackbone && backboneThickness > 0) {
+            slotThickness = Math.max(slotThickness, backboneThickness + 2 * ALONG_BACKBONE_PADDING);
           }
           slot._thickness = slotThickness;
 

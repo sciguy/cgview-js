@@ -48,13 +48,16 @@ and at least `layout.minSlotThickness` (normally 1 px); invalid updates are
 ignored. Initial/max map proportions must be finite and positive.
 
 The first visible track with `position: 'along'` renders at least 5 px beyond
-each edge of the visible backbone. This minimum follows manual backbone sizing
-and sequence/translation expansion while zooming, and can exceed the shared
-slot cap. Neighboring tracks retain their divider padding outside the expanded
-feature edges. Ratios, pixel-sizing allocations, and
-`computedInitialSlotThickness` remain unchanged by this extra clearance; use
-`slot.thickness` for the current rendered width. Larger normal widths are kept,
-and hiding the backbone removes the minimum.
+each edge of the visible backbone or displayed sequence/translation detail.
+This minimum follows manual backbone sizing and sequence/translation expansion
+while zooming, and can exceed the shared slot cap. Neighboring tracks retain
+their divider padding outside the expanded feature edges. Ratios, pixel-sizing
+allocations, and `computedInitialSlotThickness` remain unchanged by this extra
+clearance; use
+`slot.thickness` for the current rendered width. Larger normal widths are kept.
+Hiding the backbone keeps space for visible sequence and translation rows,
+including between ordinary inside/outside tracks. The space collapses when
+sequence detail disappears or is hidden, without drawing a backbone.
 
 The shared cap normally scales ratios proportionally. Pixel sizing accounts
 for the actual capped overview widths, and raises the cap when needed. In this
