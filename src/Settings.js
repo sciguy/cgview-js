@@ -45,8 +45,8 @@ import utils from './Utils';
  * [showTrackLabels](#showTrackLabels) | Boolean | Show compact track names when the map is zoomed in [Default: true]
  * [showBorder](#showBorder)           | Boolean   | Should a border be drawn on the features [Default: false]
  * [borderColor](#borderColor)         | String    | A string describing the border color of features [Default: 'rgba(0,0,0,1)']. See {@link Color} for details.
- * [borderThickness](#borderThickness) | Number    | Border width in pixels, or maximum width when adaptiveBorderThickness is enabled [Default: 1.5]
- * [adaptiveBorderThickness](#adaptiveBorderThickness) | Boolean | Reduce feature and backbone borders according to their on-screen size and a zoom multiplier, from half width at zoom 1 to full width at zoom 2. When false, borderThickness stays fixed at every zoom [Default: false]
+ * [borderThickness](#borderThickness) | Number    | Border width in pixels, or maximum width when adaptiveBorderThickness is enabled [Default: 1]
+ * [adaptiveBorderThickness](#adaptiveBorderThickness) | Boolean | Reduce feature and backbone borders according to their on-screen size and a zoom multiplier, from half width at zoom 1 to full width at zoom 2. When false, borderThickness stays fixed at every zoom [Default: true]
  * [arrowHeadLength](#arrowHeadLength) | Number    | Length of feature arrowheads as a proportion of the feature thickness. From 0 (no arrowhead) to 1 (arrowhead as long on the feature is thick) [Default: 0.3]
  * [initialMapThicknessProportion](#initialMapThicknessProportion) | Number  | Proportion of canvas size to use for drawing map tracks at a zoomFactor of 1 [Default: 0.1]
  * [maxMapThicknessProportion](#maxMapThicknessProportion) | Number  | Proportion of canvas size to use for drawing map tracks at max zoom level [Default: 0.5]
@@ -77,8 +77,8 @@ class Settings {
     this._showTrackLabels = utils.defaultFor(options.showTrackLabels, true);
     this._showBorder = utils.defaultFor(options.showBorder, false);
     this._borderColor = new Color( utils.defaultFor(options.borderColor, 'rgba(0,0,0,1)') );
-    this._borderThickness = utils.defaultFor(options.borderThickness, 1.5);
-    this._adaptiveBorderThickness = utils.defaultFor(options.adaptiveBorderThickness, false);
+    this._borderThickness = utils.defaultFor(options.borderThickness, 1);
+    this._adaptiveBorderThickness = utils.defaultFor(options.adaptiveBorderThickness, true);
     this.initialMapThicknessProportion = utils.defaultFor(options.initialMapThicknessProportion, 0.1);
     this.maxMapThicknessProportion = utils.defaultFor(options.maxMapThicknessProportion, 0.5);
     this.maxSlotThickness = utils.defaultFor(options.maxSlotThickness, 50);
@@ -240,7 +240,7 @@ class Settings {
   }
 
   /**
-   * @member {Number} - Get or set the border width in pixels (Default: 1.5).
+   * @member {Number} - Get or set the border width in pixels (Default: 1).
    *   This is the maximum width when {@link Settings#adaptiveBorderThickness} is enabled.
    */
   get borderThickness() {
@@ -254,7 +254,7 @@ class Settings {
 
   /**
    * @member {Boolean} - Adapt feature and backbone border width to their on-screen
-   *   length and thickness (Default: false). Borders disappear when either dimension
+   *   length and thickness (Default: true). Borders disappear when either dimension
    *   is at most 2 pixels, then grow toward {@link Settings#borderThickness} as the
    *   element grows. This size-adjusted width is also multiplied by
    *   min(zoomFactor, 2) / 2: half width at zoom 1 and full width at zoom 2 or above.

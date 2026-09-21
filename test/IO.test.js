@@ -25,11 +25,13 @@ describe('IO', () => {
       expect(cgv.sequence.length).toBe(1234);
     });
 
-    test('uses fixed border thickness when the adaptive option is omitted', () => {
-      expect(cgv.settings.adaptiveBorderThickness).toBe(false);
-      cgv.settings.update({adaptiveBorderThickness: true});
+    test('defaults to adaptive 1 px borders when border settings are omitted', () => {
+      expect(cgv.settings.borderThickness).toBe(1);
+      expect(cgv.settings.adaptiveBorderThickness).toBe(true);
+      cgv.settings.update({borderThickness: 2.5, adaptiveBorderThickness: false});
       cgv.io.loadJSON({cgview: {version: '1.9.0', sequence: {length: 1234}}});
-      expect(cgv.settings.adaptiveBorderThickness).toBe(false);
+      expect(cgv.settings.borderThickness).toBe(1);
+      expect(cgv.settings.adaptiveBorderThickness).toBe(true);
     });
 
     test.each([false, true])('loads, updates, and saves adaptiveBorderThickness=%s', adaptive => {

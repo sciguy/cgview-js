@@ -152,11 +152,11 @@
           <div class='border-options'>
             <label><input id='border-features' type='checkbox' /> Feature borders</label>
             <label><input id='border-backbone' type='checkbox' /> Backbone borders</label>
-            <label title='Reduce borders on small features and contigs, with an extra zoom multiplier from half width at 1× to full width at 2×. Turn off for a fixed width at every zoom level.'><input id='border-adaptive-thickness' type='checkbox' /> Adaptive border thickness</label>
+            <label title='Reduce borders on small features and contigs, with an extra zoom multiplier from half width at 1× to full width at 2×. Turn off for a fixed width at every zoom level.'><input id='border-adaptive-thickness' type='checkbox' checked /> Adaptive border thickness</label>
             <label for='border-color'>Border color <input id='border-color' type='color' /></label>
             <div>
-              <label for='border-size'><span id='border-size-label'>Border size:</span> <output id='border-size-value' for='border-size'>1.5</output> px</label>
-              <input id='border-size' type='range' min='0.5' max='4' step='0.1' value='1.5' />
+              <label for='border-size'><span id='border-size-label'>Maximum border size:</span> <output id='border-size-value' for='border-size'>1</output> px</label>
+              <input id='border-size' type='range' min='0.5' max='4' step='0.1' value='1' />
             </div>
           </div>
           <hr />

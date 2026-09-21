@@ -182,12 +182,12 @@
 <tr>
 <td><a href="#borderThickness">borderThickness</a></td>
 <td>Number</td>
-<td>Border width in pixels, or maximum width when adaptiveBorderThickness is enabled [Default: 1.5]</td>
+<td>Border width in pixels, or maximum width when adaptiveBorderThickness is enabled [Default: 1]</td>
 </tr>
 <tr>
 <td><a href="#adaptiveBorderThickness">adaptiveBorderThickness</a></td>
 <td>Boolean</td>
-<td>Reduce feature and backbone borders according to their on-screen size and a zoom multiplier, from half width at zoom 1 to full width at zoom 2. When false, borderThickness stays fixed at every zoom [Default: false]</td>
+<td>Reduce feature and backbone borders according to their on-screen size and a zoom multiplier, from half width at zoom 1 to full width at zoom 2. When false, borderThickness stays fixed at every zoom [Default: true]</td>
 </tr>
 <tr>
 <td><a href="#arrowHeadLength">arrowHeadLength</a></td>
@@ -387,7 +387,7 @@
 
     <div class="description">
         <p>Adapt feature and backbone border width to their on-screen
-length and thickness (Default: false). Borders disappear when either dimension
+length and thickness (Default: true). Borders disappear when either dimension
 is at most 2 pixels, then grow toward <a href="Settings.html#borderThickness"><code>Settings#borderThickness</code></a> as the
 element grows. This size-adjusted width is also multiplied by
 min(zoomFactor, 2) / 2: half width at zoom 1 and full width at zoom 2 or above.
@@ -571,7 +571,7 @@ When false, borders use the configured width at every zoom level.</p>
 <dd>
 
     <div class="description">
-        <p>Get or set the border width in pixels (Default: 1.5).
+        <p>Get or set the border width in pixels (Default: 1).
 This is the maximum width when <a href="Settings.html#adaptiveBorderThickness"><code>Settings#adaptiveBorderThickness</code></a> is enabled.</p>
     </div>
 
