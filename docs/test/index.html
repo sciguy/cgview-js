@@ -27,7 +27,7 @@
     <script src="../scripts/d3.min.js"></script>
     <script src="../scripts/svgcanvas.iife.js"></script>
     <!-- CGView -->
-    <script src='../dist/cgview.min.js?v=sequence-backbone-visibility'></script>
+    <script src='../dist/cgview.min.js?v=adaptive-border-zoom'></script>
 
     <link rel="stylesheet" href="../dist/cgview.css" />
     <link rel="stylesheet" href="../styles/controls.css" />
@@ -37,7 +37,7 @@
 
     <!-- Dev Page -->
     <script src='performance.js'></script>
-    <link rel="stylesheet" href="test.css?v=base-display-modes" />
+    <link rel="stylesheet" href="test.css?v=border-testing" />
     <!-- Test Map Data -->
     <script src='maps.js'></script>
 
@@ -130,6 +130,7 @@
               <div><label><input id='option-selection' type='checkbox' /> Selection</label></div>
               <div><label><input id='option-show-track-labels' type='checkbox' /> Track Labels</label></div>
               <div><label><input id='option-show-track-sizing' type='checkbox' aria-controls='track-sizing' /> Track Sizing</label></div>
+              <div><label><input id='option-show-borders' type='checkbox' aria-controls='border-testing' /> Borders</label></div>
             </div>
             <div>
               <div><label><input id='option-show-plots' type='checkbox' /> Plots</label></div>
@@ -146,6 +147,20 @@
 
         <hr />
         </div>
+        <section id='border-testing' class='section-borders' aria-labelledby='border-testing-heading' hidden>
+          <div class='test-heading' id='border-testing-heading'>Border Testing</div>
+          <div class='border-options'>
+            <label><input id='border-features' type='checkbox' /> Feature borders</label>
+            <label><input id='border-backbone' type='checkbox' /> Backbone borders</label>
+            <label title='Reduce borders on small features and contigs, with an extra zoom multiplier from half width at 1× to full width at 2×. Turn off for a fixed width at every zoom level.'><input id='border-adaptive-thickness' type='checkbox' /> Adaptive border thickness</label>
+            <label for='border-color'>Border color <input id='border-color' type='color' /></label>
+            <div>
+              <label for='border-size'><span id='border-size-label'>Border size:</span> <output id='border-size-value' for='border-size'>1.5</output> px</label>
+              <input id='border-size' type='range' min='0.5' max='4' step='0.1' value='1.5' />
+            </div>
+          </div>
+          <hr />
+        </section>
         <div class='section-plots'>
           <div class='test-heading'>Plots Settings</div>
           <div class='plot-options'>
@@ -316,7 +331,7 @@
     <!-- Bootstrap JavaScript -->
     <script src="../scripts/bootstrap.min.js"></script>
 
-    <script src='test.js?v=safari-arc-fix'></script>
+    <script src='test.js?v=adaptive-border-thickness'></script>
     <script src='track-sizing.js?v=3'></script>
     <script src='../scripts/controls.js'></script>
 

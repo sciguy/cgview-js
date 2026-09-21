@@ -172,7 +172,7 @@
 <tr>
 <td><a href="#showBorder">showBorder</a></td>
 <td>Boolean</td>
-<td>Should a border be drawn on the features [Default: true]</td>
+<td>Should a border be drawn on the features [Default: false]</td>
 </tr>
 <tr>
 <td><a href="#borderColor">borderColor</a></td>
@@ -182,7 +182,12 @@
 <tr>
 <td><a href="#borderThickness">borderThickness</a></td>
 <td>Number</td>
-<td>The width of the border drawn on features in pixels [Default: 1.5]</td>
+<td>Border width in pixels, or maximum width when adaptiveBorderThickness is enabled [Default: 1.5]</td>
+</tr>
+<tr>
+<td><a href="#adaptiveBorderThickness">adaptiveBorderThickness</a></td>
+<td>Boolean</td>
+<td>Reduce feature and backbone borders according to their on-screen size and a zoom multiplier, from half width at zoom 1 to full width at zoom 2. When false, borderThickness stays fixed at every zoom [Default: false]</td>
 </tr>
 <tr>
 <td><a href="#arrowHeadLength">arrowHeadLength</a></td>
@@ -225,7 +230,7 @@
 
 
         <div class="tag-source">
-            <a href="Settings.js.html">Settings.js</a>, <a href="Settings.js.html#line57">line 57</a>
+            <a href="Settings.js.html">Settings.js</a>, <a href="Settings.js.html#line58">line 58</a>
         </div>
 
     </div>
@@ -373,6 +378,56 @@
 
 <dt>
     <div class="nameContainer">
+        <h4 class="name" id="adaptiveBorderThickness">adaptiveBorderThickness<span class="type-signature type boolean">Boolean</span> </h4>
+    </div>
+
+
+</dt>
+<dd>
+
+    <div class="description">
+        <p>Adapt feature and backbone border width to their on-screen
+length and thickness (Default: false). Borders disappear when either dimension
+is at most 2 pixels, then grow toward <a href="Settings.html#borderThickness"><code>Settings#borderThickness</code></a> as the
+element grows. This size-adjusted width is also multiplied by
+min(zoomFactor, 2) / 2: half width at zoom 1 and full width at zoom 2 or above.
+When false, borders use the configured width at every zoom level.</p>
+    </div>
+
+
+
+<dl class="details">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</dl>
+
+
+
+</dd>
+
+
+
+<dt>
+    <div class="nameContainer">
         <h4 class="name" id="arrowHeadLength">arrowHeadLength<span class="type-signature type number">Number</span> </h4>
     </div>
 
@@ -516,7 +571,8 @@
 <dd>
 
     <div class="description">
-        <p>Get or set the border width in pixels (Default: 1.5).</p>
+        <p>Get or set the border width in pixels (Default: 1.5).
+This is the maximum width when <a href="Settings.html#adaptiveBorderThickness"><code>Settings#adaptiveBorderThickness</code></a> is enabled.</p>
     </div>
 
 
@@ -848,7 +904,7 @@ depend on this setting. It is currently serialized with viewer settings.</p>
 <dd>
 
     <div class="description">
-        <p>Get or set whether features should be drawn with a border (Default: true).</p>
+        <p>Get or set whether features should be drawn with a border (Default: false).</p>
     </div>
 
 
@@ -1038,7 +1094,7 @@ map curvature, and use a background-derived protective outline
 
 
         <div class="tag-source">
-            <a href="Settings.js.html">Settings.js</a>, <a href="Settings.js.html#line312">line 312</a>
+            <a href="Settings.js.html">Settings.js</a>, <a href="Settings.js.html#line332">line 332</a>
         </div>
 
     </div>
@@ -1109,7 +1165,7 @@ map curvature, and use a background-derived protective outline
 
 
         <div class="tag-source">
-            <a href="Settings.js.html">Settings.js</a>, <a href="Settings.js.html#line90">line 90</a>
+            <a href="Settings.js.html">Settings.js</a>, <a href="Settings.js.html#line92">line 92</a>
         </div>
 
     </div>
@@ -1212,7 +1268,7 @@ map curvature, and use a background-derived protective outline
 
 
         <div class="tag-source">
-            <a href="Settings.js.html">Settings.js</a>, <a href="Settings.js.html#line301">line 301</a>
+            <a href="Settings.js.html">Settings.js</a>, <a href="Settings.js.html#line321">line 321</a>
         </div>
 
     </div>

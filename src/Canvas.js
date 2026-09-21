@@ -24,6 +24,7 @@ import utils from './Utils';
 import * as d3 from 'd3';
 
 const AUTO_ARROW_MIN_LENGTH_PIXELS = 5;
+const ADAPTIVE_BORDER_MIN_SIZE_PIXELS = 2;
 
 
 /**
@@ -292,7 +293,8 @@ class Canvas {
    * @param {Boolean} [options.showBorder] - Should the element be drawn with a border
    *   [Default: value from settings {@link Settings#showBorder}]
    * @param {String} [options.borderColor] - Override the settings border color.
-   * @param {Number} [options.borderThickness] - Border width in screen pixels.
+   * @param {Number} [options.borderThickness] - Fixed border width in screen pixels,
+   *   overriding the settings width and adaptive sizing.
    * @param {Number} [options.shadingWidth] - Shaded edge width in screen pixels.
    * @param {Boolean} [options.fast=false] - Fast drawing mode
    * @param {Boolean} [options.selected=false] - Is the element selected
@@ -368,20 +370,6 @@ class Canvas {
       Math.max(0, Number(utils.defaultFor(shadingWidth, width * shadowFraction)) || 0),
     );
 
-    // Border settings
-    let borderWidth = borderThickness === undefined ?
-      settings.borderThickness : Math.max(0, Number(borderThickness) || 0);
-    let selectedBorderDash = [3, 1];
-    if (borderThickness === undefined) {
-      // Above this zoom factor, the default border width will not increase.
-      const zoomFactorMaxForBorder = 2;
-      borderWidth = (Math.min(this.viewer.zoomFactor, zoomFactorMaxForBorder) * (borderWidth / zoomFactorMaxForBorder));
-    }
-
-    // TODO:
-    // - skip border for fast draw
-    // - scale the thickness based on pixelsPerBp
-
     // When drawing elements (arcs or arrows), the element should be offset by
     // half a bp on each side. This will allow single base features to be
     // drawn. It also reduces ambiguity for where features start/stop.
@@ -389,6 +377,22 @@ class Canvas {
     // 9.5 to 10.5.
     start -= 0.5;
     stop += 0.5;
+
+    // Measure before minimum arc/arrow lengths enlarge barely visible features.
+    const configuredBorderWidth = Number(borderThickness === undefined ? settings.borderThickness : borderThickness);
+    let borderWidth = Number.isFinite(configuredBorderWidth) ? Math.max(0, configuredBorderWidth) : 0;
+    const selectedBorderDash = [3, 1];
+    if (showBorder && !selected && borderThickness === undefined && settings.adaptiveBorderThickness) {
+      const lengthPixels = this.sequence.lengthOfRange(start, stop) * this.pixelsPerBp(centerOffset);
+      const availableSize = Math.max(0, Math.min(lengthPixels, width) - ADAPTIVE_BORDER_MIN_SIZE_PIXELS);
+      // Each edge uses at most a quarter of the available smaller dimension,
+      // leaving space for the feature fill as its border grows.
+      const zoomMultiplier = Math.min(this.viewer.zoomFactor, 2) / 2;
+      borderWidth = Math.min(borderWidth, availableSize / 4) * zoomMultiplier;
+    }
+    if (selected) { borderWidth = 2.5; }
+    // Canvas ignores a zero lineWidth, so omit the stroke and its inset geometry.
+    const drawBorder = selected || (showBorder && borderWidth > 0);
 
     let autoArrowHeadLengthPixels;
     const isDirectionalArrow = decoration === 'clockwise-arrow' ||
@@ -462,10 +466,9 @@ class Canvas {
         ctx.stroke();
       }
 
-      if (showBorder || selected) {
+      if (drawBorder) {
 
         if (selected) {
-          borderWidth = 2.5
           ctx.setLineDash(selectedBorderDash)
         }
 
@@ -526,7 +529,7 @@ class Canvas {
       const arrowTipPt = this.pointForBp(arrowTipBp, centerOffset);
       // const innerArcStartPt = this.pointForBp(arcStopBp, centerOffset - halfWidth);
       let innerArcStartPt;
-      if (showBorder || selected) {
+      if (drawBorder) {
         innerArcStartPt = this.pointForBp(arcStopBp, centerOffset - halfWidth + (borderWidth / 2));
       } else {
         innerArcStartPt = this.pointForBp(arcStopBp, centerOffset - halfWidth);
@@ -578,13 +581,12 @@ class Canvas {
         ctx.fill();
       }
 
-      if ((showBorder || selected) && (decoration === 'clockwise-arrow' || decoration === 'counterclockwise-arrow')) {
+      if (drawBorder) {
         const halfMainWidth =  width * 0.5;
         // const borderWidth = 1;
         const adjustedBorderWidth = (borderWidth / 2);
 
         if (selected) {
-          borderWidth = 2.5
           ctx.setLineDash(selectedBorderDash)
         }
 

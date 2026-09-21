@@ -37,6 +37,7 @@ describe('Canvas', () => {
         arrowHeadLength: 0.3,
         borderColor: {rgbaString: 'rgba(0,0,0,1)'},
         borderThickness: 1.5,
+        adaptiveBorderThickness: false,
         showBorder: false,
         showShading: false,
       },
@@ -145,7 +146,100 @@ describe('Canvas', () => {
 
     canvas.drawElement(options);
     expect(context.strokeStyle).toBe('rgba(0,0,0,1)');
-    expect(context.lineWidth).toBe(0.75);
+    expect(context.lineWidth).toBe(1.5);
+  });
+
+  describe.each(['arc', 'clockwise-arrow', 'counterclockwise-arrow'])('%s borders', decoration => {
+    function borderWidths(options = {}) {
+      const widths = [];
+      context.stroke.mockImplementation(() => {
+        if (context.strokeStyle === 'rgba(0,0,0,1)') { widths.push(context.lineWidth); }
+      });
+      canvas.drawElement({
+        start: 10, stop: 29, centerOffset: 100, width: 20,
+        decoration, color: 'red', showBorder: true, ...options,
+      });
+      return widths;
+    }
+
+    test('keeps the configured width through zoom and size changes when adaptation is off', () => {
+      for (const zoom of [1, 1.5, 2, 10]) {
+        canvas._viewer.zoomFactor = zoom;
+        canvas.pixelsPerBp.mockReturnValue(zoom);
+        expect(borderWidths({stop: 10})).toEqual([1.5]);
+        expect(borderWidths()).toEqual([1.5]);
+      }
+    });
+
+    test('suppresses tiny and thin elements before minimum-length expansion', () => {
+      canvas._viewer.settings.adaptiveBorderThickness = true;
+      canvas.pixelsPerBp.mockReturnValue(1);
+      expect(borderWidths({stop: 10, minArcLength: 10})).toEqual([]);
+      expect(borderWidths({stop: 11})).toEqual([]);
+      expect(borderWidths({width: 2})).toEqual([]);
+    });
+
+    test('grows borders with screen size up to the configured maximum', () => {
+      canvas._viewer.settings.adaptiveBorderThickness = true;
+      canvas._viewer.zoomFactor = 2;
+      const widths = [1, 2, 3, 4, 6, 8, 16].map(pixels => {
+        canvas.pixelsPerBp.mockReturnValue(pixels);
+        return borderWidths({stop: 10})[0] || 0;
+      });
+      expect(widths.slice(0, 2)).toEqual([0, 0]);
+      expect(widths[2]).toBeGreaterThan(0);
+      expect(widths[3]).toBeGreaterThan(widths[2]);
+      expect(widths[4]).toBeGreaterThan(widths[3]);
+      expect(widths.slice(-2)).toEqual([1.5, 1.5]);
+    });
+
+    test('uses both screen dimensions to reduce borders', () => {
+      canvas._viewer.settings.adaptiveBorderThickness = true;
+      canvas.pixelsPerBp.mockReturnValue(1);
+      const short = borderWidths({stop: 13});
+      const thin = borderWidths({width: 4});
+      const large = borderWidths();
+      expect(short).toEqual(thin);
+      expect(short[0]).toBeGreaterThan(0);
+      expect(short[0]).toBeLessThan(large[0]);
+    });
+
+    test('also multiplies size-adjusted borders by zoom, capped at zoom 2', () => {
+      canvas._viewer.settings.adaptiveBorderThickness = true;
+      // Keep screen geometry fixed to isolate the additional zoom multiplier.
+      canvas.pixelsPerBp.mockReturnValue(1);
+      for (const [zoom, multiplier] of [[1, 0.5], [1.5, 0.75], [2, 1], [10, 1]]) {
+        canvas._viewer.zoomFactor = zoom;
+        expect(borderWidths({stop: 13})[0]).toBeCloseTo(0.5 * multiplier);
+        expect(borderWidths()[0]).toBeCloseTo(1.5 * multiplier);
+        expect(borderWidths({stop: 10})).toEqual([]);
+      }
+    });
+
+    test('measures origin-spanning elements consistently', () => {
+      canvas._viewer.settings.adaptiveBorderThickness = true;
+      canvas.pixelsPerBp.mockReturnValue(1);
+      expect(borderWidths({start: 98, stop: 2})).toEqual(borderWidths({start: 10, stop: 14}));
+    });
+
+    test('preserves explicit widths and selection outlines on tiny elements', () => {
+      canvas._viewer.settings.adaptiveBorderThickness = true;
+      canvas.pixelsPerBp.mockReturnValue(1);
+      expect(borderWidths({stop: 10, borderThickness: 0.4})).toEqual([0.4]);
+      expect(borderWidths({stop: 10, selected: true, showBorder: false})).toEqual([2.5]);
+      expect(context.setLineDash).toHaveBeenCalledWith([3, 1]);
+      expect(context.setLineDash).toHaveBeenLastCalledWith([]);
+    });
+
+    test('omits zero-width and disabled borders', () => {
+      canvas.pixelsPerBp.mockReturnValue(1);
+      expect(borderWidths({borderThickness: 0})).toEqual([]);
+      canvas._viewer.settings.borderThickness = 0;
+      expect(borderWidths()).toEqual([]);
+      canvas._viewer.settings.borderThickness = 1.5;
+      canvas._viewer.settings.adaptiveBorderThickness = true;
+      expect(borderWidths({showBorder: false})).toEqual([]);
+    });
   });
 
   test('keeps shaded edges narrow when the backbone expands for translations', () => {

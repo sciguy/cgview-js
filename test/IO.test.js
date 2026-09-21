@@ -25,6 +25,34 @@ describe('IO', () => {
       expect(cgv.sequence.length).toBe(1234);
     });
 
+    test('uses fixed border thickness when the adaptive option is omitted', () => {
+      expect(cgv.settings.adaptiveBorderThickness).toBe(false);
+      cgv.settings.update({adaptiveBorderThickness: true});
+      cgv.io.loadJSON({cgview: {version: '1.9.0', sequence: {length: 1234}}});
+      expect(cgv.settings.adaptiveBorderThickness).toBe(false);
+    });
+
+    test.each([false, true])('loads, updates, and saves adaptiveBorderThickness=%s', adaptive => {
+      cgv.io.loadJSON({cgview: {
+        version: '1.9.0', sequence: {length: 1234},
+        settings: {adaptiveBorderThickness: adaptive, borderThickness: 2.5},
+      }});
+      expect(cgv.settings.adaptiveBorderThickness).toBe(adaptive);
+      const drawFull = jest.spyOn(cgv, 'drawFull');
+      const onUpdate = jest.fn();
+      cgv.on('settings-update.border-test', onUpdate);
+      cgv.settings.update({adaptiveBorderThickness: !adaptive});
+      expect(drawFull).toHaveBeenCalled();
+      expect(onUpdate).toHaveBeenCalledWith(expect.objectContaining({
+        attributes: {adaptiveBorderThickness: !adaptive},
+      }));
+      const json = cgv.io.toJSON();
+      expect(json.cgview.settings.adaptiveBorderThickness).toBe(!adaptive);
+      cgv.io.loadJSON(json);
+      expect(cgv.settings.adaptiveBorderThickness).toBe(!adaptive);
+      expect(cgv.settings.borderThickness).toBe(2.5);
+    });
+
     test('throws an error if no "cgview" property present', () => {
       const json = { sequence: { length: 1234 } };
       expect( () => cgv.io.loadJSON(json) ).toThrow("No 'cgview' property found in JSON.");;

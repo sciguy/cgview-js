@@ -93,7 +93,7 @@ It uses a contig length without sequence data. To include sequence data, provide
 the complete sequence in a contig's `seq` property instead of `length`.
 
 The following two options are available for most sections of the JSON but are
-only present when they have non-default values (see the first [feature](#lines.109-122) for an example with non-default values):
+only present when they have non-default values (see the first [feature](#lines.110-123) for an example with non-default values):
 - _visible_ [Default: true]
 - _meta_ [Default: {}].  The _meta_ key is a place to store [user/app-defined meta data](tutorials/details-meta-data.html).
 
@@ -119,6 +119,7 @@ in linear maps.
             "showBorder": false,
             "borderColor": "rgba(0,0,0,1)",
             "borderThickness": 1.5,
+            "adaptiveBorderThickness": false,
             "arrowHeadLength": 0.3,
             "initialMapThicknessProportion": 0.1,
             "maxMapThicknessProportion": 0.5,
