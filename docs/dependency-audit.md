@@ -12,13 +12,11 @@ SVG export, and its styles. The measured demonstration is **371,798 bytes
 CGView JavaScript file by **39.20%**, while reducing the current combined
 CGView + D3 + SVGCanvas + CSS download by **41.16% when gzipped**.
 
-Worktree: `/home/jason/workspace/cgview-js-worktrees/v1.9-d3`, created from
-`v1.9` at `b6d126051e19c6deb6bd4831dfabc979a56784da`. Only its `docs`
-directory is published at
-[the worktree site](https://sand.cgjson.ca/cgview-worktrees/v1.9-d3/).
+The initial investigation used revision
+`b6d126051e19c6deb6bd4831dfabc979a56784da` as its baseline.
 
-The [single-file demonstration](https://sand.cgjson.ca/cgview-worktrees/v1.9-d3/test/standalone.html)
-uses [this bundle](https://sand.cgjson.ca/cgview-worktrees/v1.9-d3/dist/cgview.standalone.min.js).
+The [single-file demonstration](test/standalone.html)
+uses [the standalone bundle](dist/cgview.standalone.min.js).
 It supplies SVG export automatically, honors a caller's `SVGContext` override,
 and injects CGView's styles. It exports the existing `CGView` API without
 creating global `d3` or `svgcanvas` objects.
@@ -166,12 +164,12 @@ build/release flow and update installation examples when making it a supported
 distribution. The demo is generated only by the analysis command so fresh
 normal docs builds do not gain references to missing experimental assets.
 
-To build and measure the current implementation from this worktree:
+To build and measure the current implementation from the repository root:
 
 ```bash
-cgview-run yarn gh-pages
-cgview-run node scripts/analyze-dependencies.mjs
-cgview-run node scripts/smoke-standalone.mjs /home/jason/www/cgview-worktrees/v1.9-d3
+yarn gh-pages
+node scripts/analyze-dependencies.mjs
+node scripts/smoke-standalone.mjs
 ```
 
 The normal Rollup command now creates core and standalone variants in `docs/dist`.

@@ -19,13 +19,13 @@ maps and the separate stylesheet, the distribution contains nine files.
 Run these commands from the checkout:
 
 ```bash
-cgview-run yarn gh-pages
-cgview-run node scripts/analyze-dependencies.mjs
+yarn gh-pages
+node scripts/analyze-dependencies.mjs
 ```
 
 The first command writes the JavaScript files and maps into `docs/dist`, next
 to the tracked `cgview.css`. The second measures those exact outputs; it does
-not rebuild or substitute source. `cgview-run yarn build` watches the same
+not rebuild or substitute source. `yarn build` watches the same
 configurations, including embedded CSS changes. Application bundlers can
 minify the readable ES modules.
 
@@ -107,7 +107,7 @@ is not rewritten during the build.
 Verify both variants with:
 
 ```bash
-cgview-run node scripts/smoke-standalone.mjs /home/jason/www/cgview-worktrees/v1.9-d3
+node scripts/smoke-standalone.mjs
 ```
 
 Chromium checks cover all four outputs: imports, source maps, bundled
