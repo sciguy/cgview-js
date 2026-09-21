@@ -37,12 +37,6 @@ npm install cgview
 See [Installation Instructions](http://js.cgview.ca/tutorials/tutorial-installation.html)
 for additional ways to setup CGView.js.
 
-The `v1.9-d3` Rollup build provides core and standalone variants. Run
-`cgview-run yarn gh-pages` to produce a minified browser script and a readable
-ES module for each, with source maps. Use `cgview.standalone.min.js` or
-`cgview.standalone.esm.js` for one file with D3, SVG export, and CSS included.
-See the [bundle filenames, requirements, and sizes](https://github.com/sciguy/cgview-js/blob/v1.9/docs/bundles.md).
-
 ## Usage
 
 ```js
@@ -93,10 +87,6 @@ explicitly and stop if runtime selection fails, for example:
 Use the selected runtime for dependency installation instead of bypassing
 compatibility checks with `--ignore-engines`. This Node version is the development
 toolchain target; browser use of the built CGView bundles does not require Node.
-
-After building, `yarn benchmark:rendering --help` describes the deterministic
-large-map benchmark and optional profiling. See the [rendering performance report](docs/development/rendering-performance.md)
-for methodology, recorded results, and the current Stage 1 findings.
 
 ## License
 

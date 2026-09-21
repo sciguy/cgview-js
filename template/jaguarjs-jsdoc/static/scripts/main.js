@@ -1,9 +1,29 @@
 // API navigation: literal filtering and independent, keyboard-accessible sections.
-(() => {
+(async () => {
   'use strict';
 
-  const navigation = document.querySelector('.navigation');
-  if (!navigation) return;
+  const sidebar = document.querySelector('#sidebar-nav[data-navigation-url]');
+  if (!sidebar) return;
+  const status = sidebar.querySelector('[role="status"]');
+  status.textContent = 'Loading API navigation...';
+
+  let navigation;
+  try {
+    const response = await fetch(sidebar.dataset.navigationUrl);
+    if (!response.ok) throw new Error(`Navigation request failed: ${response.status}`);
+    const fragment = document.createElement('template');
+    fragment.innerHTML = await response.text();
+    navigation = fragment.content.querySelector('.navigation');
+    if (!navigation?.querySelector('#search') || !navigation.querySelector('.list')) {
+      throw new Error('Navigation content is missing.');
+    }
+  } catch {
+    status.textContent = 'API navigation could not be loaded. Reload this page to try again.';
+    sidebar.removeAttribute('aria-busy');
+    return;
+  }
+
+  sidebar.replaceChildren(navigation);
   const search = navigation.querySelector('#search');
   const list = navigation.querySelector('.list');
   const currentFilename = location.pathname.split('/').pop().replace(/\.js\.html$/, '.html');
@@ -54,4 +74,5 @@
 
   search.addEventListener('input', filter);
   filter();
+  sidebar.removeAttribute('aria-busy');
 })();

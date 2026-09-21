@@ -123,6 +123,7 @@
   - [Option 1: Install via npm or yarn](#option-1-install-via-npm-or-yarn)
   - [Option 2: Install via jsDelivr CDN](#option-2-install-via-jsdelivr-cdn)
 - [Available Builds](#available-builds)
+  - [Development builds](#development-builds)
 - [SVG Support](#svg-support)
   - [Installation](#installation-1)
   - [Add the SVG context to CGView](#add-the-svg-context-to-cgview)
@@ -205,10 +206,17 @@ and are also accessible via the jsDelivr CDN:
 Use the ESM files if you are working with a modern build system or module bundler (such as Webpack, Vite, or Rollup).
 Use the IIFE files if you are including CGView directly in a &lt;script&gt; tag without a bundler.
 
-The list above describes the published release. The `v1.9-d3` development
-branch provides core and standalone builds, each as a minified browser script
-and a readable ES module. See the [development bundle guide](../bundles.md)
-for the complete output list.
+The list above describes the published release.
+
+## Development builds
+
+From a source checkout, run `yarn gh-pages` to generate core and standalone
+bundles in `docs/dist`. Each variant includes a minified browser script,
+a readable ES module, and source maps.
+
+Use `cgview.standalone.min.js` or `cgview.standalone.esm.js` to include D3,
+SVG export, and CSS in one file. See the [development bundle guide](../bundles.md)
+for filenames, requirements, and sizes.
 
 # SVG Support
 

@@ -281,6 +281,9 @@ exports.publish = function(taffyData, opts, tutorials) {
     var indexUrl = helper.getUniqueFilename('index');
     // don't call registerLink() on this one! 'index' is also a valid longname
 
+    view.navigationUrl = helper.getUniqueFilename('navigation');
+    view.generationDate = new Date();
+
     var globalUrl = helper.getUniqueFilename('global');
     helper.registerLink('global', globalUrl);
 
@@ -456,8 +459,9 @@ exports.publish = function(taffyData, opts, tutorials) {
     view.htmlsafe = htmlsafe;
     view.members = members; //@davidshimjs: To make navigation for customizing
 
-    // once for all
+    // Render the navigation once so API changes do not rewrite every page.
     view.nav = buildNav(members);
+    writeHtml(path.join(outdir, view.navigationUrl), view.partial('navigation.tmpl', {}));
     attachModuleSymbols( find({ kind: ['class', 'function'], longname: {left: 'module:'} }),
         members.modules );
 

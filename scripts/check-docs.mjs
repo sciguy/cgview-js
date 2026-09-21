@@ -78,16 +78,26 @@ async function checkDocumentationLinks(page, origin) {
       const lineBlocks = Object.fromEntries(Array.from(document.querySelectorAll('pre[id] .line-numbers-rows'), (rows) => [
         rows.closest('pre').id, rows.children.length
       ]));
-      const references = Array.from(document.querySelectorAll('a[href], link[href], [src]'), (element) => ({
-        value: element.getAttribute('href') || element.getAttribute('src'),
+      const references = Array.from(document.querySelectorAll('a[href], link[href], [src], [data-navigation-url]'), (element) => ({
+        value: element.getAttribute('href') || element.getAttribute('src') || element.dataset.navigationUrl,
         anchor: element.tagName === 'A'
       }));
-      return { ids, references, lineBlocks };
+      return {
+        ids, references, lineBlocks,
+        navigationUrl: document.querySelector('#sidebar-nav')?.dataset.navigationUrl,
+        embeddedNavigation: Boolean(document.querySelector('#sidebar-nav .navigation')),
+        generationDates: document.querySelectorAll('#generation-date').length
+      };
     }, html);
+    if (filename.startsWith(`api${path.sep}`) && filename !== 'api/navigation.html') {
+      assert.equal(result.navigationUrl, 'navigation.html', `Missing shared navigation on ${filename}`);
+      assert.equal(result.embeddedNavigation, false, `Navigation is still embedded in ${filename}`);
+      assert.equal(result.generationDates, filename === 'api/index.html' ? 1 : 0, `Unexpected generation date on ${filename}`);
+    }
     pages.set(`/${filename}`, { ...result, ids: new Set(result.ids) });
   }
 
-  for (const filename of ['index.html', 'Viewer.html', 'Feature.html', 'Plot.html']) {
+  for (const filename of ['index.html', 'Viewer.html', 'Feature.html', 'Plot.html', 'navigation.html']) {
     assert(pages.has(`/api/${filename}`), `Missing API page: ${filename}`);
   }
 
@@ -129,7 +139,12 @@ async function checkDocumentationLinks(page, origin) {
     }
   }
   assert.equal(errors.size, 0, `Documentation links failed:\n${[...errors].slice(0, 40).join('\n')}`);
-  console.log(`Checked ${filenames.length} documentation pages and ${linkCount} local links/assets, including handwritten content.`);
+  console.log(`Checked ${filenames.length} documentation pages/fragments and ${linkCount} local links/assets, including shared API navigation and handwritten content.`);
+}
+
+// Wait for both the fetched content and its search/toggle handlers to be ready.
+async function waitForApiNavigation(page) {
+  await page.locator('#sidebar-nav:not([aria-busy]) .navigation .item').first().waitFor({ state: 'attached' });
 }
 
 async function checkBrowser(context, origin) {
@@ -137,11 +152,43 @@ async function checkBrowser(context, origin) {
   for (const filename of ['index.html', 'Viewer.html', 'Feature.html', 'Plot.html']) {
     await page.goto(`${origin}/api/${filename}`);
     await page.locator('.main').waitFor({ state: 'visible' });
+    await waitForApiNavigation(page);
     assert.equal(await page.locator('.page-title').getAttribute('data-filename'), filename);
     assert(await page.locator('.navigation .item').count() > 0, `Empty navigation on ${filename}`);
+    if (filename === 'index.html') {
+      await page.getByRole('heading', { name: 'Documentation Generation Date', exact: true }).waitFor({ state: 'visible' });
+      const date = page.locator('#generation-date');
+      await date.waitFor({ state: 'visible' });
+      assert(Number.isFinite(Date.parse(await date.getAttribute('datetime'))), 'Missing machine-readable generation date.');
+      assert(Number.isFinite(Date.parse(await date.textContent())), 'Missing visible generation date.');
+    } else {
+      assert.equal(await page.locator('.navigation .item').first().getAttribute('data-name'), filename.replace(/\.html$/, ''));
+      assert.equal(await page.locator('.navigation .item').first().locator('.members-toggle').getAttribute('aria-expanded'), 'true');
+    }
   }
 
-  await page.goto(`${origin}/api/Viewer.html`);
+  // Hold the response until after DOMContentLoaded to expose eager initialization.
+  let releaseNavigation;
+  const navigationResponse = new Promise((resolve) => { releaseNavigation = resolve; });
+  const navigationUrl = `${origin}/api/navigation.html`;
+  await page.route(navigationUrl, async (route) => {
+    await navigationResponse;
+    await route.continue();
+  });
+  try {
+    const request = page.waitForRequest(navigationUrl);
+    await page.goto(`${origin}/api/Viewer.html`, { waitUntil: 'domcontentloaded' });
+    await request;
+    await page.locator('.main').waitFor({ state: 'visible' });
+    assert.equal(await page.locator('#sidebar-nav').getAttribute('aria-busy'), 'true');
+    assert.equal(await page.locator('.navigation .item').count(), 0, 'Navigation appeared before its shared asset loaded.');
+    assert.equal(await page.getByRole('status').textContent(), 'Loading API navigation...');
+    releaseNavigation();
+    await waitForApiNavigation(page);
+  } finally {
+    releaseNavigation();
+    await page.unroute(navigationUrl);
+  }
   const search = page.getByRole('searchbox', { name: 'Search API' });
   const items = page.locator('.navigation .item');
   const itemCount = await items.count();
@@ -188,6 +235,9 @@ async function checkBrowser(context, origin) {
   assert(sourceLink, 'Viewer source link is missing.');
   const sourceUrl = new URL(sourceLink, page.url());
   await page.goto(sourceUrl.href);
+  await waitForApiNavigation(page);
+  assert.equal(await page.locator('.navigation .item').first().getAttribute('data-name'), 'Viewer', 'Source pages must select their class.');
+  assert.equal(await page.getByRole('button', { name: 'Toggle Viewer members' }).getAttribute('aria-expanded'), 'true');
   assert(await page.evaluate((id) => Boolean(document.getElementById(id)), sourceUrl.hash.slice(1)), 'Source line anchor was not created.');
   const sourceText = await readFile(path.join(repositoryRoot, 'src/Viewer.js'), 'utf8');
   assert.equal(await page.locator('pre.source code').textContent(), sourceText.replace(/^[\t ]+$/gm, ''), 'Highlighting changed source text.');
@@ -197,6 +247,7 @@ async function checkBrowser(context, origin) {
   assert(targetTop >= 50 && targetTop < 150, 'Source link did not scroll below the fixed navigation.');
 
   await page.goto(`${origin}/api/Viewer.html`);
+  await waitForApiNavigation(page);
   // The top menu and sidebar share one breakpoint, with no intermediate collapse.
   for (const width of [768, 767, 640, 576]) {
     await page.setViewportSize({ width, height: 844 });
@@ -218,6 +269,10 @@ async function checkBrowser(context, origin) {
   await page.locator('.sidebar-toggle').focus();
   await page.locator('.sidebar-toggle').press('Enter');
   await page.locator('#sidebar-nav.show').waitFor({ state: 'visible' });
+  await search.fill('zoomFactor');
+  await page.locator('.navigation a[href="Viewer.html#zoomFactor"]').press('Enter');
+  assert.equal(new URL(page.url()).hash, '#zoomFactor');
+  await search.fill('');
   await page.locator('.sidebar-toggle').click();
   await page.locator('#sidebar-nav').waitFor({ state: 'hidden' });
   await page.getByRole('button', { name: 'Toggle navigation', exact: true }).click();
@@ -228,7 +283,27 @@ async function checkBrowser(context, origin) {
   await page.locator('#navbarNavDropdown').waitFor({ state: 'hidden' });
   assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), 'API overflows the mobile viewport.');
   await page.close();
-  console.log('API browser checks passed: literal search, clearing, keyboard controls, highlighted source anchors, and mobile navigation.');
+  console.log('API browser checks passed: delayed shared navigation, current-page selection, homepage date, literal search, keyboard controls, highlighted source anchors, and mobile navigation.');
+}
+
+async function checkNavigationFailures(context, origin) {
+  const page = await context.newPage();
+  const navigationUrl = `${origin}/api/navigation.html`;
+  for (const failure of ['network', 'invalid content']) {
+    await page.route(navigationUrl, (route) => failure === 'network'
+      ? route.abort()
+      : route.fulfill({ contentType: 'text/html', body: '<p>Navigation unavailable</p>' }));
+    await page.goto(`${origin}/api/Viewer.html`);
+    await page.locator('#sidebar-nav:not([aria-busy]) [role="status"]').waitFor({ state: 'visible' });
+    assert.match(await page.getByRole('status').textContent(), /could not be loaded/);
+    await page.locator('.main').waitFor({ state: 'visible' });
+    assert.equal(await page.locator('#sidebar-nav a').getAttribute('href'), 'index.html', 'Failed navigation must retain the API Home link.');
+    await page.unroute(navigationUrl);
+  }
+  await page.reload();
+  await waitForApiNavigation(page);
+  await page.close();
+  console.log('API navigation failure checks passed: network errors, invalid content, and recovery on reload.');
 }
 
 async function checkSharedAssets(page, origin) {
@@ -477,6 +552,7 @@ async function checkThemes(context, origin) {
   });
   await isolated.emulateMedia({ colorScheme: 'dark' });
   await isolated.goto(`${origin}/api/Viewer.html`);
+  await waitForApiNavigation(isolated);
   await checkTheme(isolated, 'dark');
   await chooseTheme(isolated, 'light');
   await checkTheme(isolated, 'light');
@@ -512,6 +588,7 @@ async function main() {
     await checkSharedAssets(parser, origin);
     await parser.close();
     await checkBrowser(context, origin);
+    await checkNavigationFailures(context, origin);
     await checkMarkdown(context, origin);
     await checkSectionNavigation(context, origin);
     await checkThemes(context, origin);
