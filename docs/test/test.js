@@ -33,6 +33,7 @@ const showPlotsSettings = false;
 const showSequenceTest = false;
 const showTranslationTest = true;
 const showTrackSizingTest = false;
+const showBordersTest = false;
 const showPerformanceTest = false;
 const showLabelsTest = false;
 const showRulerTest = false;
@@ -139,6 +140,63 @@ plotOutlineCheckbox.addEventListener('change', () => {
 });
 cgv.on('settings-update.plot-options', syncPlotOptions);
 syncPlotOptions();
+
+// Border testing
+const bordersCheckbox = document.getElementById('option-show-borders');
+bordersCheckbox.checked = showBordersTest;
+const featureBordersCheckbox = document.getElementById('border-features');
+const backboneBordersCheckbox = document.getElementById('border-backbone');
+const adaptiveBorderThicknessCheckbox = document.getElementById('border-adaptive-thickness');
+const borderColorInput = document.getElementById('border-color');
+const borderSizeInput = document.getElementById('border-size');
+const borderSizeLabel = document.getElementById('border-size-label');
+const borderSizeOutput = document.getElementById('border-size-value');
+
+function syncBorderControls() {
+  if (cgv.loading) { return; }
+  const settings = cgv.settings;
+  featureBordersCheckbox.checked = settings.showBorder;
+  backboneBordersCheckbox.checked = cgv.backbone.showBorder ?? settings.showBorder;
+  adaptiveBorderThicknessCheckbox.checked = settings.adaptiveBorderThickness;
+  borderSizeLabel.textContent = settings.adaptiveBorderThickness ? 'Maximum border size:' : 'Border size:';
+  borderColorInput.value = `#${settings.borderColor.hex}`;
+  // Preserve loaded values outside the usual 0.5-4 px testing range.
+  borderSizeInput.min = String(Math.min(0.5, settings.borderThickness));
+  borderSizeInput.max = String(Math.max(4, settings.borderThickness));
+  borderSizeInput.value = String(settings.borderThickness);
+  borderSizeOutput.value = String(settings.borderThickness);
+  borderSizeInput.setAttribute('aria-valuetext', `${settings.borderThickness} pixels`);
+}
+
+featureBordersCheckbox.addEventListener('change', (e) => {
+  const showBorder = e.target.checked;
+  // Pin an inherited backbone value so the two checkboxes stay independent.
+  if (cgv.backbone.showBorder === undefined) {
+    cgv.backbone.update({showBorder: backboneBordersCheckbox.checked});
+  }
+  cgv.settings.update({showBorder});
+});
+backboneBordersCheckbox.addEventListener('change', (e) => {
+  cgv.backbone.update({showBorder: e.target.checked});
+  cgv.drawFull();
+});
+adaptiveBorderThicknessCheckbox.addEventListener('change', (e) => {
+  cgv.settings.update({adaptiveBorderThickness: e.target.checked});
+});
+borderColorInput.addEventListener('input', (e) => {
+  cgv.settings.update({borderColor: e.target.value});
+});
+borderSizeInput.addEventListener('input', (e) => {
+  cgv.settings.update({borderThickness: e.target.valueAsNumber});
+});
+for (const event of ['settings-update', 'backbone-update']) {
+  cgv.on(`${event}.border-testing`, syncBorderControls);
+}
+cgv.on('cgv-json-load.border-testing', () => {
+  // Replacement settings and backbone records are ready after this event.
+  queueMicrotask(syncBorderControls);
+});
+syncBorderControls();
 
 // Ruler Labels
 const rulerLabelPositionRadios = document.querySelectorAll('input[name="ruler-label-position"]');
@@ -438,6 +496,7 @@ sequenceCheckbox.addEventListener('click', () => {
   updatePageLayout();
 });
 translationCheckbox.addEventListener('click', updatePageLayout);
+bordersCheckbox.addEventListener('change', updatePageLayout);
 trackSizingCheckbox.addEventListener('click', () => {
   updatePageLayout();
 });
@@ -460,6 +519,8 @@ function updatePageLayout() {
   sequenceDiv.style.display = sequenceCheckbox.checked ? 'block' : 'none';
   // Translation
   document.getElementById('translation-testing').hidden = !translationCheckbox.checked;
+  // Borders
+  document.getElementById('border-testing').hidden = !bordersCheckbox.checked;
   // Track Sizing
   const trackSizingDiv = document.querySelector('.section-track-sizing');
   trackSizingDiv.style.display = trackSizingCheckbox.checked ? 'block' : 'none';

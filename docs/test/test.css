@@ -150,13 +150,15 @@ hr {
   margin: 0;
 }
 
-.translation-options {
+.translation-options,
+.border-options {
   display: grid;
   font-size: 14px;
   gap: 6px;
 }
 
-.translation-options label {
+.translation-options label,
+.border-options label {
   align-items: center;
   display: flex;
   gap: 5px;
@@ -169,10 +171,21 @@ hr {
   margin-top: 4px;
 }
 
-.translation-colors input {
+.translation-colors input,
+.border-options input[type='color'] {
   height: 26px;
   padding: 2px;
   width: 40px;
+}
+
+#border-size {
+  display: block;
+  width: 100%;
+  margin-top: 6px;
+}
+
+#border-size-value {
+  font-variant-numeric: tabular-nums;
 }
 
 .translation-help {

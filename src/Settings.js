@@ -43,9 +43,10 @@ import utils from './Utils';
  * [showPlotOutline](#showPlotOutline) | Boolean   | Draw the contour edge on line plots during full draws [Default: true]
  * [showShading](#showShading)         | Boolean   | Should a shading effect be drawn on the features [Default: true]
  * [showTrackLabels](#showTrackLabels) | Boolean | Show compact track names when the map is zoomed in [Default: true]
- * [showBorder](#showBorder)           | Boolean   | Should a border be drawn on the features [Default: true]
+ * [showBorder](#showBorder)           | Boolean   | Should a border be drawn on the features [Default: false]
  * [borderColor](#borderColor)         | String    | A string describing the border color of features [Default: 'rgba(0,0,0,1)']. See {@link Color} for details.
- * [borderThickness](#borderThickness) | Number    | The width of the border drawn on features in pixels [Default: 1.5]
+ * [borderThickness](#borderThickness) | Number    | Border width in pixels, or maximum width when adaptiveBorderThickness is enabled [Default: 1.5]
+ * [adaptiveBorderThickness](#adaptiveBorderThickness) | Boolean | Reduce feature and backbone borders according to their on-screen size and a zoom multiplier, from half width at zoom 1 to full width at zoom 2. When false, borderThickness stays fixed at every zoom [Default: false]
  * [arrowHeadLength](#arrowHeadLength) | Number    | Length of feature arrowheads as a proportion of the feature thickness. From 0 (no arrowhead) to 1 (arrowhead as long on the feature is thick) [Default: 0.3]
  * [initialMapThicknessProportion](#initialMapThicknessProportion) | Number  | Proportion of canvas size to use for drawing map tracks at a zoomFactor of 1 [Default: 0.1]
  * [maxMapThicknessProportion](#maxMapThicknessProportion) | Number  | Proportion of canvas size to use for drawing map tracks at max zoom level [Default: 0.5]
@@ -77,6 +78,7 @@ class Settings {
     this._showBorder = utils.defaultFor(options.showBorder, false);
     this._borderColor = new Color( utils.defaultFor(options.borderColor, 'rgba(0,0,0,1)') );
     this._borderThickness = utils.defaultFor(options.borderThickness, 1.5);
+    this._adaptiveBorderThickness = utils.defaultFor(options.adaptiveBorderThickness, false);
     this.initialMapThicknessProportion = utils.defaultFor(options.initialMapThicknessProportion, 0.1);
     this.maxMapThicknessProportion = utils.defaultFor(options.maxMapThicknessProportion, 0.5);
     this.maxSlotThickness = utils.defaultFor(options.maxSlotThickness, 50);
@@ -208,7 +210,7 @@ class Settings {
   }
 
   /**
-   * @member {Boolean} - Get or set whether features should be drawn with a border (Default: true).
+   * @member {Boolean} - Get or set whether features should be drawn with a border (Default: false).
    */
   get showBorder() {
     return this._showBorder;
@@ -239,6 +241,7 @@ class Settings {
 
   /**
    * @member {Number} - Get or set the border width in pixels (Default: 1.5).
+   *   This is the maximum width when {@link Settings#adaptiveBorderThickness} is enabled.
    */
   get borderThickness() {
     return this._borderThickness;
@@ -246,6 +249,23 @@ class Settings {
 
   set borderThickness(value) {
     this._borderThickness = Number(value);
+    this.viewer.drawFull();
+  }
+
+  /**
+   * @member {Boolean} - Adapt feature and backbone border width to their on-screen
+   *   length and thickness (Default: false). Borders disappear when either dimension
+   *   is at most 2 pixels, then grow toward {@link Settings#borderThickness} as the
+   *   element grows. This size-adjusted width is also multiplied by
+   *   min(zoomFactor, 2) / 2: half width at zoom 1 and full width at zoom 2 or above.
+   *   When false, borders use the configured width at every zoom level.
+   */
+  get adaptiveBorderThickness() {
+    return this._adaptiveBorderThickness;
+  }
+
+  set adaptiveBorderThickness(value) {
+    this._adaptiveBorderThickness = Boolean(value);
     this.viewer.drawFull();
   }
 
@@ -301,7 +321,7 @@ class Settings {
   update(attributes) {
     this.viewer.layout.batchProportionUpdates(() => this.viewer.updateRecords(this, attributes, {
       recordClass: 'Settings',
-      validKeys: ['format', 'backgroundColor', 'plotRenderer', 'showPlotOutline', 'showShading', 'showTrackLabels', 'showBorder', 'borderColor', 'borderThickness', 'arrowHeadLength', 'geneticCode', 'initialMapThicknessProportion', 'maxMapThicknessProportion', 'maxSlotThickness']
+      validKeys: ['format', 'backgroundColor', 'plotRenderer', 'showPlotOutline', 'showShading', 'showTrackLabels', 'showBorder', 'borderColor', 'borderThickness', 'adaptiveBorderThickness', 'arrowHeadLength', 'geneticCode', 'initialMapThicknessProportion', 'maxMapThicknessProportion', 'maxSlotThickness']
     }));
     this.viewer.layout._triggerProportionEvent('settings-update', { attributes });
   }
@@ -321,6 +341,7 @@ class Settings {
       showBorder: this.showBorder,
       borderColor: this.borderColor.rgbaString,
       borderThickness: this.borderThickness,
+      adaptiveBorderThickness: this.adaptiveBorderThickness,
       arrowHeadLength: this.arrowHeadLength,
       initialMapThicknessProportion: this.initialMapThicknessProportion,
       maxMapThicknessProportion: this.maxMapThicknessProportion,
