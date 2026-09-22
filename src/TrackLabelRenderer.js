@@ -32,6 +32,7 @@ const MIN_ZOOM_FACTOR = 4;
 const EDGE_GUTTER = 12;
 const MAX_LABEL_WIDTH = 150;
 const MIN_TRUNCATED_CHARACTERS = 4;
+const LABEL_PADDING = 2;
 const TRACK_LIST_EVENTS = [
   'cgv-json-load',
   'tracks-add',
@@ -220,12 +221,14 @@ class TrackLabelRenderer {
   }
 
   _planForSlot(track, slot, detail, ctx) {
+    const name = typeof track.name === 'string' ? track.name.trim() : '';
+    if (!track.visible || !name || name === 'Unknown') { return; }
     if (!slot.visible || !Number.isFinite(slot.thickness) || slot.thickness < this.font.height + 4) { return; }
     if (slot.position === 'along' && this._sequenceDetailIsReadable()) { return; }
 
     const range = this.canvas.visibleRangeForCenterOffset(slot.centerOffset, {float: true});
     if (!range || range.isMapLength()) { return; }
-    const measurement = this._labelMeasurement(track.name.trim(), detail, ctx);
+    const measurement = this._labelMeasurement(name, detail, ctx);
     if (!measurement) { return; }
 
     const pixelsPerBp = this.canvas.pixelsPerBp(slot.centerOffset);
@@ -253,12 +256,40 @@ class TrackLabelRenderer {
     if (!this.isVisibleAtCurrentZoom()) { return []; }
     const plans = [];
     for (const {track, slot, detail} of this._trackListEntries()) {
-      const name = typeof track.name === 'string' ? track.name.trim() : '';
-      if (!track.visible || !name || name === 'Unknown') { continue; }
       const plan = this._planForSlot(track, slot, detail, ctx);
       if (plan) { plans.push(plan); }
     }
     return plans;
+  }
+
+  /**
+   * Find the track whose visible label contains a canvas point in the given slot.
+   * Uses the drawing plan and may populate track and text measurement caches.
+   * @param {Slot} slot - Slot under the pointer.
+   * @param {Object} point - Canvas coordinates in pixels.
+   * @param {Number} point.x - Horizontal position from the canvas's left edge.
+   * @param {Number} point.y - Vertical position from the canvas's top edge.
+   * @return {Track|undefined} Track for the label under the pointer, if present.
+   * @private
+   */
+  hitTest(slot, point) {
+    if (!slot || !this.isVisibleAtCurrentZoom()) { return; }
+    const entry = this._trackListEntries().find(entry => entry.slot === slot);
+    if (!entry) { return; }
+    const plan = this._planForSlot(entry.track, slot, entry.detail, this.canvas.context('foreground'));
+    if (!plan) { return; }
+
+    const centerOffset = this.layout.centerOffsetForPoint(point);
+    if (Math.abs(centerOffset - plan.centerOffset) > (this.font.height / 2) + LABEL_PADDING) { return; }
+
+    const bp = this.canvas.bpForPoint(point, {float: true});
+    let bpDistance = Math.abs(bp - plan.bp);
+    if (this.viewer.format === 'circular') {
+      bpDistance %= this.viewer.sequence.length;
+      bpDistance = Math.min(bpDistance, this.viewer.sequence.length - bpDistance);
+    }
+    const halfBp = ((plan.totalWidth / 2) + LABEL_PADDING) / this.canvas.pixelsPerBp(plan.centerOffset);
+    if (bpDistance <= halfBp) { return plan.track; }
   }
 
   _contrastColorFor(backgroundColor) {
@@ -281,16 +312,15 @@ class TrackLabelRenderer {
    * @private
    */
   exclusionBounds(ctx = this.canvas.context('foreground')) {
-    const padding = 2;
     return this.plans(ctx).flatMap((plan) => {
       const pixelsPerBp = this.canvas.pixelsPerBp(plan.centerOffset);
       if (!Number.isFinite(pixelsPerBp) || pixelsPerBp <= 0) { return []; }
       return [{
         slot: plan.slot,
         bp: plan.bp,
-        halfBp: ((plan.totalWidth / 2) + padding) / pixelsPerBp,
-        innerOffset: plan.centerOffset - (this.font.height / 2) - padding,
-        outerOffset: plan.centerOffset + (this.font.height / 2) + padding,
+        halfBp: ((plan.totalWidth / 2) + LABEL_PADDING) / pixelsPerBp,
+        innerOffset: plan.centerOffset - (this.font.height / 2) - LABEL_PADDING,
+        outerOffset: plan.centerOffset + (this.font.height / 2) + LABEL_PADDING,
       }];
     });
   }

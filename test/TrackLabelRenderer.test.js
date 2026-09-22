@@ -306,6 +306,55 @@ describe('Track labels', () => {
     expect(bounds.outerOffset).toBeGreaterThan(plan.centerOffset + (renderer.font.height / 2));
   });
 
+  test.each(['circular', 'linear'])('limits hit testing to the truncated label in %s maps', (format) => {
+    const cgv = viewerWithTrack({format, track: {name: 'A very long track name that must be truncated'}});
+    cgv.canvas.context('foreground').measureText.mockImplementation(() => ({width: 10}));
+    zoomForLabels(cgv);
+    const renderer = cgv.layout._trackLabelRenderer;
+    const [plan] = renderer.plans();
+    const pixelsPerBp = cgv.canvas.pixelsPerBp(plan.centerOffset);
+    expect(plan.characters.join('')).toMatch(/…$/);
+
+    const lastCharacter = cgv.canvas.pointForBp(plan.bp + (plan.totalWidth / 2 - 5) / pixelsPerBp, plan.centerOffset);
+    const beyondText = cgv.canvas.pointForBp(plan.bp + (plan.totalWidth / 2 + 5) / pixelsPerBp, plan.centerOffset);
+    expect(renderer.hitTest(plan.slot, lastCharacter)).toBe(plan.track);
+    expect(renderer.hitTest(plan.slot, beyondText)).toBeUndefined();
+  });
+
+  test('hit tests curved text on both sides of the circular origin', () => {
+    const cgv = viewerWithTrack();
+    cgv.canvas.context('foreground').measureText.mockImplementation(() => ({width: 10}));
+    zoomForLabels(cgv);
+    const renderer = cgv.layout._trackLabelRenderer;
+    const slot = cgv.tracks().first.slots().first;
+    const pixelsPerBp = cgv.canvas.pixelsPerBp(slot.centerOffset);
+    const range = cgv.canvas.visibleRangeForCenterOffset(slot.centerOffset, {float: true});
+    // Position the leading edge so the rendered label straddles base pair 1.
+    range.start = 1001 - (12 + 25) / pixelsPerBp;
+    range.stop = 100;
+    jest.spyOn(cgv.canvas, 'visibleRangeForCenterOffset').mockReturnValue(range);
+    const [plan] = renderer.plans();
+    expect(plan.bp).toBeCloseTo(1);
+    for (const bp of [1 - 10 / pixelsPerBp, 1 + 10 / pixelsPerBp]) {
+      expect(renderer.hitTest(slot, cgv.canvas.pointForBp(bp, slot.centerOffset))).toBe(plan.track);
+    }
+  });
+
+  test('suppresses hits when zoom or sequence detail hides the label', () => {
+    const cgv = viewerWithTrack({track: {position: 'along'}});
+    zoomForLabels(cgv);
+    const renderer = cgv.layout._trackLabelRenderer;
+    jest.spyOn(cgv.sequence, 'isDetailReadable').mockReturnValue(false);
+    const [plan] = renderer.plans();
+    const point = cgv.canvas.pointForBp(plan.bp, plan.centerOffset);
+    expect(renderer.hitTest(plan.slot, point)).toBe(plan.track);
+    cgv.sequence.isDetailReadable.mockReturnValue(true);
+    expect(renderer.hitTest(plan.slot, point)).toBeUndefined();
+    cgv.sequence.isDetailReadable.mockReturnValue(false);
+    zoomForLabels(cgv, 1);
+    expect(renderer.hitTest(plan.slot, point)).toBeUndefined();
+  });
+
   test('draws foreground track labels after map data and before overlays', () => {
     const cgv = viewerWithTrack();
     const drawSlots = jest.spyOn(cgv.layout, 'drawAllSlots').mockImplementation(() => {});

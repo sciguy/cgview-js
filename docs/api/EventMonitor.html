@@ -122,11 +122,11 @@
 </tr>
 <tr>
 <td>elementType</td>
-<td>One of: 'legendItem', 'caption', 'feature', 'plot', 'translation', 'backbone', 'contig', 'label', or undefined</td>
+<td>One of: 'legendItem', 'caption', 'trackLabel', 'feature', 'plot', 'translation', 'backbone', 'contig', 'label', or undefined</td>
 </tr>
 <tr>
 <td>element</td>
-<td>The element (e.g, a feature), if there is one. For 'translation', contains the hovered codon's map range, signed frame, codon, amino acid, start/stop flags, genetic code, and contig.</td>
+<td>The element (e.g, a feature), if there is one. For 'trackLabel', this is the Track whose visible label is under the pointer. For 'translation', contains the hovered codon's map range, signed frame, codon, amino acid, start/stop flags, genetic code, and contig.</td>
 </tr>
 <tr>
 <td>slot</td>
@@ -166,6 +166,13 @@ cgv.on('click', (event) => {
   }
 });
 
+// Log the track and slot when a visible track label is clicked
+cgv.on('click', (event) => {
+  if (event.elementType === 'trackLabel') {
+    console.log(event.element.name, event.slot);
+  }
+});
+
 // Log the base pair position of the mouse as it moves
 cgv.on('mousemove', (event) => {
   console.log(`BP: ${event.bp}`);
@@ -189,7 +196,7 @@ cgv.on('mousemove', (event) => {
 
 
         <div class="tag-source">
-            <a href="EventMonitor.js.html">EventMonitor.js</a>, <a href="EventMonitor.js.html#line59">line 59</a>
+            <a href="EventMonitor.js.html">EventMonitor.js</a>, <a href="EventMonitor.js.html#line66">line 66</a>
         </div>
 
     </div>
