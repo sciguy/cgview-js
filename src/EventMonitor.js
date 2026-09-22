@@ -31,8 +31,8 @@ import * as d3 from 'd3';
  * -----------|-----------------------------------------------
  *  bp        | Base pair
  *  centerOffset | Distance from center of the map. For a circular map, this is the radius, while for a linear map, it's the distance from the backbone.
- *  elementType | One of: 'legendItem', 'caption', 'feature', 'plot', 'translation', 'backbone', 'contig', 'label', or undefined
- *  element   | The element (e.g, a feature), if there is one. For 'translation', contains the hovered codon's map range, signed frame, codon, amino acid, start/stop flags, genetic code, and contig.
+ *  elementType | One of: 'legendItem', 'caption', 'trackLabel', 'feature', 'plot', 'translation', 'backbone', 'contig', 'label', or undefined
+ *  element   | The element (e.g, a feature), if there is one. For 'trackLabel', this is the Track whose visible label is under the pointer. For 'translation', contains the hovered codon's map range, signed frame, codon, amino acid, start/stop flags, genetic code, and contig.
  *  slot      | Slot (if there is one). Track can be accessed from the slot (<em>slot.track</em>).
  *  score     | Score for element (e.g. feature, plot), if available.
  *  canvasX   | Position on the canvas X axis, where the origin is the top-left. See [scales](../tutorials/details-map-scales.html) for details.
@@ -47,6 +47,13 @@ import * as d3 from 'd3';
  * cgv.on('click', (event) => {
  *   if (event.elementType === 'feature') {
  *     console.log(`Feature '${event.element.name}' was clicked`);
+ *   }
+ * });
+ *
+ * // Log the track and slot when a visible track label is clicked
+ * cgv.on('click', (event) => {
+ *   if (event.elementType === 'trackLabel') {
+ *     console.log(event.element.name, event.slot);
  *   }
  * });
  *
@@ -240,7 +247,7 @@ class EventMonitor {
 
   /**
    * Returns an object with the *element* and *elementType* for the given *slot*, *bp*, and *centerOffset*.
-   * ElementType can be one of the following: 'plot', 'feature', 'translation', 'label', 'legendItem', 'captionItem', 'contig', 'backbone'
+   * ElementType can be one of the following: 'plot', 'feature', 'translation', 'trackLabel', 'label', 'legendItem', 'caption', 'contig', 'backbone'
    * @param {Slot}  slot - the slot for the event.
    * @param {Number}  bp - the bp for the event.
    * @param {Number}  centerOffset - the centerOffset for the event.
@@ -273,6 +280,12 @@ class EventMonitor {
           element = caption;
         }
       }
+    }
+
+    // Track labels are drawn above features and plots, below legends and captions.
+    if (!elementType && slot) {
+      element = this.viewer.layout._trackLabelRenderer.hitTest(slot, {x: canvasX, y: canvasY});
+      if (element) { elementType = 'trackLabel'; }
     }
 
     // Check for feature or plot
