@@ -3,6 +3,7 @@
 --------------------------------------------------------------------------------
 
 ## 1.9.0 - Unreleased
+- Added bookmark reordering through `Bookmark.move(newIndex)` and `Viewer.moveBookmark(oldIndex, newIndex)`, with a `bookmarks-moved` event.
 - Added screen-aware line-plot contours and `showPlotOutline`, based on work by @paulstothard. Retained `plotRenderer` as an experimental testing switch that may change or be removed without notice.
 - Added an `auto` feature decoration that changes from an arc to a progressively sized arrow as its projected length grows.
 - Added a Legend `defaultDecoration`, defaulting to `auto`, for LegendItems without an explicit decoration.

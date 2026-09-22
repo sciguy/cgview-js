@@ -138,6 +138,12 @@ in a input field, the map will move to the bookmark position.</p>
 <td>bookmarks-remove</td>
 </tr>
 <tr>
+<td><a href="../docs.html#s.reordering-records">Reorder</a></td>
+<td><a href="Viewer.html#moveBookmark">moveBookmark()</a></td>
+<td><a href="#move">move()</a></td>
+<td>bookmarks-moved</td>
+</tr>
+<tr>
 <td><a href="../docs.html#s.reading-records">Read</a></td>
 <td><a href="Viewer.html#bookmarks">bookmarks()</a></td>
 <td>-</td>
@@ -234,7 +240,7 @@ cgv.bookmarks().length;
 
 
         <div class="tag-source">
-            <a href="Bookmark.js.html">Bookmark.js</a>, <a href="Bookmark.js.html#line78">line 78</a>
+            <a href="Bookmark.js.html">Bookmark.js</a>, <a href="Bookmark.js.html#line79">line 79</a>
         </div>
 
     </div>
@@ -1384,6 +1390,190 @@ Defaults to the viewer's current <a href="Viewer.html#bbOffset">bbOffset</a>.</p
 
 <dt>
     <div class="nameContainer">
+        <h4 class="name" id="move">
+
+            move<span class="signature">(newIndex)</span><span class="return-arrow" aria-hidden="true">➜</span><span class="type-signature returnType">{void}</span>
+        </h4>
+
+
+        <div class="tag-source">
+            <a href="Bookmark.js.html">Bookmark.js</a>, <a href="Bookmark.js.html#line229">line 229</a>
+        </div>
+
+    </div>
+
+
+</dt>
+<dd>
+
+
+    <div class="description">
+        <p>Move this bookmark to a new index in the Viewer bookmarks array.
+Emits bookmarks-moved and marks the map data as changed through the Viewer.
+Use <a href="#moveTo">moveTo()</a> to navigate to the saved map position.</p>
+    </div>
+
+
+
+
+
+
+
+
+
+<table class="params">
+    <thead>
+	<tr>
+
+		<th>Name</th>
+
+
+		<th>Type</th>
+
+
+
+		<th class="last">Description</th>
+	</tr>
+	</thead>
+
+	<tbody>
+
+
+        <tr>
+
+                <td class="name"><code>newIndex</code></td>
+
+
+            <td class="type">
+
+
+<span class="param-type">Number</span>
+
+
+
+            </td>
+
+
+
+            <td class="description last">
+
+                <p>New index for this bookmark (0-based).</p></td>
+        </tr>
+
+
+	</tbody>
+</table>
+
+
+
+<dl class="details">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</dl>
+
+
+
+
+
+
+
+
+
+    <h5>Throws:</h5>
+
+
+
+<dl>
+    <dt>
+        <div class="param-desc">
+        <p>If the bookmark was removed or newIndex is not an integer within the array.</p>
+        </div>
+    </dt>
+    <dt>
+        <dl>
+            <dt>
+                Type
+            </dt>
+            <dd>
+
+<span class="param-type">RangeError</span>
+
+
+            </dd>
+        </dl>
+    </dt>
+</dl>
+
+
+
+
+
+    <h5>Returns:</h5>
+
+
+
+<table class="params">
+    <thead>
+    <tr>
+
+        <th>Type</th>
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+    <tbody>
+
+        <tr>
+
+            <td class="type">
+
+                        void
+
+
+            </td>
+            <td class="description last"></td>
+        </tr>
+
+    </tbody>
+</table>
+
+
+
+
+
+        <h5>Example</h5>
+
+
+
+    <pre class="language-javascript"><code><p>// Move the first bookmark to the third position (with at least three bookmarks).
+cgv.bookmarks(1).move(2);</p></code></pre>
+
+
+
+</dd>
+
+
+
+<dt>
+    <div class="nameContainer">
         <h4 class="name" id="moveTo">
 
             moveTo<span class="signature">(duration)</span>
@@ -1391,7 +1581,7 @@ Defaults to the viewer's current <a href="Viewer.html#bbOffset">bbOffset</a>.</p
 
 
         <div class="tag-source">
-            <a href="Bookmark.js.html">Bookmark.js</a>, <a href="Bookmark.js.html#line221">line 221</a>
+            <a href="Bookmark.js.html">Bookmark.js</a>, <a href="Bookmark.js.html#line238">line 238</a>
         </div>
 
     </div>
@@ -1665,7 +1855,7 @@ Defaults to the viewer's current <a href="Viewer.html#bbOffset">bbOffset</a>.</p
 
 
         <div class="tag-source">
-            <a href="Bookmark.js.html">Bookmark.js</a>, <a href="Bookmark.js.html#line213">line 213</a>
+            <a href="Bookmark.js.html">Bookmark.js</a>, <a href="Bookmark.js.html#line214">line 214</a>
         </div>
 
     </div>
@@ -1737,7 +1927,7 @@ See <a href="../docs.html#s.removing-records">removing records</a> for details.<
 
 
         <div class="tag-source">
-            <a href="Bookmark.js.html">Bookmark.js</a>, <a href="Bookmark.js.html#line246">line 246</a>
+            <a href="Bookmark.js.html">Bookmark.js</a>, <a href="Bookmark.js.html#line263">line 263</a>
         </div>
 
     </div>
@@ -1808,7 +1998,7 @@ See <a href="../docs.html#s.removing-records">removing records</a> for details.<
 
 
         <div class="tag-source">
-            <a href="Bookmark.js.html">Bookmark.js</a>, <a href="Bookmark.js.html#line115">line 115</a>
+            <a href="Bookmark.js.html">Bookmark.js</a>, <a href="Bookmark.js.html#line116">line 116</a>
         </div>
 
     </div>
@@ -1909,7 +2099,7 @@ See <a href="../docs.html#s.removing-records">removing records</a> for details.<
 
 
         <div class="tag-source">
-            <a href="Bookmark.js.html">Bookmark.js</a>, <a href="Bookmark.js.html#line205">line 205</a>
+            <a href="Bookmark.js.html">Bookmark.js</a>, <a href="Bookmark.js.html#line206">line 206</a>
         </div>
 
     </div>

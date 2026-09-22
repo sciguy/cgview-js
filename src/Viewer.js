@@ -1267,6 +1267,26 @@ class Viewer {
   }
 
   /**
+   * Move a bookmark from one index to another in the bookmarks array.
+   * Emits bookmarks-moved with {oldIndex, newIndex} and marks the map data as changed.
+   * @param {Number} oldIndex - Index of the bookmark to move (0-based).
+   * @param {Number} newIndex - New index for the bookmark (0-based).
+   * @returns {void}
+   * @throws {RangeError} If either index is not an integer within the bookmarks array.
+   * @example
+   * // Move the first bookmark to the third position (with at least three bookmarks).
+   * cgv.moveBookmark(0, 2);
+   */
+  moveBookmark(oldIndex, newIndex) {
+    const bookmarks = this._bookmarks;
+    if (![oldIndex, newIndex].every(index => Number.isInteger(index) && index >= 0 && index < bookmarks.length)) {
+      throw new RangeError('Bookmark indices must be integers within the current bookmarks array.');
+    }
+    bookmarks.move(oldIndex, newIndex);
+    this.trigger('bookmarks-moved', {oldIndex, newIndex});
+  }
+
+  /**
    * Clear the viewer canvas
    */
   clear(layerName = 'map') {
