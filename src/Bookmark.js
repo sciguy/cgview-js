@@ -37,6 +37,7 @@ import utils from './Utils';
  * [Add](../docs.html#s.adding-records)      | [addBookmarks()](Viewer.html#addBookmarks)       | -                   | bookmarks-add
  * [Update](../docs.html#s.updating-records) | [updateBookmarks()](Viewer.html#updateBookmarks) | [update()](#update) | bookmarks-update
  * [Remove](../docs.html#s.removing-records) | [removeBookmarks()](Viewer.html#removeBookmarks) | [remove()](#remove) | bookmarks-remove
+ * [Reorder](../docs.html#s.reordering-records) | [moveBookmark()](Viewer.html#moveBookmark) | [move()](#move) | bookmarks-moved
  * [Read](../docs.html#s.reading-records)    | [bookmarks()](Viewer.html#bookmarks)             | -                   | -
  *
  * <a name="attributes"></a>
@@ -215,6 +216,22 @@ class Bookmark extends CGObject {
   }
 
   /**
+   * Move this bookmark to a new index in the Viewer bookmarks array.
+   * Emits bookmarks-moved and marks the map data as changed through the Viewer.
+   * Use [moveTo()](#moveTo) to navigate to the saved map position.
+   * @param {Number} newIndex - New index for this bookmark (0-based).
+   * @returns {void}
+   * @throws {RangeError} If the bookmark was removed or newIndex is not an integer within the array.
+   * @example
+   * // Move the first bookmark to the third position (with at least three bookmarks).
+   * cgv.bookmarks(1).move(2);
+   */
+  move(newIndex) {
+    const currentIndex = this.viewer.bookmarks().indexOf(this);
+    this.viewer.moveBookmark(currentIndex, newIndex);
+  }
+
+  /**
    * Move and zoom the map to this Bookmarks position.
    * @param {Number} duration - length of time for the animation
    */
@@ -262,5 +279,4 @@ class Bookmark extends CGObject {
 }
 
 export default Bookmark;
-
 
