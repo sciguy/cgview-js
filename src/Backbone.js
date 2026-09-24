@@ -292,10 +292,15 @@ class Backbone extends CGObject {
 
   /**
    * The maximum zoom factor to get the correct spacing between basepairs.
+   * Always allows the overview zoom level of 1.
    * @return {Number}
    */
   maxZoomFactor() {
-    return (this.sequence.length * (this.sequence.bpSpacing + (this.sequence.bpMargin * 2))) / this.pixelLength;
+    // Always allow the overview zoom used by Viewer.reset().
+    return Math.max(
+      1,
+      (this.sequence.length * (this.sequence.bpSpacing + (this.sequence.bpMargin * 2))) / this.pixelLength
+    );
   }
 
   /**
