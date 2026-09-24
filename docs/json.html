@@ -99,7 +99,7 @@ only present when they have non-default values (see the first [feature](#lines.1
 
 Ruler labels can be placed `inside`, `outside`, on `both` sides, or hidden with
 `none` while retaining the ruler ticks. Their orientation can be `horizontal`
-or `curved`; curved labels follow circular maps and fall back to horizontal text
+or `curved` (the default); curved labels follow circular maps and fall back to horizontal text
 in linear maps.
 
 ```json
@@ -134,7 +134,7 @@ in linear maps.
             "font": "sans-serif,plain,10",
             "color": "rgba(0,0,0,1)",
             "labelPosition": "inside",
-            "labelOrientation": "horizontal"
+            "labelOrientation": "curved"
         },
         "annotation": {
             "font": "sans-serif,plain,12",

@@ -48,7 +48,7 @@ const CURVED_LABEL_CACHE_LIMIT = 64;
  * [font](#font)                    | String    | A string describing the font [Default: 'sans-serif, plain, 10']. See {@link Font} for details.
  * [color](#color)                  | String    | A string describing the color [Default: 'black']. See {@link Color} for details.
  * [labelPosition](#labelPosition)  | String    | Side on which labels are drawn: 'inside', 'outside', 'both', or 'none' [Default: 'inside']
- * [labelOrientation](#labelOrientation) | String | Label presentation: 'horizontal' or 'curved' [Default: 'horizontal']
+ * [labelOrientation](#labelOrientation) | String | Label presentation: 'horizontal' or 'curved' [Default: 'curved']
  * [visible](CGObject.html#visible) | Boolean   | Rulers are visible [Default: true]
  * [meta](CGObject.html#meta)       | Object    | [Meta data](../tutorials/details-meta-data.html) for ruler
  *
@@ -75,7 +75,7 @@ class Ruler extends CGObject {
     super(viewer, options, meta);
     this._curvedLabelMeasurementCache = new Map();
     this._labelPosition = 'inside';
-    this._labelOrientation = 'horizontal';
+    this._labelOrientation = 'curved';
     this.tickCount = utils.defaultFor(options.tickCount, 10);
     this.tickWidth = utils.defaultFor(options.tickWidth, 1);
     this.tickLength = utils.defaultFor(options.tickLength, 4);
@@ -84,7 +84,7 @@ class Ruler extends CGObject {
     this.font = utils.defaultFor(options.font, 'sans-serif, plain, 10');
     this.color = new Color( utils.defaultFor(options.color, 'black') );
     this.labelPosition = utils.defaultFor(options.labelPosition, 'inside');
-    this.labelOrientation = utils.defaultFor(options.labelOrientation, 'horizontal');
+    this.labelOrientation = utils.defaultFor(options.labelOrientation, 'curved');
     this.lineCap = 'round';
 
     this.viewer.trigger('ruler-update', { attributes: this.toJSON({includeDefaults: true}) });

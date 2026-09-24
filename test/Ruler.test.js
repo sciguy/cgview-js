@@ -15,32 +15,32 @@ describe('Ruler labels', () => {
     });
   }
 
-  test('uses backward-compatible label defaults and serializes them', () => {
+  test('defaults to curved labels inside the map and serializes them', () => {
     const cgv = viewer();
 
     expect(cgv.ruler.labelPosition).toBe('inside');
-    expect(cgv.ruler.labelOrientation).toBe('horizontal');
+    expect(cgv.ruler.labelOrientation).toBe('curved');
     expect(cgv.ruler.toJSON()).toMatchObject({
       labelPosition: 'inside',
-      labelOrientation: 'horizontal',
+      labelOrientation: 'curved',
     });
   });
 
-  test('updates and round-trips ruler label presentation', () => {
+  test('updates and serializes an explicit horizontal label orientation', () => {
     const cgv = viewer({
       ruler: {
         labelPosition: 'outside',
-        labelOrientation: 'curved',
+        labelOrientation: 'horizontal',
       },
     });
 
     expect(cgv.ruler.labelPosition).toBe('outside');
-    expect(cgv.ruler.labelOrientation).toBe('curved');
+    expect(cgv.ruler.labelOrientation).toBe('horizontal');
 
     cgv.ruler.update({labelPosition: 'both'});
     expect(cgv.io.toJSON().cgview.ruler).toMatchObject({
       labelPosition: 'both',
-      labelOrientation: 'curved',
+      labelOrientation: 'horizontal',
     });
   });
 
@@ -78,7 +78,7 @@ describe('Ruler labels', () => {
   });
 
   test('places an outside horizontal label away from the map with a halo', () => {
-    const cgv = viewer({ruler: {labelPosition: 'outside'}});
+    const cgv = viewer({ruler: {labelPosition: 'outside', labelOrientation: 'horizontal'}});
     const ctx = cgv.canvas.context('foreground');
     const pointForBp = jest.spyOn(cgv.canvas, 'pointForBp');
     const clockPositionForBp = jest.spyOn(cgv.layout, 'clockPositionForBp');
