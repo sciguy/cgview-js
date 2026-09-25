@@ -333,12 +333,8 @@ class TrackLabelRenderer {
     ctx.font = this.font.css;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.lineWidth = 3.5;
-    ctx.lineJoin = 'round';
-    ctx.strokeStyle = haloColor;
-    ctx.strokeText(text, 0, 0);
     ctx.fillStyle = textColor;
-    ctx.fillText(text, 0, 0);
+    this.canvas.drawText(ctx, text, 0, 0, {haloColor, haloWidth: 3.5});
     ctx.restore();
   }
 

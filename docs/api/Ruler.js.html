@@ -514,15 +514,10 @@ class Ruler extends CGObject {
   }
 
   _drawHorizontalLabel(ctx, label, x, y) {
-    ctx.save();
-    ctx.strokeStyle = this.viewer.settings.backgroundColor.rgbaString;
-    ctx.lineWidth = LABEL_HALO_WIDTH;
-    ctx.lineJoin = 'round';
-    ctx.lineCap = 'round';
-    ctx.miterLimit = 2;
-    ctx.strokeText(label, x, y);
-    ctx.restore();
-    ctx.fillText(label, x, y);
+    this.canvas.drawText(ctx, label, x, y, {
+      haloColor: this.viewer.settings.backgroundColor.rgbaString,
+      haloWidth: LABEL_HALO_WIDTH,
+    });
   }
 
   _curvedLabelMeasurement(ctx, label) {

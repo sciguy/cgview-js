@@ -133,6 +133,8 @@ class Settings {
       this._backgroundColor = new Color(color);
     }
     this.viewer.fillBackground();
+    // Static caption and legend layers must also follow inherited backgrounds.
+    if (!this.viewer.loading) { this.viewer.refreshCanvasLayer(); }
   }
 
   /**

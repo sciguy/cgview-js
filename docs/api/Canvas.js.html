@@ -794,6 +794,42 @@ class Canvas {
   }
 
   /**
+   * Draw straight text with an optional halo, using the context's current font,
+   * fill color, alignment, and baseline. Multiline halos are completed before
+   * any fills. Paints on the supplied context without clearing or changing its
+   * drawing state.
+   * @param {CanvasRenderingContext2D|Object} ctx - Canvas or SVG drawing context.
+   * @param {String|String[]} text - Text or individually positioned lines.
+   * @param {Number} x - Text anchor in canvas coordinates.
+   * @param {Number} y - Baseline of the first line.
+   * @param {Object} [options] - Text drawing options.
+   * @param {Number} [options.lineHeight=0] - Baseline spacing for multiple lines.
+   * @param {String} [options.haloColor] - Stroke color, including opacity.
+   * @param {Number} [options.haloWidth=5] - Protective stroke width in pixels.
+   * @returns {void}
+   * @example
+   * cgv.canvas.drawText(ctx, ['Title', 'Subtitle'], 20, 30, {
+   *   lineHeight: 18, haloColor: 'rgba(255,255,255,0.8)', haloWidth: 3,
+   * });
+   * @private
+   */
+  drawText(ctx, text, x, y, {lineHeight = 0, haloColor, haloWidth = 5} = {}) {
+    const lines = Array.isArray(text) ? text : [text];
+    ctx.save();
+    if (haloColor &amp;&amp; haloWidth > 0) {
+      ctx.strokeStyle = haloColor;
+      ctx.lineWidth = haloWidth;
+      ctx.lineJoin = 'round';
+      ctx.lineCap = 'round';
+      ctx.miterLimit = 2;
+      ctx.setLineDash([]);
+      lines.forEach((line, index) => ctx.strokeText(line, x, y + index * lineHeight));
+    }
+    lines.forEach((line, index) => ctx.fillText(line, x, y + index * lineHeight));
+    ctx.restore();
+  }
+
+  /**
    * Draw measured glyphs along the circular map path. Callers retain
    * responsibility for text measurement and caching.
    * @param {Object} options - Curved-text drawing options.

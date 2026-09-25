@@ -103,6 +103,64 @@ describe('IO', () => {
 
   describe('exports', () => {
 
+    test.each(['map', 'canvas'])('paints a translucent %s legend once per SVG or PNG export', on => {
+      const item = cgv.legend.addItems({name: 'Export legend', swatchColor: 'rgba(10,30,50,0.5)'})[0];
+      cgv.legend.update({on, backgroundStyle: 'halo', backgroundColor: 'rgba(255,255,255,0.5)'});
+      let svgContext;
+      cgv.externals.SVGContext = function() {
+        svgContext = document.createElement('canvas').getContext('2d');
+        svgContext.getSerializedSvg = () => '<svg></svg>';
+        return svgContext;
+      };
+      cgv.io.getSVG();
+      expect(svgContext.strokeText.mock.calls.filter(call => call[0] === item.name)).toHaveLength(1);
+      expect(svgContext.fillText.mock.calls.filter(call => call[0] === item.name)).toHaveLength(1);
+      expect(svgContext.strokeRect).toHaveBeenCalledTimes(1);
+
+      const createLayers = jest.spyOn(cgv.canvas, 'createLayers');
+      const download = jest.spyOn(cgv.io, 'download').mockImplementation(() => {});
+      try {
+        cgv.io.downloadImage(1200, 1200);
+        const ctx = createLayers.mock.results[0].value[on === 'map' ? 'foreground' : 'canvas'].ctx;
+        expect(ctx.strokeText.mock.calls.filter(call => call[0] === item.name)).toHaveLength(1);
+        expect(ctx.fillText.mock.calls.filter(call => call[0] === item.name)).toHaveLength(1);
+        expect(ctx.strokeRect).toHaveBeenCalledTimes(1);
+        expect(ctx.scale).toHaveBeenCalledWith(2, 2);
+      } finally {
+        createLayers.mockRestore();
+        download.mockRestore();
+      }
+    });
+
+    test.each(['map', 'canvas'])('paints a translucent %s caption once per SVG or PNG export', on => {
+      const caption = cgv.addCaptions({
+        name: 'Export halo', backgroundStyle: 'halo', backgroundColor: 'rgba(255,255,255,0.5)',
+      })[0];
+      caption.on = on;
+      let svgContext;
+      cgv.externals.SVGContext = function() {
+        svgContext = document.createElement('canvas').getContext('2d');
+        svgContext.getSerializedSvg = () => '<svg></svg>';
+        return svgContext;
+      };
+      cgv.io.getSVG();
+      expect(svgContext.strokeText.mock.calls.filter(call => call[0] === caption.name)).toHaveLength(1);
+      expect(svgContext.fillText.mock.calls.filter(call => call[0] === caption.name)).toHaveLength(1);
+
+      const createLayers = jest.spyOn(cgv.canvas, 'createLayers');
+      const download = jest.spyOn(cgv.io, 'download').mockImplementation(() => {});
+      try {
+        cgv.io.downloadImage(1200, 1200);
+        const ctx = createLayers.mock.results[0].value[on === 'map' ? 'foreground' : 'canvas'].ctx;
+        expect(ctx.strokeText.mock.calls.filter(call => call[0] === caption.name)).toHaveLength(1);
+        expect(ctx.fillText.mock.calls.filter(call => call[0] === caption.name)).toHaveLength(1);
+        expect(ctx.scale).toHaveBeenCalledWith(2, 2);
+      } finally {
+        createLayers.mockRestore();
+        download.mockRestore();
+      }
+    });
+
     const SVGContext = function() {
       const context = document.createElement('canvas').getContext('2d');
       context.getSerializedSvg = () => '<svg></svg>';

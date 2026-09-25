@@ -606,11 +606,11 @@ class Viewer {
 
     this.canvas.resize(this.width, this.height);
 
-    this.refreshCanvasLayer();
     // Hide Color Picker: otherwise it may disappear off the screen
     this.colorPicker.close();
 
     this.layout._adjustProportions();
+    this.refreshCanvasLayer();
 
     this.draw(fast);
 
@@ -884,7 +884,7 @@ class Viewer {
   updateCaptions(captionsOrUpdates, attributes) {
     const { records: captions, updates } = this.updateRecords(captionsOrUpdates, attributes, {
       recordClass: 'Caption',
-      validKeys: ['name', 'on', 'anchor', 'position', 'font', 'visible', 'fontColor', 'textAlignment', 'backgroundColor', 'pluginOptions']
+      validKeys: ['name', 'on', 'anchor', 'position', 'font', 'visible', 'fontColor', 'textAlignment', 'backgroundColor', 'backgroundStyle', 'pluginOptions']
     });
     this.trigger('captions-update', { captions, attributes, updates });
   }
@@ -1346,13 +1346,26 @@ class Viewer {
     return this._features.filter( f => f.source === source );
   }
 
+  /**
+   * Remeasure captions and the legend, then repaint their shared canvas and
+   * foreground layers. Clears previous overlay pixels and restores labels
+   * underneath moved, hidden, or translucent captions and legends.
+   * @returns {void}
+   * @private
+   */
   refreshCanvasLayer() {
-    for (let i = 0, len = this._captions.length; i < len; i++) {
-      // if (this._captions[i].visible) {
-        this._captions[i].refresh();
-      // }
+    // Repaint complete shared layers so moving or changing a halo never erases
+    // neighboring labels or leaves old, translucent text behind.
+    this.clear('canvas');
+    for (const caption of this._captions) {
+      caption.refresh(false);
     }
-    this.legend && this.legend.refresh();
+    if (this.legend) { this.legend.refresh(false); }
+    for (const caption of this._captions) {
+      if (caption.box && caption.onCanvas) { caption._draw(); }
+    }
+    if (this.legend?.position.onCanvas) { this.legend._draw(); }
+    if (!this.loading) { this.layout.drawForeground(); }
   }
 
   /**
