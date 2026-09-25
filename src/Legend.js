@@ -424,12 +424,13 @@ class Legend extends CGObject {
 
   /**
    * Recalculates the *Legend* size and position.
+   * @param {Boolean} [redraw=true] - Clear and draw after measuring.
    * @private
    */
-  refresh() {
+  refresh(redraw = true) {
     const box = this.box;
     if (!box) { return; }
-    this.clear();
+    if (redraw) { this.clear(); }
 
     let height = 0;
     let maxHeight = 0;
@@ -466,7 +467,7 @@ class Legend extends CGObject {
 
     box.resize(width, height);
 
-    this.draw();
+    if (redraw) { this.draw(); }
   }
 
   /**
@@ -699,4 +700,3 @@ class Legend extends CGObject {
 }
 
 export default Legend;
-

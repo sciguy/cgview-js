@@ -188,9 +188,14 @@
 <td>Alignment of caption text: <em>left</em>, <em>center</em>, or <em>right</em> [Default: 'left']</td>
 </tr>
 <tr>
-<td><a href="#font">backgroundColor</a></td>
+<td><a href="#backgroundColor">backgroundColor</a></td>
 <td>String</td>
-<td>A string describing the background color of the caption [Default: 'white']. See <a href="Color.html"><code>Color</code></a> for details.</td>
+<td>Color of the rectangle or text halo, including opacity. Omit or set to undefined to inherit the current map background color. See <a href="Color.html"><code>Color</code></a> for details.</td>
+</tr>
+<tr>
+<td><a href="#backgroundStyle">backgroundStyle</a></td>
+<td>String</td>
+<td>Background presentation: <em>rect</em> or <em>halo</em> [Default: 'rect']. Halo stroke width is one quarter of the font size.</td>
 </tr>
 <tr>
 <td><a href="#on">on</a><sup>ic</sup></td>
@@ -210,7 +215,16 @@
 </tbody>
 </table>
 <p><sup>ic</sup> Ignored on Caption creation</p>
-<h3>Examples</h3></div>
+<h3>Examples</h3>
+<pre class="prettyprint source lang-js"><code>cgv.addCaptions({
+  name: 'Genome title',
+  font: 'sans-serif, bold, 24',
+  backgroundStyle: 'halo',
+  backgroundColor: 'rgba(255,255,255,0.8)',
+});
+// Resume following the map background color, including future changes.
+cgv.captions(1).update({backgroundColor: undefined});
+</code></pre></div>
 
 </header>
 
@@ -229,7 +243,7 @@
 
 
         <div class="tag-source">
-            <a href="Caption.js.html">Caption.js</a>, <a href="Caption.js.html#line64">line 64</a>
+            <a href="Caption.js.html">Caption.js</a>, <a href="Caption.js.html#line78">line 78</a>
         </div>
 
     </div>
@@ -476,7 +490,59 @@
 <dd>
 
     <div class="description">
-        <p>Get or set the backgroundColor. When setting the color, a string representing the color or a <a href="Color.html"><code>Color</code></a> object can be used. For details see <a href="Color.html"><code>Color</code></a>.</p>
+        <p>Get the resolved background color, or set an explicit color
+string or <a href="Color.html"><code>Color</code></a>. An omitted or undefined value inherits the current
+<a href="Settings.html#backgroundColor"><code>Settings#backgroundColor</code></a>, including opacity. Inherited backgrounds
+are omitted from JSON, even with includeDefaults, to retain that behavior
+when reloaded.</p>
+    </div>
+
+
+
+<dl class="details">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</dl>
+
+
+
+</dd>
+
+
+
+<dt>
+    <div class="nameContainer">
+        <h4 class="name" id="backgroundStyle">backgroundStyle<span class="type-signature type string">String</span> </h4>
+    </div>
+
+
+</dt>
+<dd>
+
+    <div class="description">
+        <p>Get or set the background presentation: <em>rect</em> (default)
+or <em>halo</em>. Both use backgroundColor, including its opacity. The halo stroke
+width is one quarter of the font size; positioning and hit bounds are shared
+by both styles.</p>
     </div>
 
 
@@ -1297,7 +1363,7 @@
 
 
         <div class="tag-source">
-            <a href="Caption.js.html">Caption.js</a>, <a href="Caption.js.html#line379">line 379</a>
+            <a href="Caption.js.html">Caption.js</a>, <a href="Caption.js.html#line414">line 414</a>
         </div>
 
     </div>
@@ -1441,7 +1507,7 @@
 
 
         <div class="tag-source">
-            <a href="Caption.js.html">Caption.js</a>, <a href="Caption.js.html#line386">line 386</a>
+            <a href="Caption.js.html">Caption.js</a>, <a href="Caption.js.html#line422">line 422</a>
         </div>
 
     </div>
@@ -1452,7 +1518,8 @@
 
 
     <div class="description">
-        <p>Draw the caption</p>
+        <p>Draw the caption, repainting its shared layers to preserve overlapping text
+and avoid accumulating translucent halos on repeated draws.</p>
     </div>
 
 
@@ -1662,7 +1729,7 @@
 
 
         <div class="tag-source">
-            <a href="Caption.js.html">Caption.js</a>, <a href="Caption.js.html#line343">line 343</a>
+            <a href="Caption.js.html">Caption.js</a>, <a href="Caption.js.html#line378">line 378</a>
         </div>
 
     </div>
@@ -1778,7 +1845,7 @@
 
 
         <div class="tag-source">
-            <a href="Caption.js.html">Caption.js</a>, <a href="Caption.js.html#line332">line 332</a>
+            <a href="Caption.js.html">Caption.js</a>, <a href="Caption.js.html#line366">line 366</a>
         </div>
 
     </div>
@@ -1789,7 +1856,8 @@
 
 
     <div class="description">
-        <p>Invert the colors of the caption (i.e. backgroundColor and fontColor).</p>
+        <p>Invert the font and any explicit background color. Inherited backgrounds
+continue following the map, which is inverted separately by the viewer.</p>
     </div>
 
 
@@ -1849,7 +1917,7 @@
 
 
         <div class="tag-source">
-            <a href="Caption.js.html">Caption.js</a>, <a href="Caption.js.html#line429">line 429</a>
+            <a href="Caption.js.html">Caption.js</a>, <a href="Caption.js.html#line476">line 476</a>
         </div>
 
     </div>
@@ -1965,7 +2033,7 @@
 
 
         <div class="tag-source">
-            <a href="Caption.js.html">Caption.js</a>, <a href="Caption.js.html#line286">line 286</a>
+            <a href="Caption.js.html">Caption.js</a>, <a href="Caption.js.html#line318">line 318</a>
         </div>
 
     </div>
@@ -2240,7 +2308,7 @@ the map (not the canvas).</p>
 
 
         <div class="tag-source">
-            <a href="Caption.js.html">Caption.js</a>, <a href="Caption.js.html#line416">line 416</a>
+            <a href="Caption.js.html">Caption.js</a>, <a href="Caption.js.html#line463">line 463</a>
         </div>
 
     </div>
@@ -2311,7 +2379,7 @@ the map (not the canvas).</p>
 
 
         <div class="tag-source">
-            <a href="Caption.js.html">Caption.js</a>, <a href="Caption.js.html#line438">line 438</a>
+            <a href="Caption.js.html">Caption.js</a>, <a href="Caption.js.html#line485">line 485</a>
         </div>
 
     </div>
@@ -2382,7 +2450,7 @@ the map (not the canvas).</p>
 
 
         <div class="tag-source">
-            <a href="Caption.js.html">Caption.js</a>, <a href="Caption.js.html#line94">line 94</a>
+            <a href="Caption.js.html">Caption.js</a>, <a href="Caption.js.html#line110">line 110</a>
         </div>
 
     </div>
@@ -2485,7 +2553,7 @@ the map (not the canvas).</p>
 
 
         <div class="tag-source">
-            <a href="Caption.js.html">Caption.js</a>, <a href="Caption.js.html#line277">line 277</a>
+            <a href="Caption.js.html">Caption.js</a>, <a href="Caption.js.html#line309">line 309</a>
         </div>
 
     </div>

@@ -253,6 +253,23 @@ describe('Canvas', () => {
     expect(widths).toEqual([156, 2, 2]);
   });
 
+  test('draws all straight-text halos before fills and restores the context state', () => {
+    const ctx = document.createElement('canvas').getContext('2d');
+    ctx.strokeStyle = 'red';
+    ctx.lineWidth = 1;
+    ctx.setLineDash([2, 4]);
+    canvas.drawText(ctx, ['Title', 'Subtitle'], 10, 20, {
+      lineHeight: 15, haloColor: 'rgba(255,255,255,0.5)', haloWidth: 3,
+    });
+    expect(ctx.strokeText.mock.calls).toEqual([['Title', 10, 20], ['Subtitle', 10, 35]]);
+    expect(ctx.fillText.mock.calls).toEqual(ctx.strokeText.mock.calls);
+    expect(Math.max(...ctx.strokeText.mock.invocationCallOrder))
+      .toBeLessThan(Math.min(...ctx.fillText.mock.invocationCallOrder));
+    expect(ctx.strokeStyle).toBe('#ff0000');
+    expect(ctx.lineWidth).toBe(1);
+    expect(ctx.getLineDash()).toEqual([2, 4]);
+  });
+
   test('draws curved text with a complete halo pass before glyph fills', () => {
     canvas.pixelsPerBp.mockReturnValue(2);
 

@@ -724,7 +724,8 @@ Attribute                        | Type      | Description
 [font](api/Caption.html#font)                    | String    | A string describing the font [Default: 'SansSerif, plain, 8']. See <a href="api/Font.html"><code>Font</code></a> for details.
 [fontColor](api/Caption.html#fontColor)          | String    | A string describing the color [Default: 'black']. See <a href="api/Color.html"><code>Color</code></a> for details.
 [textAlignment](api/Caption.html#textAlignment)  | String    | Alignment of caption text: *left*, *center*, or *right* [Default: 'left']
-[backgroundColor](api/Caption.html#font)         | String    | A string describing the background color of the caption [Default: 'white']. See <a href="api/Color.html"><code>Color</code></a> for details.
+[backgroundColor](api/Caption.html#backgroundColor) | String | Color of the rectangle or text halo, including opacity. Omit or set to undefined to inherit the current map background color. See <a href="api/Color.html"><code>Color</code></a> for details.
+[backgroundStyle](api/Caption.html#backgroundStyle) | String | Background presentation: *rect* or *halo* [Default: 'rect']. Halo stroke width is one quarter of the font size.
 [on](api/Caption.html#on)<sup>ic</sup>           | String    | Place the caption relative to the 'canvas' or 'map' [Default: 'canvas']
 [visible](api/CGObject.html#visible) | Boolean   | Caption is visible [Default: true]
 [meta](api/CGObject.html#meta)       | Object    | [Meta data](tutorials/details-meta-data.html) for Caption

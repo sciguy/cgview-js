@@ -26,6 +26,8 @@ import Color from './Color';
 import utils from './Utils';
 import * as d3 from 'd3';
 
+const HALO_WIDTH_RATIO = 0.25;
+
 /**
  * Captions are used to add additional annotation to the map.
  *
@@ -50,7 +52,8 @@ import * as d3 from 'd3';
  * [font](#font)                    | String    | A string describing the font [Default: 'SansSerif, plain, 8']. See {@link Font} for details.
  * [fontColor](#fontColor)          | String    | A string describing the color [Default: 'black']. See {@link Color} for details.
  * [textAlignment](#textAlignment)  | String    | Alignment of caption text: *left*, *center*, or *right* [Default: 'left']
- * [backgroundColor](#font)         | String    | A string describing the background color of the caption [Default: 'white']. See {@link Color} for details.
+ * [backgroundColor](#backgroundColor) | String | Color of the rectangle or text halo, including opacity. Omit or set to undefined to inherit the current map background color. See {@link Color} for details.
+ * [backgroundStyle](#backgroundStyle) | String | Background presentation: *rect* or *halo* [Default: 'rect']. Halo stroke width is one quarter of the font size.
  * [on](#on)<sup>ic</sup>           | String    | Place the caption relative to the 'canvas' or 'map' [Default: 'canvas']
  * [visible](CGObject.html#visible) | Boolean   | Caption is visible [Default: true]
  * [meta](CGObject.html#meta)       | Object    | [Meta data](../tutorials/details-meta-data.html) for Caption
@@ -58,6 +61,17 @@ import * as d3 from 'd3';
  * <sup>ic</sup> Ignored on Caption creation
  *
  * ### Examples
+ *
+ * ```js
+ * cgv.addCaptions({
+ *   name: 'Genome title',
+ *   font: 'sans-serif, bold, 24',
+ *   backgroundStyle: 'halo',
+ *   backgroundColor: 'rgba(255,255,255,0.8)',
+ * });
+ * // Resume following the map background color, including future changes.
+ * cgv.captions(1).update({backgroundColor: undefined});
+ * ```
  *
  * @extends CGObject
  */
@@ -73,6 +87,8 @@ class Caption extends CGObject {
     super(viewer, options, meta);
     this.viewer = viewer;
     this._name = utils.defaultFor(options.name, '');
+    this._backgroundStyle = 'rect';
+    this.backgroundStyle = utils.defaultFor(options.backgroundStyle, 'rect');
     this.backgroundColor = options.backgroundColor;
     // this.backgroundColor = 'black';
     this.fontColor = utils.defaultFor(options.fontColor, 'black');
@@ -127,7 +143,6 @@ class Caption extends CGObject {
   }
 
   set on(value) {
-    this.clear();
     this.box.on = value;
     this.refresh();
   }
@@ -140,7 +155,6 @@ class Caption extends CGObject {
   }
 
   set anchor(value) {
-    this.clear();
     this.box.anchor = value;
     this.refresh();
   }
@@ -176,7 +190,6 @@ class Caption extends CGObject {
   }
 
   set position(value) {
-    this.clear();
     this.box.position = value;
     // this.refresh();
     this.viewer.refreshCanvasLayer();
@@ -184,21 +197,40 @@ class Caption extends CGObject {
   }
 
   /**
-   * @member {Color} - Get or set the backgroundColor. When setting the color, a string representing the color or a {@link Color} object can be used. For details see {@link Color}.
+   * @member {Color} - Get the resolved background color, or set an explicit color
+   * string or {@link Color}. An omitted or undefined value inherits the current
+   * {@link Settings#backgroundColor}, including opacity. Inherited backgrounds
+   * are omitted from JSON, even with includeDefaults, to retain that behavior
+   * when reloaded.
    */
   get backgroundColor() {
-    return this._backgroundColor;
+    return this._backgroundColor ?? this.viewer.settings.backgroundColor;
   }
 
   set backgroundColor(color) {
-    // this._backgroundColor.color = color;
     if (color === undefined) {
-      this._backgroundColor = new Color(this.viewer.settings.backgroundColor);
+      this._backgroundColor = undefined;
     } else if (color.toString() === 'Color') {
       this._backgroundColor = color;
     } else {
       this._backgroundColor = new Color(color);
     }
+    this.refresh();
+  }
+
+  /**
+   * @member {String} - Get or set the background presentation: *rect* (default)
+   * or *halo*. Both use backgroundColor, including its opacity. The halo stroke
+   * width is one quarter of the font size; positioning and hit bounds are shared
+   * by both styles.
+   */
+  get backgroundStyle() {
+    return this._backgroundStyle;
+  }
+
+  set backgroundStyle(value) {
+    if (typeof value !== 'string' || !utils.validate(value, ['rect', 'halo'])) { return; }
+    this._backgroundStyle = value;
     this.refresh();
   }
 
@@ -289,12 +321,12 @@ class Caption extends CGObject {
 
   /**
    * Recalculates the *Caption* size and position.
+   * @param {Boolean} [redraw=true] - Repaint the shared layers after measuring.
    * @private
    */
-  refresh() {
+  refresh(redraw = true) {
     const box = this.box;
     if (!box) { return; }
-    this.clear();
 
     // Padding is half line height/font size
     box.padding = this.font.size / 2;
@@ -312,14 +344,15 @@ class Caption extends CGObject {
 
     box.resize(width, height);
 
-    this.draw();
+    if (redraw) { this.draw(); }
   }
 
   /**
-   * Fill the background of the caption with the background color.
+   * Fill rectangular backgrounds. Halo backgrounds are painted with the text.
    * @private
    */
   fillBackground() {
+    if (this.backgroundStyle === 'halo') { return; }
     const box = this.box;
     this.ctx.fillStyle = this.backgroundColor.rgbaString;
     box.clear(this.ctx);
@@ -327,13 +360,15 @@ class Caption extends CGObject {
   }
 
   /**
-   * Invert the colors of the caption (i.e. backgroundColor and fontColor).
+   * Invert the font and any explicit background color. Inherited backgrounds
+   * continue following the map, which is inverted separately by the viewer.
    */
   invertColors() {
-    this.update({
-      backgroundColor: this.backgroundColor.invert().rgbaString,
-      fontColor: this.fontColor.invert().rgbaString
-    });
+    const attributes = {fontColor: this.fontColor.invert().rgbaString};
+    if (this._backgroundColor !== undefined) {
+      attributes.backgroundColor = this._backgroundColor.invert().rgbaString;
+    }
+    this.update(attributes);
   }
 
   /**
@@ -381,9 +416,22 @@ class Caption extends CGObject {
   }
 
   /**
-   * Draw the caption
+   * Draw the caption, repainting its shared layers to preserve overlapping text
+   * and avoid accumulating translucent halos on repeated draws.
    */
   draw() {
+    if (this.viewer.loading) {
+      this._draw();
+    } else {
+      this.viewer.refreshCanvasLayer();
+    }
+  }
+
+  /**
+   * Paint once onto a layer prepared by the viewer or export renderer.
+   * @private
+   */
+  _draw() {
     if (!this.visible) { return; }
     const ctx = this.ctx;
     const box = this.box;
@@ -392,21 +440,20 @@ class Caption extends CGObject {
     box.refresh();
 
     this.fillBackground();
-    // ctx.textBaseline = 'top';
+    ctx.save();
     ctx.textBaseline = 'alphabetic'; // The default baseline works best across canvas and svg
     ctx.font = this.font.css;
     ctx.textAlign = this.textAlignment;
-    // Draw Text Label
     ctx.fillStyle = this.fontColor.rgbaString;
-    // ctx.fillText(this.name, box.paddedX, box.paddedY);
 
-    const lineHeight = (box.height - box.padding) / this.lines.length;
-    // let lineY = box.paddedY;
-    let lineY = box.y + lineHeight;
-    for (let i = 0, len = this.lines.length; i < len; i++) {
-      ctx.fillText(this.lines[i], this.textX(), lineY);
-      lineY += lineHeight;
-    }
+    const lines = this.lines;
+    const lineHeight = (box.height - box.padding) / lines.length;
+    this.canvas.drawText(ctx, lines, this.textX(), box.y + lineHeight, {
+      lineHeight,
+      haloColor: this.backgroundStyle === 'halo' ? this.backgroundColor.rgbaString : undefined,
+      haloWidth: this.font.size * HALO_WIDTH_RATIO,
+    });
+    ctx.restore();
   }
 
 
@@ -442,11 +489,15 @@ class Caption extends CGObject {
       textAlignment: this.textAlignment,
       font: this.font.string,
       fontColor: this.fontColor.rgbaString,
-      backgroundColor: this.backgroundColor.rgbaString,
+      backgroundStyle: this.backgroundStyle,
       // visible: this.visible
     };
     if (this.position.onMap) {
       json.anchor = this.anchor.toJSON();
+    }
+    // Omission represents inheritance, rather than a fixed default color.
+    if (this._backgroundColor !== undefined) {
+      json.backgroundColor = this.backgroundColor.rgbaString;
     }
     // Optionally add default values
     if (!this.visible || options.includeDefaults) {
@@ -461,5 +512,3 @@ class Caption extends CGObject {
 }
 
 export default Caption;
-
-

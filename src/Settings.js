@@ -133,6 +133,8 @@ class Settings {
       this._backgroundColor = new Color(color);
     }
     this.viewer.fillBackground();
+    // Static caption layers must also follow inherited background colors.
+    if (!this.viewer.loading) { this.viewer.refreshCanvasLayer(); }
   }
 
   /**

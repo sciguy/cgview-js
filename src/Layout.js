@@ -992,7 +992,7 @@ class Layout {
     // Captions positioned on the Map
     for (let i = 0, len = viewer._captions.length; i < len; i++) {
       if (viewer._captions[i].onMap) {
-        viewer._captions[i].draw();
+        viewer._captions[i]._draw();
       }
     }
     // Legend positioned on the Map

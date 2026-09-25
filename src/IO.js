@@ -520,12 +520,12 @@ class IO {
       // Draw map on to new layers
       viewer.drawExport();
       viewer.fillBackground();
-      // Legend
-      viewer.legend.draw();
-      // Captions
+      // Map overlays were already painted by drawExport. Paint canvas overlays
+      // once, in the same order as refreshCanvasLayer, to preserve opacity.
       for (let i = 0, len = viewer._captions.length; i < len; i++) {
-        viewer._captions[i].draw();
+        if (viewer._captions[i].onCanvas) { viewer._captions[i]._draw(); }
       }
+      if (viewer.legend.on === 'canvas') { viewer.legend.draw(); }
 
       // Copy drawing layers to export layer
       const exportContext = tempLayers.export.ctx;
@@ -572,12 +572,11 @@ class IO {
 
       // Draw map on to new layers
       viewer.drawExport();
-      // Legend
-      viewer.legend.draw();
-      // Captions
+      // Map overlays were already painted by drawExport.
       for (let i = 0, len = viewer._captions.length; i < len; i++) {
-        viewer._captions[i].draw();
+        if (viewer._captions[i].onCanvas) { viewer._captions[i]._draw(); }
       }
+      if (viewer.legend.on === 'canvas') { viewer.legend.draw(); }
 
       return svgContext.getSerializedSvg();
     });
