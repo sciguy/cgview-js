@@ -525,7 +525,7 @@ class IO {
       for (let i = 0, len = viewer._captions.length; i < len; i++) {
         if (viewer._captions[i].onCanvas) { viewer._captions[i]._draw(); }
       }
-      if (viewer.legend.on === 'canvas') { viewer.legend.draw(); }
+      if (viewer.legend.on === 'canvas') { viewer.legend._draw(); }
 
       // Copy drawing layers to export layer
       const exportContext = tempLayers.export.ctx;
@@ -576,7 +576,7 @@ class IO {
       for (let i = 0, len = viewer._captions.length; i < len; i++) {
         if (viewer._captions[i].onCanvas) { viewer._captions[i]._draw(); }
       }
-      if (viewer.legend.on === 'canvas') { viewer.legend.draw(); }
+      if (viewer.legend.on === 'canvas') { viewer.legend._draw(); }
 
       return svgContext.getSerializedSvg();
     });

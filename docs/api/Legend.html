@@ -177,7 +177,12 @@
 <tr>
 <td><a href="#backgroundColor">backgroundColor</a></td>
 <td>String</td>
-<td>A string describing the background color of the legend. Defaults to the viewer's background color. See <a href="Color.html"><code>Color</code></a> for details.</td>
+<td>Color of the rectangle or text halos and swatch outlines, including opacity. Omit or set to undefined to inherit the current map background color. See <a href="Color.html"><code>Color</code></a> for details.</td>
+</tr>
+<tr>
+<td><a href="#backgroundStyle">backgroundStyle</a></td>
+<td>String</td>
+<td>Background presentation: <em>rect</em> or <em>halo</em> [Default: 'rect']. Halo stroke width is one quarter of each item's font size, with matching outlines outside the swatches.</td>
 </tr>
 <tr>
 <td><a href="#on">on</a><sup>ic</sup></td>
@@ -203,7 +208,13 @@
 </table>
 <p><sup>ic</sup> Ignored on Legend creation
 <sup>iu</sup> Ignored on Legend update</p>
-<h3>Examples</h3></div>
+<h3>Examples</h3>
+<pre class="prettyprint source lang-js"><code>cgv.legend.update({backgroundStyle: 'halo'});
+// Use an explicit color for the text halos and swatch outlines.
+cgv.legend.update({backgroundColor: 'rgba(255,255,255,0.8)'});
+// Resume following the map background color, including future changes.
+cgv.legend.update({backgroundColor: undefined});
+</code></pre></div>
 
 </header>
 
@@ -222,7 +233,7 @@
 
 
         <div class="tag-source">
-            <a href="Legend.js.html">Legend.js</a>, <a href="Legend.js.html#line66">line 66</a>
+            <a href="Legend.js.html">Legend.js</a>, <a href="Legend.js.html#line77">line 77</a>
         </div>
 
     </div>
@@ -469,7 +480,59 @@
 <dd>
 
     <div class="description">
-        <p>Get or set the backgroundColor. When setting the color, a string representing the color or a <a href="Color.html"><code>Color</code></a> object can be used. For details see <a href="Color.html"><code>Color</code></a>.</p>
+        <p>Get the resolved background color, or set an explicit color
+string or <a href="Color.html"><code>Color</code></a>. An omitted or undefined value inherits the current
+<a href="Settings.html#backgroundColor"><code>Settings#backgroundColor</code></a>, including opacity. Inherited backgrounds
+are omitted from JSON, even with includeDefaults, to retain that behavior
+when reloaded.</p>
+    </div>
+
+
+
+<dl class="details">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</dl>
+
+
+
+</dd>
+
+
+
+<dt>
+    <div class="nameContainer">
+        <h4 class="name" id="backgroundStyle">backgroundStyle<span class="type-signature type string">String</span> </h4>
+    </div>
+
+
+</dt>
+<dd>
+
+    <div class="description">
+        <p>Get or set the background presentation: <em>rect</em> (default)
+or <em>halo</em>. Both use backgroundColor, including its opacity. Text halo stroke
+width is one quarter of each item's font size. Swatch outlines extend the
+same distance outside their fills, preserving swatch colors and hit bounds.</p>
     </div>
 
 
@@ -1109,7 +1172,7 @@ A minArcLength of 0 means no adjustments will be made.</p>
 
 
         <div class="tag-source">
-            <a href="Legend.js.html">Legend.js</a>, <a href="Legend.js.html#line370">line 370</a>
+            <a href="Legend.js.html">Legend.js</a>, <a href="Legend.js.html#line398">line 398</a>
         </div>
 
     </div>
@@ -1400,7 +1463,7 @@ See <a href="../docs.html#s.adding-records">adding records</a> for details</p>
 
 
         <div class="tag-source">
-            <a href="Legend.js.html">Legend.js</a>, <a href="Legend.js.html#line620">line 620</a>
+            <a href="Legend.js.html">Legend.js</a>, <a href="Legend.js.html#line651">line 651</a>
         </div>
 
     </div>
@@ -1544,7 +1607,7 @@ See <a href="../docs.html#s.adding-records">adding records</a> for details</p>
 
 
         <div class="tag-source">
-            <a href="Legend.js.html">Legend.js</a>, <a href="Legend.js.html#line532">line 532</a>
+            <a href="Legend.js.html">Legend.js</a>, <a href="Legend.js.html#line563">line 563</a>
         </div>
 
     </div>
@@ -1690,7 +1753,7 @@ See <a href="../docs.html#s.adding-records">adding records</a> for details</p>
 
 
         <div class="tag-source">
-            <a href="Legend.js.html">Legend.js</a>, <a href="Legend.js.html#line546">line 546</a>
+            <a href="Legend.js.html">Legend.js</a>, <a href="Legend.js.html#line577">line 577</a>
         </div>
 
     </div>
@@ -2067,7 +2130,7 @@ See <a href="../docs.html#s.adding-records">adding records</a> for details</p>
 
 
         <div class="tag-source">
-            <a href="Legend.js.html">Legend.js</a>, <a href="Legend.js.html#line519">line 519</a>
+            <a href="Legend.js.html">Legend.js</a>, <a href="Legend.js.html#line549">line 549</a>
         </div>
 
     </div>
@@ -2078,7 +2141,9 @@ See <a href="../docs.html#s.adding-records">adding records</a> for details</p>
 
 
     <div class="description">
-        <p>Invert colors of all legendItems</p>
+        <p>Invert item colors, the default font color, and any explicit background.
+Inherited backgrounds continue following the map, which is inverted
+separately by the viewer.</p>
     </div>
 
 
@@ -2138,7 +2203,7 @@ See <a href="../docs.html#s.adding-records">adding records</a> for details</p>
 
 
         <div class="tag-source">
-            <a href="Legend.js.html">Legend.js</a>, <a href="Legend.js.html#line352">line 352</a>
+            <a href="Legend.js.html">Legend.js</a>, <a href="Legend.js.html#line380">line 380</a>
         </div>
 
     </div>
@@ -2294,7 +2359,7 @@ See <a href="../docs.html#s.reading-records">reading records</a> for details.</p
 
 
         <div class="tag-source">
-            <a href="Legend.js.html">Legend.js</a>, <a href="Legend.js.html#line411">line 411</a>
+            <a href="Legend.js.html">Legend.js</a>, <a href="Legend.js.html#line439">line 439</a>
         </div>
 
     </div>
@@ -2433,7 +2498,7 @@ See <a href="../docs.html#s.reading-records">reading records</a> for details.</p
 
 
         <div class="tag-source">
-            <a href="Legend.js.html">Legend.js</a>, <a href="Legend.js.html#line421">line 421</a>
+            <a href="Legend.js.html">Legend.js</a>, <a href="Legend.js.html#line449">line 449</a>
         </div>
 
     </div>
@@ -2699,7 +2764,7 @@ See <a href="../docs.html#s.reading-records">reading records</a> for details.</p
 
 
         <div class="tag-source">
-            <a href="Legend.js.html">Legend.js</a>, <a href="Legend.js.html#line382">line 382</a>
+            <a href="Legend.js.html">Legend.js</a>, <a href="Legend.js.html#line410">line 410</a>
         </div>
 
     </div>
@@ -2819,7 +2884,7 @@ See <a href="../docs.html#s.removing-records">removing records</a> for details</
 
 
         <div class="tag-source">
-            <a href="Legend.js.html">Legend.js</a>, <a href="Legend.js.html#line675">line 675</a>
+            <a href="Legend.js.html">Legend.js</a>, <a href="Legend.js.html#line731">line 731</a>
         </div>
 
     </div>
@@ -2890,7 +2955,7 @@ See <a href="../docs.html#s.removing-records">removing records</a> for details</
 
 
         <div class="tag-source">
-            <a href="Legend.js.html">Legend.js</a>, <a href="Legend.js.html#line103">line 103</a>
+            <a href="Legend.js.html">Legend.js</a>, <a href="Legend.js.html#line116">line 116</a>
         </div>
 
     </div>
@@ -2993,7 +3058,7 @@ See <a href="../docs.html#s.removing-records">removing records</a> for details</
 
 
         <div class="tag-source">
-            <a href="Legend.js.html">Legend.js</a>, <a href="Legend.js.html#line335">line 335</a>
+            <a href="Legend.js.html">Legend.js</a>, <a href="Legend.js.html#line363">line 363</a>
         </div>
 
     </div>
@@ -3110,7 +3175,7 @@ See <a href="../docs.html#s.updating-records">updating records</a> for details.<
 
 
         <div class="tag-source">
-            <a href="Legend.js.html">Legend.js</a>, <a href="Legend.js.html#line398">line 398</a>
+            <a href="Legend.js.html">Legend.js</a>, <a href="Legend.js.html#line426">line 426</a>
         </div>
 
     </div>

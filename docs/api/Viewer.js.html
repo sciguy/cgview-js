@@ -1448,7 +1448,7 @@ class Viewer {
   /**
    * Remeasure captions and the legend, then repaint their shared canvas and
    * foreground layers. Clears previous overlay pixels and restores labels
-   * underneath moved, hidden, or translucent captions.
+   * underneath moved, hidden, or translucent captions and legends.
    * @returns {void}
    * @private
    */
@@ -1463,7 +1463,7 @@ class Viewer {
     for (const caption of this._captions) {
       if (caption.box &amp;&amp; caption.onCanvas) { caption._draw(); }
     }
-    if (this.legend?.position.onCanvas) { this.legend.draw(); }
+    if (this.legend?.position.onCanvas) { this.legend._draw(); }
     if (!this.loading) { this.layout.drawForeground(); }
   }
 

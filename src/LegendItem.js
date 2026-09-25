@@ -380,8 +380,8 @@ class LegendItem extends CGObject {
    * @private
    */
   textX() {
-    const box = this.box;
     const legend = this.legend;
+    const box = legend.box;
     if (this.textAlignment === 'left') {
       return this.drawSwatch ? (this.swatchX() + this.swatchWidth + legend.swatchPadding) : box.leftPadded;
     // } else if (this.textAlignment === 'center') {

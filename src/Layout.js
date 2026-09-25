@@ -997,7 +997,7 @@ class Layout {
     }
     // Legend positioned on the Map
     if (viewer.legend.position.onMap) {
-      viewer.legend.draw();
+      viewer.legend._draw();
     }
   }
 
