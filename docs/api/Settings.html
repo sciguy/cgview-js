@@ -177,7 +177,7 @@
 <tr>
 <td><a href="#borderColor">borderColor</a></td>
 <td>String</td>
-<td>A string describing the border color of features [Default: 'rgba(0,0,0,1)']. See <a href="Color.html"><code>Color</code></a> for details.</td>
+<td>Feature and backbone border color. Undefined or null blends each element's fill 50% toward black on light backgrounds or white on dark backgrounds, preserving opacity [Default: undefined]. See <a href="Color.html"><code>Color</code></a> for explicit colors.</td>
 </tr>
 <tr>
 <td><a href="#borderThickness">borderThickness</a></td>
@@ -518,7 +518,7 @@ When false, borders use the configured width at every zoom level.</p>
 
 <dt>
     <div class="nameContainer">
-        <h4 class="name" id="borderColor">borderColor<span class="type-signature type color"><a href="Color.html">Color</a></span> </h4>
+        <h4 class="name" id="borderColor">borderColor<span class="type-signature type color"><a href="Color.html">Color</a></span> <span class="type-signature type undefined">undefined</span> </h4>
     </div>
 
 
@@ -526,7 +526,11 @@ When false, borders use the configured width at every zoom level.</p>
 <dd>
 
     <div class="description">
-        <p>Get or set the borderColor. When setting the color, a string representing the color or a <a href="Color.html"><code>Color</code></a> object can be used. For details see <a href="Color.html"><code>Color</code></a>.</p>
+        <p>Get or set the border color using a color string
+or a <a href="Color.html"><code>Color</code></a>. Undefined or null selects automatic coloring and returns
+undefined: each feature's legend color (or the backbone fill) is blended 50%
+toward black on light backgrounds or white on dark backgrounds, preserving
+its opacity. Automatic coloring is saved as null in JSON.</p>
     </div>
 
 
@@ -1094,7 +1098,7 @@ map curvature, and use a background-derived protective outline
 
 
         <div class="tag-source">
-            <a href="Settings.js.html">Settings.js</a>, <a href="Settings.js.html#line334">line 334</a>
+            <a href="Settings.js.html">Settings.js</a>, <a href="Settings.js.html#line338">line 338</a>
         </div>
 
     </div>
@@ -1268,7 +1272,7 @@ map curvature, and use a background-derived protective outline
 
 
         <div class="tag-source">
-            <a href="Settings.js.html">Settings.js</a>, <a href="Settings.js.html#line323">line 323</a>
+            <a href="Settings.js.html">Settings.js</a>, <a href="Settings.js.html#line327">line 327</a>
         </div>
 
     </div>

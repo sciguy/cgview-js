@@ -147,6 +147,7 @@ bordersCheckbox.checked = showBordersTest;
 const featureBordersCheckbox = document.getElementById('border-features');
 const backboneBordersCheckbox = document.getElementById('border-backbone');
 const adaptiveBorderThicknessCheckbox = document.getElementById('border-adaptive-thickness');
+const automaticBorderColorCheckbox = document.getElementById('border-color-auto');
 const borderColorInput = document.getElementById('border-color');
 const borderSizeInput = document.getElementById('border-size');
 const borderSizeLabel = document.getElementById('border-size-label');
@@ -159,7 +160,11 @@ function syncBorderControls() {
   backboneBordersCheckbox.checked = cgv.backbone.showBorder ?? settings.showBorder;
   adaptiveBorderThicknessCheckbox.checked = settings.adaptiveBorderThickness;
   borderSizeLabel.textContent = settings.adaptiveBorderThickness ? 'Maximum border size:' : 'Border size:';
-  borderColorInput.value = `#${settings.borderColor.hex}`;
+  automaticBorderColorCheckbox.checked = settings.borderColor == null;
+  borderColorInput.disabled = automaticBorderColorCheckbox.checked;
+  if (settings.borderColor) {
+    borderColorInput.value = `#${settings.borderColor.hex}`;
+  }
   // Preserve loaded values outside the usual 0.5-4 px testing range.
   borderSizeInput.min = String(Math.min(0.5, settings.borderThickness));
   borderSizeInput.max = String(Math.max(4, settings.borderThickness));
@@ -182,6 +187,9 @@ backboneBordersCheckbox.addEventListener('change', (e) => {
 });
 adaptiveBorderThicknessCheckbox.addEventListener('change', (e) => {
   cgv.settings.update({adaptiveBorderThickness: e.target.checked});
+});
+automaticBorderColorCheckbox.addEventListener('change', (e) => {
+  cgv.settings.update({borderColor: e.target.checked ? undefined : borderColorInput.value});
 });
 borderColorInput.addEventListener('input', (e) => {
   cgv.settings.update({borderColor: e.target.value});

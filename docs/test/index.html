@@ -27,7 +27,7 @@
     <script src="../scripts/d3.min.js"></script>
     <script src="../scripts/svgcanvas.iife.js"></script>
     <!-- CGView -->
-    <script src='../dist/cgview.min.js?v=adaptive-border-zoom'></script>
+    <script src='../dist/cgview.min.js?v=automatic-border-colors-50'></script>
 
     <link rel="stylesheet" href="../dist/cgview.css" />
     <link rel="stylesheet" href="../styles/controls.css" />
@@ -153,7 +153,8 @@
             <label><input id='border-features' type='checkbox' /> Feature borders</label>
             <label><input id='border-backbone' type='checkbox' /> Backbone borders</label>
             <label title='Reduce borders on small features and contigs, with an extra zoom multiplier from half width at 1× to full width at 2×. Turn off for a fixed width at every zoom level.'><input id='border-adaptive-thickness' type='checkbox' checked /> Adaptive border thickness</label>
-            <label for='border-color'>Border color <input id='border-color' type='color' /></label>
+            <label title='Blend each feature or backbone color toward black on light backgrounds or white on dark backgrounds.'><input id='border-color-auto' type='checkbox' /> Automatic border color</label>
+            <label for='border-color'>Border color <input id='border-color' type='color' value='#000000' /></label>
             <div>
               <label for='border-size'><span id='border-size-label'>Maximum border size:</span> <output id='border-size-value' for='border-size'>1</output> px</label>
               <input id='border-size' type='range' min='0.5' max='4' step='0.1' value='1' />
@@ -331,7 +332,7 @@
     <!-- Bootstrap JavaScript -->
     <script src="../scripts/bootstrap.min.js"></script>
 
-    <script src='test.js?v=adaptive-border-thickness'></script>
+    <script src='test.js?v=automatic-border-colors'></script>
     <script src='track-sizing.js?v=3'></script>
     <script src='../scripts/controls.js'></script>
 

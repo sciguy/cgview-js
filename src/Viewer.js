@@ -1741,7 +1741,9 @@ class Viewer {
    */
   invertAllColors() {
     this.settings.update({backgroundColor: this.settings.backgroundColor.invert().rgbaString});
-    this.settings.update({borderColor: this.settings.borderColor.invert().rgbaString});
+    if (this.settings.borderColor) {
+      this.settings.update({borderColor: this.settings.borderColor.invert().rgbaString});
+    }
 
     this.legend.invertColors();
     this.captions().each( (i, caption) => caption.invertColors() );
@@ -1759,7 +1761,9 @@ class Viewer {
    */
   invertMapColors() {
     this.settings.update({backgroundColor: this.settings.backgroundColor.invert().rgbaString});
-    this.settings.update({borderColor: this.settings.borderColor.invert().rgbaString});
+    if (this.settings.borderColor) {
+      this.settings.update({borderColor: this.settings.borderColor.invert().rgbaString});
+    }
 
     this.legend.invertColors(false);
     this.captions().each( (i, caption) => caption.invertColors() );

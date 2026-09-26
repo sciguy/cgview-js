@@ -10,6 +10,7 @@
 - Added a Legend `defaultDecoration`, defaulting to `auto`, for LegendItems without an explicit decoration.
 - Added `selected` as a Feature attribute, with selected feature rendering support.
 - Added configurable map element borders: `showBorder`, `borderColor`, and `borderThickness`.
+- Feature and backbone borders now default to automatic colors when `settings.borderColor` is omitted, `undefined`, or `null`, blending each fill 50% toward black or white for background contrast while preserving opacity. Automatic coloring is saved as `null` in JSON.
 - Added backbone `showBorder` and `showShading` overrides.
 - Updated canvas element drawing to support border styling, selected outlines, and object-style draw options.
 - Added `Selection` support to the Viewer, disabled by default.

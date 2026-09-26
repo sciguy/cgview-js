@@ -1,4 +1,5 @@
 import Canvas from '../src/Canvas';
+import Color from '../src/Color';
 
 jest.mock('d3', () => ({}));
 
@@ -35,6 +36,7 @@ describe('Canvas', () => {
       scale: {bp: jest.fn(bp => bp / 100)},
       settings: {
         arrowHeadLength: 0.3,
+        backgroundColor: new Color('white'),
         borderColor: {rgbaString: 'rgba(0,0,0,1)'},
         borderThickness: 1.5,
         adaptiveBorderThickness: false,
@@ -150,6 +152,59 @@ describe('Canvas', () => {
   });
 
   describe.each(['arc', 'clockwise-arrow', 'counterclockwise-arrow'])('%s borders', decoration => {
+    test.each([
+      [undefined, 'white', 'rgba(100,50,20,0.4)'],
+      [null, 'black', 'rgba(228,178,148,0.4)'],
+      [undefined, '#f0b040', 'rgba(100,50,20,0.4)'],
+      [null, '#205080', 'rgba(228,178,148,0.4)'],
+      [undefined, 'rgba(0,0,0,0.1)', 'rgba(100,50,20,0.4)'],
+    ])('derives %s borders on %s without changing opacity', (borderColor, background, expected) => {
+      canvas._viewer.settings.borderColor = borderColor;
+      canvas._viewer.settings.backgroundColor = new Color(background);
+      canvas.pixelsPerBp.mockReturnValue(10);
+      canvas.drawElement({
+        start: 10, stop: 29, centerOffset: 100, width: 20,
+        decoration, color: 'rgba(200,100,40,0.4)', showBorder: true,
+      });
+      expect(context.strokeStyle).toBe(expected);
+      expect(context.lineWidth).toBe(1.5);
+    });
+
+    test('keeps explicit overrides and selected outlines with automatic colors', () => {
+      canvas._viewer.settings.borderColor = undefined;
+      canvas.pixelsPerBp.mockReturnValue(10);
+      const options = {
+        start: 10, stop: 29, centerOffset: 100, width: 20,
+        decoration, color: 'red', showBorder: true,
+      };
+      canvas.drawElement({...options, borderColor: 'green'});
+      expect(context.strokeStyle).toBe('green');
+      canvas.drawElement({...options, showBorder: false, selected: true});
+      expect(context.strokeStyle).toBe('rgba(128,0,0,1)');
+      expect(context.lineWidth).toBe(2.5);
+      expect(context.setLineDash).toHaveBeenCalledWith([3, 1]);
+      expect(context.setLineDash).toHaveBeenLastCalledWith([]);
+    });
+
+    test('refreshes automatic borders after direct background and fill changes', () => {
+      canvas._viewer.settings.borderColor = undefined;
+      canvas.pixelsPerBp.mockReturnValue(10);
+      const options = {
+        start: 10, stop: 29, centerOffset: 100, width: 20,
+        decoration, color: 'red', showBorder: true,
+      };
+      canvas.drawElement(options);
+      expect(context.strokeStyle).toBe('rgba(128,0,0,1)');
+      canvas._viewer.settings.backgroundColor.setColor('black');
+      canvas.drawElement(options);
+      expect(context.strokeStyle).toBe('rgba(255,128,128,1)');
+      canvas.drawElement({...options, color: 'blue'});
+      expect(context.strokeStyle).toBe('rgba(128,128,255,1)');
+      canvas._viewer.settings.backgroundColor.setColor('white');
+      canvas.drawElement(options);
+      expect(context.strokeStyle).toBe('rgba(128,0,0,1)');
+    });
+
     function borderWidths(options = {}) {
       const widths = [];
       context.stroke.mockImplementation(() => {

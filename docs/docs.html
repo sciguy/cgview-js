@@ -642,7 +642,7 @@ Attribute                           | Type      | Description
 [showShading](api/Settings.html#showShading)         | Boolean   | Should a shading effect be drawn on the features [Default: true]
 [showTrackLabels](api/Settings.html#showTrackLabels) | Boolean | Show compact track names when the map is zoomed in [Default: true]
 [showBorder](api/Settings.html#showBorder)           | Boolean   | Should a border be drawn on the features [Default: false]
-[borderColor](api/Settings.html#borderColor)         | String    | A string describing the border color of features [Default: 'rgba(0,0,0,1)']. See <a href="api/Color.html"><code>Color</code></a> for details.
+[borderColor](api/Settings.html#borderColor)         | String    | Feature and backbone border color. Undefined or null blends each element's fill 50% toward black on light backgrounds or white on dark backgrounds, preserving opacity [Default: undefined]. See <a href="api/Color.html"><code>Color</code></a> for explicit colors.
 [borderThickness](api/Settings.html#borderThickness) | Number    | Border width in pixels, or maximum width when adaptiveBorderThickness is enabled [Default: 1]
 [adaptiveBorderThickness](api/Settings.html#adaptiveBorderThickness) | Boolean | Reduce feature and backbone borders according to their on-screen size and a zoom multiplier, from half width at zoom 1 to full width at zoom 2. When false, borderThickness stays fixed at every zoom [Default: true]
 [arrowHeadLength](api/Settings.html#arrowHeadLength) | Number    | Length of feature arrowheads as a proportion of the feature thickness. From 0 (no arrowhead) to 1 (arrowhead as long on the feature is thick) [Default: 0.3]

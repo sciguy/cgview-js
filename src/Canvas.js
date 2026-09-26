@@ -25,6 +25,7 @@ import * as d3 from 'd3';
 
 const AUTO_ARROW_MIN_LENGTH_PIXELS = 5;
 const ADAPTIVE_BORDER_MIN_SIZE_PIXELS = 2;
+const AUTO_BORDER_BLEND = 0.5;
 
 
 /**
@@ -275,6 +276,33 @@ class Canvas {
   }
 
   /**
+   * Blend an element fill toward the black or white that contrasts most with
+   * the map background, preserving fill opacity. Translucent backgrounds are
+   * evaluated over white. Inputs are unchanged; results are cached by fill and
+   * the current background so legend and background edits take effect on redraw.
+   * @param {String} color - Element fill, normally the feature's legend color.
+   * @returns {String} Automatic border color as an RGBA string.
+   * @private
+   */
+  _automaticBorderColor(color) {
+    const background = this.viewer.settings.backgroundColor;
+    if (this._automaticBorderColors?.background !== background.rgbaString) {
+      this._automaticBorderColors = {
+        background: background.rgbaString,
+        target: background.compositeOver('white').contrastColor().rgb.r,
+        colors: new Map(),
+      };
+    }
+    const {colors, target} = this._automaticBorderColors;
+    if (!colors.has(color)) {
+      const {r, g, b, a} = new Color(color).rgba;
+      const blend = channel => Math.round(channel + ((target - channel) * AUTO_BORDER_BLEND));
+      colors.set(color, new Color({r: blend(r), g: blend(g), b: blend(b), a}).rgbaString);
+    }
+    return colors.get(color);
+  }
+
+  /**
    * Draws an arc or arrow on the map.
    *
    * @param {Object} options - Drawing options
@@ -293,6 +321,7 @@ class Canvas {
    * @param {Boolean} [options.showBorder] - Should the element be drawn with a border
    *   [Default: value from settings {@link Settings#showBorder}]
    * @param {String} [options.borderColor] - Override the settings border color.
+   *   When neither provides a color, derive it from the element fill and background.
    * @param {Number} [options.borderThickness] - Fixed border width in screen pixels,
    *   overriding the settings width and adaptive sizing.
    * @param {Number} [options.shadingWidth] - Shaded edge width in screen pixels.
@@ -346,7 +375,7 @@ class Canvas {
       showShading = settings.showShading,
       shadingWidth,
       showBorder = settings.showBorder,
-      borderColor = settings.borderColor.rgbaString,
+      borderColor = settings.borderColor?.rgbaString,
       borderThickness,
       fast = false,
       selected = false,
@@ -393,6 +422,9 @@ class Canvas {
     if (selected) { borderWidth = 2.5; }
     // Canvas ignores a zero lineWidth, so omit the stroke and its inset geometry.
     const drawBorder = selected || (showBorder && borderWidth > 0);
+    if (drawBorder && borderColor == null) {
+      borderColor = this._automaticBorderColor(color);
+    }
 
     let autoArrowHeadLengthPixels;
     const isDirectionalArrow = decoration === 'clockwise-arrow' ||
