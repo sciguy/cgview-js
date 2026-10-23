@@ -183,7 +183,7 @@ class Contig extends CGObject {
 
   /**
    * @member {String} - Get or set the contig orientation. Value must be '+' or '-'.
-   *   Flipping the orienation will reverse complement the contig sequence and
+   *   Flipping the orientation will reverse complement the contig sequence and
    *   adjust all the features on this contig.
    */
   get orientation() {
@@ -193,14 +193,15 @@ class Contig extends CGObject {
   set orientation(value) {
     const validKeys = ['-', '+'];
     if (!utils.validate(value, validKeys)) { return; }
-    if (this._orientation && (value !== this._orientation)) {
+    if (this._orientation === value) { return; }
+    if (this._orientation) {
+      // Imported bases already use their stored orientation. Only a transition
+      // on an initialized contig reverses bases and dependent coordinates.
+      const reversedSequence = this.seq ? this.reverseComplement() : undefined;
       this.reverseFeatureOrientations();
-    }
-    if (this.seq) {
-      this.seq = this.reverseComplement();
+      if (reversedSequence !== undefined) { this.seq = reversedSequence; }
     }
     this._orientation = value;
-    // FIXME: reverse complement the sequence
   }
 
   /**

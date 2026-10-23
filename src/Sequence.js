@@ -196,73 +196,22 @@ class Sequence extends CGObject {
     return extract;
   }
 
-  // TODO: Take into account lower case letters
   /**
-   * Return the Complement the sequence
-   * @return {String} - 'Sequence'
+   * Complement DNA/IUPAC bases, retaining case and alignment gap characters.
+   * Unknown symbols remain unchanged instead of inheriting the preceding base.
+   * @param {String} seq - Nucleotide sequence.
+   * @return {String} Complemented sequence, without changing the input.
+   * @example Sequence.complement('ARY'); // 'TYR'
    * @static
    */
   static complement(seq) {
-    let compSeq = '';
-    let char, compChar;
-    for (let i = 0, len = seq.length; i < len; i++) {
-      char = seq.charAt(i);
-      switch (char) {
-      case 'A':
-        compChar = 'T';
-        break;
-      case 'T':
-        compChar = 'A';
-        break;
-      case 'G':
-        compChar = 'C';
-        break;
-      case 'C':
-        compChar = 'G';
-        break;
-      case 'U':
-        compChar = 'A';
-        break;
-      case 'Y':
-        compChar = 'R';
-        break;
-      case 'S':
-        compChar = 'S';
-        break;
-      case 'W':
-        compChar = 'W';
-        break;
-      case 'K':
-        compChar = 'M';
-        break;
-      case 'M':
-        compChar = 'K';
-        break;
-      case 'B':
-        compChar = 'V';
-        break;
-      case 'D':
-        compChar = 'H';
-        break;
-      case 'H':
-        compChar = 'D';
-        break;
-      case 'V':
-        compChar = 'B';
-        break;
-      case 'N':
-        compChar = 'N';
-        break;
-      case '-':
-        compChar = '-';
-        break;
-      case '.':
-        compChar = '.';
-        break;
-      }
-      compSeq = compSeq + compChar;
-    }
-    return compSeq;
+    const complements = {A: 'T', T: 'A', U: 'A', G: 'C', C: 'G', R: 'Y',
+      Y: 'R', S: 'S', W: 'W', K: 'M', M: 'K', B: 'V', D: 'H', H: 'D', V: 'B', N: 'N'};
+    return seq.replace(/[A-Za-z]/g, base => {
+      const replacement = complements[base.toUpperCase()];
+      if (!replacement) { return base; }
+      return base === base.toLowerCase() ? replacement.toLowerCase() : replacement;
+    });
   }
 
   static baseCalculation(type, seq) {
