@@ -36,8 +36,7 @@ class Label {
   constructor(feature, options = {}) {
     this._feature = feature;
     this.name = options.name;
-    // Minus 0.5 since features are drawn from start-0.5 to stop+0.5
-    this.bp = this.feature.mapStart - 0.5 + (this.feature.length / 2);
+    this.bp = this.feature.mapRange.middle;
     this.bpDefault = this.bp;
 
     // this.lineAttachmentDefault = this.viewer.layout.clockPositionForBp(this.bp);
@@ -165,6 +164,11 @@ class Label {
    */
   get feature() {
     return this._feature;
+  }
+
+  /** @member {CGRange} - The feature range with its original wrap boundaries. */
+  get mapRange() {
+    return this.feature.mapRange;
   }
 
   /**

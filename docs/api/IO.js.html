@@ -169,14 +169,15 @@ class IO {
   }
 
   /**
-   * Format the date from created and updated JSON attributes.
+   * Format created and updated JSON timestamps in local time.
    * @param {Date} d - Date to format
+   * @returns {String} Timestamp in YYYY-MM-DD HH:mm:ss format.
    * @private
    */
   formatDate(d) {
-    // return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()} ${d.getHours()}:${d.getMinutes()}:${d.getSeconds()}`
-    const timeformat = d3.timeFormat('%Y-%m-%d %H:%M:%S');
-    return timeformat(d);
+    const pad = (value, width = 2) => String(value).padStart(width, '0');
+    return `${pad(d.getFullYear(), 4)}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ` +
+      `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
   }
 
   /**

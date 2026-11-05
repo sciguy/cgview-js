@@ -29,6 +29,7 @@ class NCList {
    * Each interval should have a start and stop property.
    * @param {Array} intervals - Array of Intervals used to create the NCList.
    * @param {Object} options -
+   * @param {String} [options.rangeProperty] - Optional CGRange property used to split wrapped intervals within their own domain.
    * @return {NCList}
    * @private
    */
@@ -37,6 +38,7 @@ class NCList {
     this.circularLength = options.circularLength;
     this.startProperty = options.startProperty || 'start';
     this.stopProperty = options.stopProperty || 'stop';
+    this.rangeProperty = options.rangeProperty;
     this.fill(intervals);
   }
 
@@ -60,6 +62,18 @@ class NCList {
       if (interval[this.startProperty] <= interval[this.stopProperty]) {
         nomalizedIntervals.push( {interval: interval, index: i});
       } else {
+        const ranges = this.rangeProperty && interval[this.rangeProperty]?.mapRanges;
+        if (ranges) {
+          for (const range of ranges) {
+            nomalizedIntervals.push({
+              interval, index: i,
+              [this.startProperty]: range.start,
+              [this.stopProperty]: range.stop,
+              crossesOrigin: true,
+            });
+          }
+          continue;
+        }
         nomalizedIntervals.push({
           interval: interval,
           index: i,

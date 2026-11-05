@@ -23,6 +23,7 @@
  */
 
 import Color from './Color';
+import CGRange from './CGRange';
 
 const ELLIPSIS = '…';
 const MIN_TRUNCATED_CHARACTERS = 3;
@@ -82,14 +83,14 @@ class FeatureLabelRenderer {
 
   _featureRanges(feature) {
     if (!feature.hasLocations) {
-      return this._splitRange(feature.mapStart, feature.mapStop);
+      return feature.mapStart <= feature.mapStop ? [[feature.mapStart, feature.mapStop]] :
+        feature.mapRanges.map(range => [range.start, range.stop]);
     }
 
     const ranges = [];
     for (const location of feature.locations) {
-      const start = location[0] + feature.contig.lengthOffset;
-      const stop = location[1] + feature.contig.lengthOffset;
-      ranges.push(...this._splitRange(start, stop));
+      const range = new CGRange(feature.contig, location[0], location[1]);
+      ranges.push(...range.mapRanges.map(segment => [segment.start, segment.stop]));
     }
     return ranges;
   }
@@ -335,18 +336,20 @@ class FeatureLabelRenderer {
   _terminalArrow(feature) {
     if (!['arrow', 'auto'].includes(feature.decoration)) { return; }
 
+    let range = feature.range;
     if (feature.hasLocations) {
       const location = feature.isDirect() ?
         feature.locations[feature.locations.length - 1] :
         feature.locations[0];
-      return {
-        tip: (feature.isDirect() ? location[1] : location[0]) + feature.contig.lengthOffset,
-        length: location[1] - location[0] + 1,
-      };
+      range = new CGRange(feature.contig, location[0], location[1]);
+    }
+    if (range.isWrapped() && (!range.isMapDomain() || this.viewer.format === 'linear')) {
+      const segments = range.mapRanges;
+      range = feature.isDirect() ? segments[segments.length - 1] : segments[0];
     }
     return {
-      tip: feature.isDirect() ? feature.mapStop : feature.mapStart,
-      length: feature.length,
+      tip: feature.isDirect() ? range.mapStop : range.mapStart,
+      length: range.length,
     };
   }
 

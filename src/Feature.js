@@ -128,6 +128,7 @@ class Feature extends CGObject {
     this.extractedFromSequence = utils.defaultFor(data.extractedFromSequence, false);
 
     this.legendItem  = data.legend;
+    this.viewer._queueFeatureWrapWarning(this);
   }
 
   /**
@@ -283,14 +284,23 @@ class Feature extends CGObject {
 
   set range(value) {
     this._range = value;
+    if (this.label) { this.viewer._queueFeatureWrapWarning(this); }
   }
 
   /**
-   * @member {Range} - Get or set the range of the feature with respect to its contig.
-   *   All ranges are assumed to be going in a clockwise direction.
+   * @member {CGRange} - The feature's full range in map coordinates, retaining its contig's wrap boundaries.
    */
   get mapRange() {
     return this.range.onMap;
+  }
+
+  /**
+   * @member {CGRange[]} - Non-wrapping map segments of the full feature range, including gaps between locations.
+   * Returns new ranges in clockwise traversal order without changing the feature.
+   * @example feature.mapRanges.map(range => [range.start, range.stop]);
+   */
+  get mapRanges() {
+    return this.range.mapRanges;
   }
 
   /**
@@ -307,6 +317,7 @@ class Feature extends CGObject {
   set start(value) {
     if (!this.hasLocations) {
       this.range.start = value;
+      this.viewer._queueFeatureWrapWarning(this);
     } else {
       console.error('Feature has multiple locations. Use locations to set start position')
     }
@@ -326,6 +337,7 @@ class Feature extends CGObject {
   set stop(value) {
     if (!this.hasLocations) {
       this.range.stop = value;
+      this.viewer._queueFeatureWrapWarning(this);
     } else {
       console.error('Feature has multiple locations. Use locations to set start position')
     }
@@ -344,6 +356,7 @@ class Feature extends CGObject {
     // this.range.mapStart = value;
     if (!this.hasLocations) {
       this.range.mapStart = value;
+      this.viewer._queueFeatureWrapWarning(this);
     } else {
       console.error('Feature has multiple locations.')
     }
@@ -362,6 +375,7 @@ class Feature extends CGObject {
     // this.range.mapStop = value;
     if (!this.hasLocations) {
       this.range.mapStop = value;
+      this.viewer._queueFeatureWrapWarning(this);
     } else {
       console.error('Feature has multiple locations.')
     }
@@ -565,6 +579,11 @@ class Feature extends CGObject {
         return;
       }
     }
+    if (oldContig && newContig.isMapContig && this.sequence.contigs().includes(oldContig) &&
+      this.range.isWrapped() && !this.range.isMapDomain()) {
+      console.warn(`[CGView] Feature ${JSON.stringify(this.name)} must retain its contig to preserve its wrap boundaries.`);
+      return;
+    }
     if (oldContig !== newContig) {
       // Add feature to new Contig
       if (newContig) {
@@ -604,9 +623,8 @@ class Feature extends CGObject {
   }
 
   /**
-   * Moves the feature, if it's on the mapContig, to the appropriate contig
-   * based on the start position. This may truncate the feature if it does not 
-   * fit completely
+   * Moves a feature to map coordinates. Contig-local wrapped features retain
+   * their owning contig because changing the wrap boundaries would change their span.
    * @private
    */
   moveToMapContig() {
@@ -685,7 +703,10 @@ class Feature extends CGObject {
           if ((location[1] <= nextLocation[1]) && (location[1] >= nextLocation[0])) {
             continue;
           }
-          connectors.push([location[1]+1, nextLocation[0]-1]);
+          const gap = new CGRange(this.contig, location[1], nextLocation[0]);
+          if (gap.length <= 2) { continue; }
+          connectors.push(new CGRange(this.contig,
+            gap.normalize(location[1] + 1), gap.normalize(nextLocation[0] - 1)));
         }
       }
       // Draw connectors
@@ -695,12 +716,12 @@ class Feature extends CGObject {
       const showShading = options.showShading;
       const minArcLength = this.legendItem.minArcLength;
       for (const connector of connectors) {
-        const start = connector[0] + this.contig.lengthOffset;
-        const stop = connector[1] + this.contig.lengthOffset;
-        canvas.drawElement({layer, start, stop,
-          centerOffset: this.adjustedCenterOffset(slotCenterOffset, slotThickness),
-          color: color.rgbaString, width: connectorWidth, decoration: 'arc', showShading, minArcLength,
-          selected: this.selected});
+        for (const range of connector.mapRanges) {
+          canvas.drawElement({layer, start: range.start, stop: range.stop,
+            centerOffset: this.adjustedCenterOffset(slotCenterOffset, slotThickness),
+            color: color.rgbaString, width: connectorWidth, decoration: 'arc', showShading, minArcLength,
+            selected: this.selected});
+        }
       }
     } else {
       this.drawRange(this.mapRange, layer, slotCenterOffset, slotThickness, visibleRange, options);
@@ -709,6 +730,18 @@ class Feature extends CGObject {
 
   // drawRange(layer, slotCenterOffset, slotThickness, visibleRange, options = {}) {
   drawRange(range, layer, slotCenterOffset, slotThickness, visibleRange, options = {}) {
+    if (range.isWrapped() && (!range.isMapDomain() || this.viewer.format === 'linear')) {
+      const segments = range.mapRanges;
+      for (let index = 0; index < segments.length; index++) {
+        const segmentOptions = {...options};
+        const terminal = this.isDirect() ? index === segments.length - 1 : index === 0;
+        if (!terminal && ['arrow', 'auto'].includes(this.decoration)) {
+          segmentOptions.directionalDecoration = 'arc';
+        }
+        this.drawRange(segments[index], layer, slotCenterOffset, slotThickness, visibleRange, segmentOptions);
+      }
+      return;
+    }
     // if (!this.visible) { return; }
     // if (this.mapRange.overlapsMapRange(visibleRange)) {
     if (range.overlapsMapRange(visibleRange)) {
@@ -727,10 +760,12 @@ class Feature extends CGObject {
       if (!containsStart) {
         // start = visibleRange.start - 100;
         start = Math.max(1, visibleRange.start - 100);
+        if (!range.isWrapped()) { start = Math.max(start, range.mapStart); }
       }
       if (!containsStop) {
         // stop = visibleRange.stop + 100;
         stop = Math.min(this.sequence.length, visibleRange.stop + 100);
+        if (!range.isWrapped()) { stop = Math.min(stop, range.mapStop); }
       }
 
       // When zoomed in, if the feature starts in the visible range and wraps around to end
@@ -913,9 +948,11 @@ class Feature extends CGObject {
    * @param {Object} ease - The d3 animation ease [Default: d3.easeCubic]
    */
   moveTo(duration, ease) {
-    const buffer = Math.ceil(this.length * 0.05);
-    const start = this.sequence.subtractBp(this.mapStart, buffer);
-    const stop = this.sequence.addBp(this.mapStop, buffer);
+    const wrappedContig = this.range.isWrapped() && !this.range.isMapDomain();
+    const range = wrappedContig ? this.contig.mapRange : this.mapRange;
+    const buffer = Math.ceil((wrappedContig ? range.length : this.length) * 0.05);
+    const start = this.sequence.subtractBp(range.mapStart, buffer);
+    const stop = this.sequence.addBp(range.mapStop, buffer);
     this.viewer.moveTo(start, stop, {duration, ease});
   }
 

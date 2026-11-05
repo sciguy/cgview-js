@@ -1271,7 +1271,7 @@ TODO:</li>
 
 <dt>
     <div class="nameContainer">
-        <h4 class="name" id="mapRange">mapRange<span class="type-signature type range">Range</span> </h4>
+        <h4 class="name" id="mapRange">mapRange<span class="type-signature type cgrange"><a href="CGRange.html">CGRange</a></span> </h4>
     </div>
 
 
@@ -1279,8 +1279,7 @@ TODO:</li>
 <dd>
 
     <div class="description">
-        <p>Get or set the range of the feature with respect to its contig.
-All ranges are assumed to be going in a clockwise direction.</p>
+        <p>The feature's full range in map coordinates, retaining its contig's wrap boundaries.</p>
     </div>
 
 
@@ -1308,6 +1307,60 @@ All ranges are assumed to be going in a clockwise direction.</p>
 
 
 </dl>
+
+
+
+</dd>
+
+
+
+<dt>
+    <div class="nameContainer">
+        <h4 class="name" id="mapRanges">mapRanges<span class="type-signature type array.<cgrange>">Array.&lt;<a href="CGRange.html">CGRange</a>></span> </h4>
+    </div>
+
+
+</dt>
+<dd>
+
+    <div class="description">
+        <p>Non-wrapping map segments of the full feature range, including gaps between locations.
+Returns new ranges in clockwise traversal order without changing the feature.</p>
+    </div>
+
+
+
+<dl class="details">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</dl>
+
+
+
+        <h5>Example</h5>
+
+
+
+    <pre class="language-javascript"><code><p>feature.mapRanges.map(range =&gt; [range.start, range.stop]);</p></code></pre>
 
 
 
@@ -2570,7 +2623,7 @@ the reverse strand. The setter also accepts '+' and '-'. Defaults to 1.</p>
 
 
         <div class="tag-source">
-            <a href="Feature.js.html">Feature.js</a>, <a href="Feature.js.html#line806">line 806</a>
+            <a href="Feature.js.html">Feature.js</a>, <a href="Feature.js.html#line841">line 841</a>
         </div>
 
     </div>
@@ -2687,7 +2740,7 @@ in which case the feature will only be highlighted on the slot.</p>
 
 
         <div class="tag-source">
-            <a href="Feature.js.html">Feature.js</a>, <a href="Feature.js.html#line915">line 915</a>
+            <a href="Feature.js.html">Feature.js</a>, <a href="Feature.js.html#line950">line 950</a>
         </div>
 
     </div>
@@ -2976,7 +3029,7 @@ in which case the feature will only be highlighted on the slot.</p>
 
 
         <div class="tag-source">
-            <a href="Feature.js.html">Feature.js</a>, <a href="Feature.js.html#line905">line 905</a>
+            <a href="Feature.js.html">Feature.js</a>, <a href="Feature.js.html#line940">line 940</a>
         </div>
 
     </div>
@@ -3047,7 +3100,7 @@ in which case the feature will only be highlighted on the slot.</p>
 
 
         <div class="tag-source">
-            <a href="Feature.js.html">Feature.js</a>, <a href="Feature.js.html#line890">line 890</a>
+            <a href="Feature.js.html">Feature.js</a>, <a href="Feature.js.html#line925">line 925</a>
         </div>
 
     </div>
@@ -3118,7 +3171,7 @@ in which case the feature will only be highlighted on the slot.</p>
 
 
         <div class="tag-source">
-            <a href="Feature.js.html">Feature.js</a>, <a href="Feature.js.html#line137">line 137</a>
+            <a href="Feature.js.html">Feature.js</a>, <a href="Feature.js.html#line138">line 138</a>
         </div>
 
     </div>
@@ -3221,7 +3274,7 @@ in which case the feature will only be highlighted on the slot.</p>
 
 
         <div class="tag-source">
-            <a href="Feature.js.html">Feature.js</a>, <a href="Feature.js.html#line872">line 872</a>
+            <a href="Feature.js.html">Feature.js</a>, <a href="Feature.js.html#line907">line 907</a>
         </div>
 
     </div>
@@ -3294,7 +3347,7 @@ FIXME: this will not return the tracks for features on tracks with 'from' = 'seq
 
 
         <div class="tag-source">
-            <a href="Feature.js.html">Feature.js</a>, <a href="Feature.js.html#line951">line 951</a>
+            <a href="Feature.js.html">Feature.js</a>, <a href="Feature.js.html#line988">line 988</a>
         </div>
 
     </div>
@@ -3448,7 +3501,7 @@ geneticCode (provided to translate method) &gt; geneticCode (of Feature) &gt; ge
 
 
         <div class="tag-source">
-            <a href="Feature.js.html">Feature.js</a>, <a href="Feature.js.html#line623">line 623</a>
+            <a href="Feature.js.html">Feature.js</a>, <a href="Feature.js.html#line641">line 641</a>
         </div>
 
     </div>

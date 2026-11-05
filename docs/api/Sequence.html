@@ -112,9 +112,12 @@ the Sequence length on map creation.</p>
 <li>length: provide the sequence length without sequence</li>
 <li>contigs: an array of contigs. Each contig must then include its length or sequence.</li>
 </ul>
+<p>Contigs store biological topology independently of the map's display format.
+For single-sequence input, <code>topology</code> accompanies <code>seq</code> or <code>length</code> and is
+assigned to the sole contig. Missing topology defaults to <code>unknown</code>.</p>
 <p>The seq and length properties are read only and cannot be changed unless a new
 map is loaded (see <a href="IO.html#loadJSON">IO.loadJSON</a>). With contigs, the updateContigs and
-moveContig methods can be used to change the name, orientation, visibility and
+moveContig methods can be used to change the name, orientation, topology, visibility and
 order, however, the seq and length property of each contig is still read only.</p>
 <h3>Sequence Coordinates:</h3>
 <p>CGView uses two coordinate systems: Contig space and map space. For features
@@ -259,7 +262,7 @@ unless <code>includeDefaults</code> is requested.</p>
 
 
         <div class="tag-source">
-            <a href="Sequence.js.html">Sequence.js</a>, <a href="Sequence.js.html#line129">line 129</a>
+            <a href="Sequence.js.html">Sequence.js</a>, <a href="Sequence.js.html#line133">line 133</a>
         </div>
 
     </div>
@@ -1274,6 +1277,52 @@ The Sequence.seq (or length) is the same as Sequence.mapContig.seq (or length).<
 
 <dt>
     <div class="nameContainer">
+        <h4 class="name" id="topology">topology<span class="type-signature type string">String</span> </h4>
+    </div>
+
+
+</dt>
+<dd>
+
+    <div class="description">
+        <p>Topology of the sole contig, or unknown for a collection of contigs.
+A concatenated map coordinate space has no inferred biological topology.</p>
+    </div>
+
+
+
+<dl class="details">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</dl>
+
+
+
+</dd>
+
+
+
+<dt>
+    <div class="nameContainer">
         <h4 class="name" id="translation">translation<span class="type-signature type sequencetranslation"><a href="SequenceTranslation.html">SequenceTranslation</a></span> </h4>
     </div>
 
@@ -1422,7 +1471,7 @@ The Sequence.seq (or length) is the same as Sequence.mapContig.seq (or length).<
 
 
         <div class="tag-source">
-            <a href="Sequence.js.html">Sequence.js</a>, <a href="Sequence.js.html#line1164">line 1164</a>
+            <a href="Sequence.js.html">Sequence.js</a>, <a href="Sequence.js.html#line1125">line 1125</a>
         </div>
 
     </div>
@@ -1493,7 +1542,7 @@ The Sequence.seq (or length) is the same as Sequence.mapContig.seq (or length).<
 
 
         <div class="tag-source">
-            <a href="Sequence.js.html">Sequence.js</a>, <a href="Sequence.js.html#line655">line 655</a>
+            <a href="Sequence.js.html">Sequence.js</a>, <a href="Sequence.js.html#line616">line 616</a>
         </div>
 
     </div>
@@ -1784,7 +1833,7 @@ See <a href="../docs.html#s.adding-records">adding records</a> for details.</p>
 
 
         <div class="tag-source">
-            <a href="Sequence.js.html">Sequence.js</a>, <a href="Sequence.js.html#line927">line 927</a>
+            <a href="Sequence.js.html">Sequence.js</a>, <a href="Sequence.js.html#line888">line 888</a>
         </div>
 
     </div>
@@ -1923,7 +1972,7 @@ See <a href="../docs.html#s.adding-records">adding records</a> for details.</p>
 
 
         <div class="tag-source">
-            <a href="Sequence.js.html">Sequence.js</a>, <a href="Sequence.js.html#line871">line 871</a>
+            <a href="Sequence.js.html">Sequence.js</a>, <a href="Sequence.js.html#line832">line 832</a>
         </div>
 
     </div>
@@ -2152,7 +2201,7 @@ See <a href="../docs.html#s.reading-records">reading records</a> for details.</p
 
 
         <div class="tag-source">
-            <a href="Sequence.js.html">Sequence.js</a>, <a href="Sequence.js.html#line996">line 996</a>
+            <a href="Sequence.js.html">Sequence.js</a>, <a href="Sequence.js.html#line957">line 957</a>
         </div>
 
     </div>
@@ -2471,7 +2520,7 @@ See <a href="../docs.html#s.reading-records">reading records</a> for details.</p
 
 
         <div class="tag-source">
-            <a href="Sequence.js.html">Sequence.js</a>, <a href="Sequence.js.html#line733">line 733</a>
+            <a href="Sequence.js.html">Sequence.js</a>, <a href="Sequence.js.html#line694">line 694</a>
         </div>
 
     </div>
@@ -2760,7 +2809,7 @@ See <a href="../docs.html#s.reading-records">reading records</a> for details.</p
 
 
         <div class="tag-source">
-            <a href="Sequence.js.html">Sequence.js</a>, <a href="Sequence.js.html#line682">line 682</a>
+            <a href="Sequence.js.html">Sequence.js</a>, <a href="Sequence.js.html#line643">line 643</a>
         </div>
 
     </div>
@@ -2886,7 +2935,7 @@ Notes:</p>
 
 
         <div class="tag-source">
-            <a href="Sequence.js.html">Sequence.js</a>, <a href="Sequence.js.html#line1411">line 1411</a>
+            <a href="Sequence.js.html">Sequence.js</a>, <a href="Sequence.js.html#line1372">line 1372</a>
         </div>
 
     </div>
@@ -2957,7 +3006,7 @@ Notes:</p>
 
 
         <div class="tag-source">
-            <a href="Sequence.js.html">Sequence.js</a>, <a href="Sequence.js.html#line344">line 344</a>
+            <a href="Sequence.js.html">Sequence.js</a>, <a href="Sequence.js.html#line297">line 297</a>
         </div>
 
     </div>
@@ -3060,7 +3109,7 @@ Notes:</p>
 
 
         <div class="tag-source">
-            <a href="Sequence.js.html">Sequence.js</a>, <a href="Sequence.js.html#line1393">line 1393</a>
+            <a href="Sequence.js.html">Sequence.js</a>, <a href="Sequence.js.html#line1354">line 1354</a>
         </div>
 
     </div>
@@ -3177,7 +3226,7 @@ See <a href="../docs.html#s.updating-records">updating records</a> for details.<
 
 
         <div class="tag-source">
-            <a href="Sequence.js.html">Sequence.js</a>, <a href="Sequence.js.html#line709">line 709</a>
+            <a href="Sequence.js.html">Sequence.js</a>, <a href="Sequence.js.html#line670">line 670</a>
         </div>
 
     </div>
@@ -3459,12 +3508,12 @@ See <a href="../docs.html#s.updating-records">updating records</a> for details.<
     <div class="nameContainer">
         <h4 class="name" id=".complement">
 
-            <span class="type-signature static">static</span>Sequence.complement<span class="signature">()</span><span class="return-arrow" aria-hidden="true">➜</span><span class="type-signature returnType">{String}</span>
+            <span class="type-signature static">static</span>Sequence.complement<span class="signature">(seq)</span><span class="return-arrow" aria-hidden="true">➜</span><span class="type-signature returnType">{String}</span>
         </h4>
 
 
         <div class="tag-source">
-            <a href="Sequence.js.html">Sequence.js</a>, <a href="Sequence.js.html#line205">line 205</a>
+            <a href="Sequence.js.html">Sequence.js</a>, <a href="Sequence.js.html#line211">line 211</a>
         </div>
 
     </div>
@@ -3475,7 +3524,8 @@ See <a href="../docs.html#s.updating-records">updating records</a> for details.<
 
 
     <div class="description">
-        <p>Return the Complement the sequence</p>
+        <p>Complement DNA/IUPAC bases, retaining case and alignment gap characters.
+Unknown symbols remain unchanged instead of inheriting the preceding base.</p>
     </div>
 
 
@@ -3483,6 +3533,51 @@ See <a href="../docs.html#s.updating-records">updating records</a> for details.<
 
 
 
+
+
+
+<table class="params">
+    <thead>
+	<tr>
+
+		<th>Name</th>
+
+
+		<th>Type</th>
+
+
+
+		<th class="last">Description</th>
+	</tr>
+	</thead>
+
+	<tbody>
+
+
+        <tr>
+
+                <td class="name"><code>seq</code></td>
+
+
+            <td class="type">
+
+
+<span class="param-type">String</span>
+
+
+
+            </td>
+
+
+
+            <td class="description last">
+
+                <p>Nucleotide sequence.</p></td>
+        </tr>
+
+
+	</tbody>
+</table>
 
 
 
@@ -3542,15 +3637,21 @@ See <a href="../docs.html#s.updating-records">updating records</a> for details.<
 
 
             </td>
-            <td class="description last"><ul>
-<li>'Sequence'</li>
-</ul></td>
+            <td class="description last">Complemented sequence, without changing the input.</td>
         </tr>
 
     </tbody>
 </table>
 
 
+
+
+
+        <h5>Example</h5>
+
+
+
+    <pre class="language-javascript"><code><p>Sequence.complement('ARY'); // 'TYR'</p></code></pre>
 
 
 
@@ -3567,7 +3668,7 @@ See <a href="../docs.html#s.updating-records">updating records</a> for details.<
 
 
         <div class="tag-source">
-            <a href="Sequence.js.html">Sequence.js</a>, <a href="Sequence.js.html#line306">line 306</a>
+            <a href="Sequence.js.html">Sequence.js</a>, <a href="Sequence.js.html#line259">line 259</a>
         </div>
 
     </div>

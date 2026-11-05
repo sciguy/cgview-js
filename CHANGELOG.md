@@ -3,6 +3,8 @@
 --------------------------------------------------------------------------------
 
 ## 1.9.0 - Unreleased
+- Fixed origin-crossing features on multi-contig maps to wrap within their own contig across rendering, labels, lookup, selection, and navigation, including joined locations.
+- Added per-contig `topology` (`circular`, `linear`, or `unknown`) independently of map format. Wrapped features remain supported for every topology, with grouped warnings for linear or unknown contigs.
 - Added `contextmenu` events with map element details for custom right-click menus and restricted Shift-drag selection to the primary mouse button.
 - Added `trackLabel` mouse-event targets for visible track labels, exposing the Track as `element` and the clicked lane as `slot`.
 - Added bookmark reordering through `Bookmark.move(newIndex)` and `Viewer.moveBookmark(oldIndex, newIndex)`, with a `bookmarks-moved` event.

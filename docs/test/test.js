@@ -352,8 +352,8 @@ loadMapFromID(initialMap);
 // Add maps from maps.js to Select
 // Using global variable 'maps' from maps.js
 const mapSelect = document.getElementById('map-select');
-const groups = { generated: 'Generated with CGParse', labels: 'Labels', test: 'Tests', basic: 'Basic', large: 'Large', contigs: 'Contigs', version: 'Versions', bad: 'Bad' };
-const order = ['generated', 'basic', 'contigs', 'large', 'test', 'labels', 'version', 'bad'];
+const groups = { generated: 'Generated with CGParse', labels: 'Labels', test: 'Tests', basic: 'Basic', large: 'Large', contigs: 'Contigs', wrapped: 'Wrapped Features', version: 'Versions', bad: 'Bad' };
+const order = ['generated', 'basic', 'contigs', 'wrapped', 'large', 'test', 'labels', 'version', 'bad'];
 const optionsByGroup = {};
 for (const inputKey of Object.keys(maps)) {
   const input = maps[inputKey];

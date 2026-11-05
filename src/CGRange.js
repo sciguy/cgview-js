@@ -23,11 +23,8 @@ import utils from './Utils';
 
 /**
  * A CGRange contains a start and stop position (in base pair) on a sequence contig.
- * Ranges are always in a clockise direction.
- * The start is always less than the stop position with following exception.
- * Since the genomes are circular, if the genome contains a single contig
- * (i.e., Sequence.hasMultipleContigs is false) it's possibe for the range to
- * loop around (i.e., that stop can be less than the start).
+ * Ranges are always in a clockwise direction. A stop before the start wraps
+ * within the owning contig, independently of its topology or the map format.
  *
  * ### Ranges and Map Coordinates
  *
@@ -44,9 +41,12 @@ class CGRange {
    * @param {Sequence} contig - The contig that contains the range. The contig provides the contig length
    * @param {Number} start - The start position.
    * @param {Number} stop - The stop position.
+   * @param {Object} [options] - Internal projection options.
+   * @param {Number[]} [options.bounds] - Inclusive wrap boundaries in contig coordinates.
    */
-  constructor(contig, start, stop) {
+  constructor(contig, start, stop, options = {}) {
     this._contig = contig;
+    this._bounds = options.bounds;
     this.start = start;
     this.stop = stop;
   }
@@ -73,37 +73,25 @@ class CGRange {
   // }
 
   /**
-   * @member {Number} - Get or set the range start. Start must be less than
-   * Stop unless the contig represents the entire map, in which case,
-   * wrapping is allowed. The value will be constrained between the 1 and the
-   * contig length.
+   * @member {Number} - Get or set the range start, constrained to its wrap boundaries.
    */
   get start() {
     return this._start;
   }
 
   set start(value) {
-    // this._start = Number(value);
-    // this._start = CGV.constrain(value, 1, this.stop || this.contig.length);
-    const stop = this.isWrappingAllowed ? this.contig.length : (this.stop || this.contig.length);
-    this._start = utils.constrain(value, 1, stop);
+    this._start = utils.constrain(value, this._boundStart, this._boundStop);
   }
 
   /**
-   * @member {Number} - Get or set the range stop. Stop must be greater than
-   * Start unless the contig represents the entire map, in which case,
-   * wrapping is allowed. The value will be constrained between the 1 and the
-   * contig length.
+   * @member {Number} - Get or set the range stop, constrained to its wrap boundaries.
    */
   get stop() {
     return this._stop;
   }
 
   set stop(value) {
-    // this._stop = Number(value);
-    // this._stop = CGV.constrain(value, this.start || 1, this.contig.length);
-    const start = this.isWrappingAllowed ? 1 : (this.start || 1);
-    this._stop = utils.constrain(value, start, this.contig.length);
+    this._stop = utils.constrain(value, this._boundStart, this._boundStop);
   }
 
   /**
@@ -132,9 +120,45 @@ class CGRange {
     this.stop = value - this.contig.lengthOffset;
   }
 
-  // Should this return "this" if 
+  get _boundStart() {
+    return this._bounds ? this._bounds[0] : 1;
+  }
+
+  get _boundStop() {
+    return this._bounds ? this._bounds[1] : this.contig.length;
+  }
+
+  /**
+   * @member {CGRange} - A copy in map coordinates that retains its original wrap boundaries.
+   */
   get onMap() {
-    return new CGRange(this.sequence.mapContig, this.mapStart, this.mapStop);
+    const offset = this.contig.lengthOffset;
+    return new CGRange(this.sequence.mapContig, this.mapStart, this.mapStop, {
+      bounds: [this._boundStart + offset, this._boundStop + offset],
+    });
+  }
+
+  /**
+   * @member {CGRange[]} - Non-wrapping map segments in clockwise traversal order.
+   * Returns new ranges without modifying this range or its contig.
+   * @example range.mapRanges.map(segment => [segment.start, segment.stop]);
+   */
+  get mapRanges() {
+    const mapContig = this.sequence.mapContig;
+    const offset = this.contig.lengthOffset;
+    return this.isWrapped() ? [
+      new CGRange(mapContig, this.mapStart, this._boundStop + offset),
+      new CGRange(mapContig, this._boundStart + offset, this.mapStop),
+    ] : [new CGRange(mapContig, this.mapStart, this.mapStop)];
+  }
+
+  /**
+   * Whether this range wraps at the whole map's boundaries. Does not infer topology.
+   * @returns {Boolean} True when the wrap domain covers the map. No side effects.
+   */
+  isMapDomain() {
+    const offset = this.contig.lengthOffset;
+    return this._boundStart + offset === 1 && this._boundStop + offset === this.sequence.length;
   }
 
   /**
@@ -144,7 +168,7 @@ class CGRange {
     if (this.stop >= this.start) {
       return this.stop - this.start + 1;
     } else {
-      return this.contig.length + (this.stop - this.start) + 1;
+      return (this._boundStop - this._boundStart + 1) + (this.stop - this.start) + 1;
     }
   }
 
@@ -155,8 +179,8 @@ class CGRange {
     // Subtract 0.5 from the start like we do in Canvas.drawElement
     // So the middle of a 1 bp range will be itself.
     const _middle = this.start - 0.5 + (this.length / 2);
-    if (_middle > this.contig.length) {
-      return (_middle - this.contig.length);
+    if (_middle > this._boundStop) {
+      return (_middle - (this._boundStop - this._boundStart + 1));
     } else {
       return _middle;
     }
@@ -172,31 +196,15 @@ class CGRange {
   }
 
   /**
-   * Convert the *value* to be between the 1 and the contig length.
-   * Values will be constrained to the contig unless the Map Sequence only contains a single contig,
-   * in which case, values bigger or smaller than the sequence length will be wrappeed around.
+   * Wrap the *value* within this range's coordinate domain.
    * For example, if sequence length is 1000 and _value_ is 1200,
    * a value of 200 will be returned.
    * @param {Number} value - The number to normalize.
    * @return {Number}
    */
   normalize(value) {
-    if (this.sequence.hasMultipleContigs) {
-      // Multiple Contigs. Values are constrained between one and contig length.
-      return utils.constrain(value, 1, this.contig.length);
-    } else {
-      // Single Contig. Wrapping possible.
-      let rotations;
-      if (value > this.sequenceLength) {
-        rotations = Math.floor(value / this.sequenceLength);
-        return (value - (this.sequenceLength * rotations) );
-      } else if (value < 1) {
-        rotations = Math.ceil(Math.abs(value / this.sequenceLength));
-        return (this.sequenceLength * rotations) + value;
-      } else {
-        return value;
-      }
-    }
+    const length = this._boundStop - this._boundStart + 1;
+    return ((value - this._boundStart) % length + length) % length + this._boundStart;
   }
 
   /**
@@ -226,14 +234,12 @@ class CGRange {
   }
 
   /**
-   * Return true if the contig length is the same as the sequence length.
-   * If so, then the range can wrap around (i.e., that stop position can be less than the start).
+   * Ranges may wrap within their coordinate domain regardless of biological topology.
    * @return {Boolean}
    * @private
    */
   isWrappingAllowed() {
-    // return (!this.sequence.hasMultipleContigs && this.contig.length === this.sequence.length);
-    return (this.contig === this.sequence.mapContig);
+    return true;
   }
 
   /**
@@ -250,6 +256,8 @@ class CGRange {
    * @return {Boolean}
    */
   containsMapBp(position) {
+    const offset = this.contig.lengthOffset;
+    if (position < this._boundStart + offset || position > this._boundStop + offset) { return false; }
     if (this.stop >= this.start) {
       // Typical Range
       return (position >= this.mapStart && position <= this.mapStop);
@@ -264,7 +272,7 @@ class CGRange {
    * @return {Range}
    */
   copy() {
-    return new CGRange(this.contig, this.start, this.stop);
+    return new CGRange(this.contig, this.start, this.stop, {bounds: this._bounds?.slice()});
   }
 
   /**
@@ -273,8 +281,12 @@ class CGRange {
    * @return {Boolwan}
    */
   overlapsMapRange(range2) {
-    // return (this.contains(range2.start) || this.contains(range2.stop) || range2.contains(this.start));
-    return (this.containsMapBp(range2.mapStart) || this.containsMapBp(range2.mapStop) || range2.containsMapBp(this.mapStart));
+    if (!this.isWrapped() && !range2.isWrapped()) {
+      return this.mapStart <= range2.mapStop && this.mapStop >= range2.mapStart;
+    }
+    const otherSegments = range2.mapRanges;
+    return this.mapRanges.some(segment => otherSegments.some(other =>
+      segment.start <= other.stop && segment.stop >= other.start));
   }
 
   /**
