@@ -48,6 +48,7 @@ import utils from './Utils';
  * [seq](#seq)<sup>iu</sup>         | String    | The contig sequence.
  * [length](#length)<sup>iu</sup>   | Number    | The length of the sequence. This is ignored if a seq is provided.
  * [orientation](#orientation)      | String    | '+' for forward orientation and '-' for the reverse.
+ * [topology](#topology)            | String    | Biological topology: circular, linear, or unknown [Default: unknown]. Independent of map format.
  * [color](#color)                  | Color     | A string describing the color [Default: 'black']. See {@link Color} for details.
  * [visible](CGObject.html#visible) | Boolean   | Contig is visible [Default: true].
  * [meta](CGObject.html#meta)       | Object    | [Meta data](../tutorials/details-meta-data.html)
@@ -72,6 +73,8 @@ class Contig extends CGObject {
     // this.id = utils.defaultFor(options.id, this.cgvID);
     // this.name = utils.defaultFor(options.name, this.id);
     this.name = utils.defaultFor(options.name, 'Unknown');
+    this._topology = 'unknown';
+    this.topology = utils.defaultFor(options.topology, 'unknown');
     this.orientation = utils.defaultFor(options.orientation, '+');
     this.seq = options.seq;
     this.color = options.color;
@@ -172,6 +175,20 @@ class Contig extends CGObject {
    */
   get isMapContig() {
     return (this.sequence.mapContig === this);
+  }
+
+  /**
+   * @member {String} - Biological topology: circular, linear, or unknown.
+   * Changes queue warnings for wrapped features without changing their coordinates or the display format.
+   */
+  get topology() {
+    return this._topology;
+  }
+
+  set topology(value) {
+    if (!utils.validate(value, ['circular', 'linear', 'unknown']) || value === this._topology) { return; }
+    this._topology = value;
+    this._features?.forEach(feature => this.viewer._queueFeatureWrapWarning(feature));
   }
 
   /**
@@ -372,11 +389,14 @@ class Contig extends CGObject {
     const updates = {};
     for (let i = 0, len = this._features.length; i < len; i++) {
       const feature = this._features[i];
-      updates[feature.cgvID] = {
+      const coordinates = feature.hasLocations ? {
+        locations: feature.locations.slice().reverse().map(([start, stop]) =>
+          [this.length - stop + 1, this.length - start + 1]),
+      } : {
         start: this.length - feature.stop + 1,
         stop: this.length - feature.start + 1,
-        strand: -(feature.strand)
       };
+      updates[feature.cgvID] = {...coordinates, strand: -feature.strand};
     }
     this.viewer.updateFeatures(updates);
   }
@@ -462,6 +482,7 @@ class Contig extends CGObject {
     const json = {
       // id: this.id,
       name: this.name,
+      topology: this.topology,
       orientation: this.orientation,
       length: this.length,
       color: this.color && this.color.rgbaString,

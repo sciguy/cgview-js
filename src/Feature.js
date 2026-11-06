@@ -128,6 +128,7 @@ class Feature extends CGObject {
     this.extractedFromSequence = utils.defaultFor(data.extractedFromSequence, false);
 
     this.legendItem  = data.legend;
+    this.viewer._queueFeatureWrapWarning(this);
   }
 
   /**
@@ -189,14 +190,19 @@ class Feature extends CGObject {
   }
 
   /**
-   * @member {String} - Get or set the Codon start (Default: 1)
+   * @member {Number} - First codon position (1, 2, or 3) in the strand-oriented feature sequence [Default: 1].
+   * Numeric strings are accepted. Invalid values log an error and leave the current offset unchanged.
    */
   get codonStart() {
     return this._codonStart || 1;
   }
 
   set codonStart(value) {
-    this._codonStart = value;
+    const input = value ?? 1;
+    const start = typeof input === 'number' || typeof input === 'string' ? Number(input) : NaN;
+    if (utils.validate(start, [1, 2, 3])) {
+      this._codonStart = start;
+    }
   }
 
   /**
@@ -283,14 +289,23 @@ class Feature extends CGObject {
 
   set range(value) {
     this._range = value;
+    if (this.label) { this.viewer._queueFeatureWrapWarning(this); }
   }
 
   /**
-   * @member {Range} - Get or set the range of the feature with respect to its contig.
-   *   All ranges are assumed to be going in a clockwise direction.
+   * @member {CGRange} - The feature's full range in map coordinates, retaining its contig's wrap boundaries.
    */
   get mapRange() {
     return this.range.onMap;
+  }
+
+  /**
+   * @member {CGRange[]} - Non-wrapping map segments of the full feature range, including gaps between locations.
+   * Returns new ranges in clockwise traversal order without changing the feature.
+   * @example feature.mapRanges.map(range => [range.start, range.stop]);
+   */
+  get mapRanges() {
+    return this.range.mapRanges;
   }
 
   /**
@@ -307,6 +322,7 @@ class Feature extends CGObject {
   set start(value) {
     if (!this.hasLocations) {
       this.range.start = value;
+      this.viewer._queueFeatureWrapWarning(this);
     } else {
       console.error('Feature has multiple locations. Use locations to set start position')
     }
@@ -326,6 +342,7 @@ class Feature extends CGObject {
   set stop(value) {
     if (!this.hasLocations) {
       this.range.stop = value;
+      this.viewer._queueFeatureWrapWarning(this);
     } else {
       console.error('Feature has multiple locations. Use locations to set start position')
     }
@@ -344,6 +361,7 @@ class Feature extends CGObject {
     // this.range.mapStart = value;
     if (!this.hasLocations) {
       this.range.mapStart = value;
+      this.viewer._queueFeatureWrapWarning(this);
     } else {
       console.error('Feature has multiple locations.')
     }
@@ -362,6 +380,7 @@ class Feature extends CGObject {
     // this.range.mapStop = value;
     if (!this.hasLocations) {
       this.range.mapStop = value;
+      this.viewer._queueFeatureWrapWarning(this);
     } else {
       console.error('Feature has multiple locations.')
     }
@@ -385,8 +404,21 @@ class Feature extends CGObject {
   }
 
   set locations(value) {
-    let locs = [];
-    if (Array.isArray(value)) {
+    const locs = this._validatedLocations(value);
+    if (!locs) { return; }
+    this.updateRanges(locs[0][0], locs[locs.length - 1][1]);
+    this._locations = locs;
+  }
+
+  /**
+   * Validate and copy locations without changing the feature.
+   * @param {Array<Number[]>} value - Ordered start/stop pairs.
+   * @returns {Array<Number[]>|undefined} Copied locations, or undefined after logging an invalid input.
+   * @private
+   */
+  _validatedLocations(value) {
+    const locs = [];
+    if (Array.isArray(value) && value.length > 0) {
       for (const location of value) {
         if (Array.isArray(location) && !isNaN(location[0]) && !isNaN(location[1])) {
           if (location[0] <= location[1]) {
@@ -401,11 +433,10 @@ class Feature extends CGObject {
         }
       }
     } else {
-      console.error('Feature locations must be an array of arrays of numbers: ', value);
+      console.error('Feature locations must be a nonempty array of arrays of numbers: ', value);
       return;
     }
-    this.updateRanges(locs[0][0], locs[locs.length - 1][1]);
-    this._locations = locs;
+    return locs;
   }
 
   /**
@@ -543,49 +574,85 @@ class Feature extends CGObject {
   }
 
   set contig(value) {
-    const oldContig = this._contig;
-    let newContig;
+    this._applyAttributes({contig: value});
+  }
+
+  /**
+   * Resolve a contig without changing ownership or coordinates.
+   * @param {Contig|String|undefined} value - A contig, its name, or undefined for the map contig.
+   * @returns {Contig|undefined} Resolved contig, or undefined after logging a missing contig.
+   * @private
+   */
+  _resolveContig(value) {
     if (value === undefined || value === this.sequence.mapContig) {
-      // this._contig = undefined;
-      newContig = this.sequence.mapContig;
-      // If feature was on a contig update the positions
-      if (oldContig) {
-      }
+      return this.sequence.mapContig;
     } else if (value && (value.toString() === 'Contig') && value !== 'Contig') {
-      // this._contig  = value;
-      newContig = value;
-    } else {
-      const contig = this.viewer.sequence.contigs(value);
-      // const contig = this.viewer.sequence.contigs().filter( c => c.id && c.id.toLowerCase() === value.toLowerCase() )[0];
-      if (contig) {
-        // this._contig  = contig;
-        newContig = contig;
-      } else {
-        console.error(`Feature '${this.name}' could not find contig '${value}'`)
-        return;
-      }
+      return value;
     }
-    if (oldContig !== newContig) {
-      // Add feature to new Contig
-      if (newContig) {
-        newContig._features.push(this);
-      }
-      // Remove feature from old Contig
+    const contig = this.sequence.contigs(value);
+    if (!contig) { console.error(`Feature '${this.name}' could not find contig '${value}'`); }
+    return contig;
+  }
+
+  /**
+   * Apply an update, validating a contig change and its final coordinates before mutation.
+   * Coordinates accompanying a contig change belong to the destination contig;
+   * explicit locations take precedence over start/stop coordinates.
+   * @param {Object} attributes - Validated update keys from Viewer.updateFeatures.
+   * @returns {Boolean} True after applying the update; false after logging a rejected conversion.
+   * Updates contig membership and queues wrap diagnostics only after validation succeeds.
+   * @private
+   */
+  _applyAttributes(attributes) {
+    const changingContig = Object.prototype.hasOwnProperty.call(attributes, 'contig');
+    const geometryKeys = ['contig', 'start', 'stop', 'mapStart', 'mapStop', 'locations'];
+    if (changingContig) {
+      const oldContig = this.contig;
+      const newContig = this._resolveContig(attributes.contig);
+      if (!newContig) { return false; }
+      let range, locations;
       if (oldContig) {
-        Contig.removeFeatures(this);
+        const offset = newContig.isMapContig ? oldContig.lengthOffset : 0;
+        const replacesLocations = Object.prototype.hasOwnProperty.call(attributes, 'locations');
+        locations = replacesLocations ? this._validatedLocations(attributes.locations) :
+          this._locations?.map(([start, stop]) => [start + offset, stop + offset]);
+        if (replacesLocations && !locations) { return false; }
+        if (replacesLocations || locations?.length > 1) {
+          range = new CGRange(newContig, locations[0][0], locations[locations.length - 1][1]);
+        } else {
+          range = new CGRange(newContig, this.start + offset, this.stop + offset);
+          for (const key of ['start', 'stop', 'mapStart', 'mapStop']) {
+            if (Object.prototype.hasOwnProperty.call(attributes, key)) {
+              range[key] = Number(attributes[key]);
+              locations = undefined;
+            }
+          }
+        }
+        if (!Number.isFinite(range.start) || !Number.isFinite(range.stop)) {
+          console.error(`[CGView] Feature ${JSON.stringify(this.name)} has invalid destination coordinates.`);
+          return false;
+        }
+        if (newContig.isMapContig && this.sequence.contigs().includes(oldContig) &&
+          this.range.isWrapped() && !this.range.isMapDomain() && range.isWrapped()) {
+          console.warn(`[CGView] Feature ${JSON.stringify(this.name)} must retain its contig to preserve its wrap boundaries.`);
+          return false;
+        }
+      }
+      if (oldContig !== newContig) {
+        newContig._features.push(this);
+        if (oldContig) { Contig.removeFeatures(this); }
+      }
+      this._contig = newContig;
+      if (range) {
+        this._locations = locations;
+        this.range = range;
       }
     }
-    // Must be done after calling Contig.removeFeatures()
-    this._contig = newContig;
-    if (oldContig) {
-      // FIXME: adjust start/stop if the new contig is shorter than old contig
-      // and the position needs to be constrained. Try to keep the same length.
-      if (newContig.isMapContig) {
-        this.updateRanges(this.mapStart, this.mapStop);
-      } else {
-        this.updateRanges(this.start, this.stop);
-      }
+    for (const key of Object.keys(attributes)) {
+      if (changingContig && geometryKeys.includes(key)) { continue; }
+      this[key] = attributes[key];
     }
+    return true;
   }
 
   /**
@@ -604,9 +671,8 @@ class Feature extends CGObject {
   }
 
   /**
-   * Moves the feature, if it's on the mapContig, to the appropriate contig
-   * based on the start position. This may truncate the feature if it does not 
-   * fit completely
+   * Moves a feature to map coordinates. Contig-local wrapped features retain
+   * their owning contig because changing the wrap boundaries would change their span.
    * @private
    */
   moveToMapContig() {
@@ -618,6 +684,9 @@ class Feature extends CGObject {
   /**
    * Update feature [attributes](#attributes).
    * See [updating records](../docs.html#s.updating-records) for details.
+   * When changing contig, start/stop and locations use the destination contig's
+   * coordinates, regardless of attribute order. Explicit locations take precedence.
+   * A rejected contig conversion leaves all attributes unchanged.
    * @param {Object} attributes - Object describing the properties to change
    */
   update(attributes) {
@@ -685,7 +754,10 @@ class Feature extends CGObject {
           if ((location[1] <= nextLocation[1]) && (location[1] >= nextLocation[0])) {
             continue;
           }
-          connectors.push([location[1]+1, nextLocation[0]-1]);
+          const gap = new CGRange(this.contig, location[1], nextLocation[0]);
+          if (gap.length <= 2) { continue; }
+          connectors.push(new CGRange(this.contig,
+            gap.normalize(location[1] + 1), gap.normalize(nextLocation[0] - 1)));
         }
       }
       // Draw connectors
@@ -695,12 +767,12 @@ class Feature extends CGObject {
       const showShading = options.showShading;
       const minArcLength = this.legendItem.minArcLength;
       for (const connector of connectors) {
-        const start = connector[0] + this.contig.lengthOffset;
-        const stop = connector[1] + this.contig.lengthOffset;
-        canvas.drawElement({layer, start, stop,
-          centerOffset: this.adjustedCenterOffset(slotCenterOffset, slotThickness),
-          color: color.rgbaString, width: connectorWidth, decoration: 'arc', showShading, minArcLength,
-          selected: this.selected});
+        for (const range of connector.mapRanges) {
+          canvas.drawElement({layer, start: range.start, stop: range.stop,
+            centerOffset: this.adjustedCenterOffset(slotCenterOffset, slotThickness),
+            color: color.rgbaString, width: connectorWidth, decoration: 'arc', showShading, minArcLength,
+            selected: this.selected});
+        }
       }
     } else {
       this.drawRange(this.mapRange, layer, slotCenterOffset, slotThickness, visibleRange, options);
@@ -709,6 +781,18 @@ class Feature extends CGObject {
 
   // drawRange(layer, slotCenterOffset, slotThickness, visibleRange, options = {}) {
   drawRange(range, layer, slotCenterOffset, slotThickness, visibleRange, options = {}) {
+    if (range.isWrapped() && (!range.isMapDomain() || this.viewer.format === 'linear')) {
+      const segments = range.mapRanges;
+      for (let index = 0; index < segments.length; index++) {
+        const segmentOptions = {...options};
+        const terminal = this.isDirect() ? index === segments.length - 1 : index === 0;
+        if (!terminal && ['arrow', 'auto'].includes(this.decoration)) {
+          segmentOptions.directionalDecoration = 'arc';
+        }
+        this.drawRange(segments[index], layer, slotCenterOffset, slotThickness, visibleRange, segmentOptions);
+      }
+      return;
+    }
     // if (!this.visible) { return; }
     // if (this.mapRange.overlapsMapRange(visibleRange)) {
     if (range.overlapsMapRange(visibleRange)) {
@@ -727,10 +811,12 @@ class Feature extends CGObject {
       if (!containsStart) {
         // start = visibleRange.start - 100;
         start = Math.max(1, visibleRange.start - 100);
+        if (!range.isWrapped()) { start = Math.max(start, range.mapStart); }
       }
       if (!containsStop) {
         // stop = visibleRange.stop + 100;
         stop = Math.min(this.sequence.length, visibleRange.stop + 100);
+        if (!range.isWrapped()) { stop = Math.min(stop, range.mapStop); }
       }
 
       // When zoomed in, if the feature starts in the visible range and wraps around to end
@@ -913,9 +999,11 @@ class Feature extends CGObject {
    * @param {Object} ease - The d3 animation ease [Default: d3.easeCubic]
    */
   moveTo(duration, ease) {
-    const buffer = Math.ceil(this.length * 0.05);
-    const start = this.sequence.subtractBp(this.mapStart, buffer);
-    const stop = this.sequence.addBp(this.mapStop, buffer);
+    const wrappedContig = this.range.isWrapped() && !this.range.isMapDomain();
+    const range = wrappedContig ? this.contig.mapRange : this.mapRange;
+    const buffer = Math.ceil((wrappedContig ? range.length : this.length) * 0.05);
+    const start = this.sequence.subtractBp(range.mapStart, buffer);
+    const stop = this.sequence.addBp(range.mapStop, buffer);
     this.viewer.moveTo(start, stop, {duration, ease});
   }
 
@@ -938,6 +1026,8 @@ class Feature extends CGObject {
 
   /**
    * Translate the sequence of this feature.
+   * The codonStart offset is applied after joining wrapped ends or locations
+   * and orienting the sequence to the feature's strand.
    *
    * The source of the genetic code used for translation uses the following precedence:
    * geneticCode (provided to translate method) > geneticCode (of Feature) > geneticCode (of Viewer)
@@ -954,7 +1044,7 @@ class Feature extends CGObject {
     } else {
       const code = geneticCode || this.geneticCode || this.viewer.geneticCode;
       const table = this.viewer.codonTables.byID(code);
-      return table && table.translate(this.seq, this.start_codon);
+      return table && table.translate(this.seq, this.codonStart);
     }
   }
 

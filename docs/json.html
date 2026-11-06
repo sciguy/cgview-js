@@ -92,6 +92,19 @@ Click on a key (e.g. backbone, captions, etc) for options and defaults.
 It uses a contig length without sequence data. To include sequence data, provide
 the complete sequence in a contig's `seq` property instead of `length`.
 
+Each contig can specify `topology`: `"circular"`, `"linear"`, or `"unknown"`
+(the default). This describes the sequence independently of `settings.format`,
+which controls the map's circular or linear display. For single-sequence input
+using `sequence.seq` or `sequence.length`, `sequence.topology` supplies the sole
+contig's topology. Saved JSON stores topology on each contig.
+
+A feature whose `start` is greater than its `stop` wraps within its owning
+contig in either display format. CGView logs a warning when that contig's
+topology is linear or unknown, while preserving both coordinates and topology.
+Warnings are grouped during import and suppressed for unchanged features on
+subsequent redraws. Ordered `locations` may cross the contig origin between
+locations; each individual location still has its start at or before its stop.
+
 The following two options are available for most sections of the JSON but are
 only present when they have non-default values (see the first [feature](#lines.112-125) for an example with non-default values):
 - _visible_ [Default: true]

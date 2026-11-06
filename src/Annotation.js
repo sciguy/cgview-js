@@ -301,7 +301,9 @@ class Annotation extends CGObject {
     for (const label of labels) {
       label.bpDefault = label.feature.mapRange.middle;
     }
-    this._labelsNCList = new NCList(labels, { circularLength: this.sequence.length, startProperty: 'mapStart', stopProperty: 'mapStop'});
+    this._labelsNCList = new NCList(labels, {
+      circularLength: this.sequence.length, startProperty: 'mapStart', stopProperty: 'mapStop', rangeProperty: 'mapRange',
+    });
   }
 
   refreshLabelWidths() {
@@ -325,6 +327,28 @@ class Annotation extends CGObject {
     for (let i = 0, len = labels.length; i < len; i++) {
       label = labels[i];
       feature = label.feature;
+      const mapRange = feature.mapRange;
+      if (mapRange.isWrapped() && !mapRange.isMapDomain()) {
+        // An origin-crossing contig has two separated pieces on the map. Anchor
+        // to its midpoint when visible, otherwise to the largest visible piece.
+        label.bp = label.bpDefault;
+        if (!visibleRange.containsMapBp(label.bp)) {
+          let longest = 0;
+          const visibleSegments = visibleRange.mapRanges;
+          for (const segment of feature.mapRanges) {
+            for (const visible of visibleSegments) {
+              const start = Math.max(segment.start, visible.start);
+              const stop = Math.min(segment.stop, visible.stop);
+              if (stop - start + 1 > longest) {
+                longest = stop - start + 1;
+                label.bp = (start + stop) / 2;
+              }
+            }
+          }
+        }
+        label.lineAttachment = this.viewer.layout.clockPositionForBp(label.bp, true);
+        continue;
+      }
       containsStart = visibleRange.containsMapBp(feature.mapStart);
       containsStop = visibleRange.containsMapBp(feature.mapStop);
       if (containsStart && containsStop) {

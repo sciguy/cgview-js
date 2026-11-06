@@ -147,6 +147,7 @@ import utils from './Utils';
  * [seq](#seq)&lt;sup>iu&lt;/sup>         | String    | The contig sequence.
  * [length](#length)&lt;sup>iu&lt;/sup>   | Number    | The length of the sequence. This is ignored if a seq is provided.
  * [orientation](#orientation)      | String    | '+' for forward orientation and '-' for the reverse.
+ * [topology](#topology)            | String    | Biological topology: circular, linear, or unknown [Default: unknown]. Independent of map format.
  * [color](#color)                  | Color     | A string describing the color [Default: 'black']. See {@link Color} for details.
  * [visible](CGObject.html#visible) | Boolean   | Contig is visible [Default: true].
  * [meta](CGObject.html#meta)       | Object    | [Meta data](../tutorials/details-meta-data.html)
@@ -171,6 +172,8 @@ class Contig extends CGObject {
     // this.id = utils.defaultFor(options.id, this.cgvID);
     // this.name = utils.defaultFor(options.name, this.id);
     this.name = utils.defaultFor(options.name, 'Unknown');
+    this._topology = 'unknown';
+    this.topology = utils.defaultFor(options.topology, 'unknown');
     this.orientation = utils.defaultFor(options.orientation, '+');
     this.seq = options.seq;
     this.color = options.color;
@@ -274,6 +277,20 @@ class Contig extends CGObject {
   }
 
   /**
+   * @member {String} - Biological topology: circular, linear, or unknown.
+   * Changes queue warnings for wrapped features without changing their coordinates or the display format.
+   */
+  get topology() {
+    return this._topology;
+  }
+
+  set topology(value) {
+    if (!utils.validate(value, ['circular', 'linear', 'unknown']) || value === this._topology) { return; }
+    this._topology = value;
+    this._features?.forEach(feature => this.viewer._queueFeatureWrapWarning(feature));
+  }
+
+  /**
    * @member {Number} - Get the contig index (base-1) in relation to all the other contigs.
    */
   get index() {
@@ -282,7 +299,7 @@ class Contig extends CGObject {
 
   /**
    * @member {String} - Get or set the contig orientation. Value must be '+' or '-'.
-   *   Flipping the orienation will reverse complement the contig sequence and
+   *   Flipping the orientation will reverse complement the contig sequence and
    *   adjust all the features on this contig.
    */
   get orientation() {
@@ -292,14 +309,15 @@ class Contig extends CGObject {
   set orientation(value) {
     const validKeys = ['-', '+'];
     if (!utils.validate(value, validKeys)) { return; }
-    if (this._orientation &amp;&amp; (value !== this._orientation)) {
+    if (this._orientation === value) { return; }
+    if (this._orientation) {
+      // Imported bases already use their stored orientation. Only a transition
+      // on an initialized contig reverses bases and dependent coordinates.
+      const reversedSequence = this.seq ? this.reverseComplement() : undefined;
       this.reverseFeatureOrientations();
-    }
-    if (this.seq) {
-      this.seq = this.reverseComplement();
+      if (reversedSequence !== undefined) { this.seq = reversedSequence; }
     }
     this._orientation = value;
-    // FIXME: reverse complement the sequence
   }
 
   /**
@@ -470,11 +488,14 @@ class Contig extends CGObject {
     const updates = {};
     for (let i = 0, len = this._features.length; i &lt; len; i++) {
       const feature = this._features[i];
-      updates[feature.cgvID] = {
+      const coordinates = feature.hasLocations ? {
+        locations: feature.locations.slice().reverse().map(([start, stop]) =>
+          [this.length - stop + 1, this.length - start + 1]),
+      } : {
         start: this.length - feature.stop + 1,
         stop: this.length - feature.start + 1,
-        strand: -(feature.strand)
       };
+      updates[feature.cgvID] = {...coordinates, strand: -feature.strand};
     }
     this.viewer.updateFeatures(updates);
   }
@@ -560,6 +581,7 @@ class Contig extends CGObject {
     const json = {
       // id: this.id,
       name: this.name,
+      topology: this.topology,
       orientation: this.orientation,
       length: this.length,
       color: this.color &amp;&amp; this.color.rgbaString,

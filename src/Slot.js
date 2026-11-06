@@ -226,7 +226,9 @@ class Slot extends CGObject {
 
   // Refresh needs to be called when new features are added, etc
   refresh() {
-    this._featureNCList = new NCList(this._features, {circularLength: this.sequence.length, startProperty: 'mapStart', stopProperty: 'mapStop'});
+    this._featureNCList = new NCList(this._features, {
+      circularLength: this.sequence.length, startProperty: 'mapStart', stopProperty: 'mapStop', rangeProperty: 'mapRange',
+    });
   }
 
   /**

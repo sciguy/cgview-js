@@ -85,7 +85,8 @@ export default class LabelProjection {
       const feature = label.feature;
       const locations = feature.hasLocations ? feature.locations.flatMap(([start, stop]) =>
         this._split(start + feature.contig.lengthOffset, stop + feature.contig.lengthOffset)) :
-        this._split(feature.mapStart, feature.mapStop);
+        feature.mapStart <= feature.mapStop ? [[feature.mapStart, feature.mapStop]] :
+          feature.mapRanges.map(range => [range.start, range.stop]);
       const midpoint = this._parameter(label.bpDefault, map);
       const ranges = this._clip(locations.map(([start, stop]) => {
         let a = this._parameter(start, map), b = this._parameter(stop, map);

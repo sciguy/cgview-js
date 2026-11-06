@@ -1080,6 +1080,9 @@ class Viewer {
       return;
     }
     // Update Records
+    if (options.applyAttributes) {
+      return records.filter(record => options.applyAttributes(record, attributes) !== false);
+    }
     records.attr(attributes);
     return records;
   }
@@ -1106,6 +1109,9 @@ class Viewer {
       return;
     }
     // Update Records
+    if (options.applyAttributes) {
+      return records.filter(record => options.applyAttributes(record, updates[record.cgvID]) !== false);
+    }
     for (const record of records) {
       const attributes = Object.keys(updates[record.cgvID]);
       for (const attribute of attributes) {
@@ -1117,6 +1123,8 @@ class Viewer {
 
   // Returns records (CGArray), updates, attributes
   // NOTE: Not used by Viewer.updateTracks or Viewer.update
+  // Optional applyAttributes(record, attributes) applies a record atomically;
+  // returning false excludes rejected records from the result and update events.
   updateRecords(recordsOrUpdates = [], attributes = {}, options = {}) {
     let records, updates;
     if (recordsOrUpdates.toString() === '[object Object]') {
@@ -1126,6 +1134,9 @@ class Viewer {
     } else {
       // Assume recordsOrUpdate is an individual record or an array of records
       records = this.updateRecordsWithAttributes(recordsOrUpdates, attributes, options);
+    }
+    if (updates &amp;&amp; options.applyAttributes &amp;&amp; records) {
+      updates = Object.fromEntries(records.map(record => [record.cgvID, updates[record.cgvID]]));
     }
     return { records, updates, attributes };
   }
@@ -1180,6 +1191,61 @@ class Viewer {
   }
 
   /**
+   * Check the final state after synchronous feature/contig edits or a bulk import.
+   * Schedules one microtask per batch; drawing does not invoke this diagnostic.
+   * @param {Feature} feature - Feature whose coordinates or topology may have changed.
+   * @returns {undefined} Queues a check and may later write a grouped console warning.
+   * @private
+   */
+  _queueFeatureWrapWarning(feature) {
+    if (!this._pendingFeatureWrapWarnings) {
+      this._pendingFeatureWrapWarnings = new Set();
+      Promise.resolve().then(() => this._flushFeatureWrapWarnings());
+    }
+    this._pendingFeatureWrapWarnings.add(feature);
+  }
+
+  /**
+   * Warn once per changed wrapped feature, grouped by owning contig and topology.
+   * Removed features and previous JSON loads are ignored. At most five examples
+   * are printed per group to keep large imports readable.
+   * @returns {undefined} Clears the pending batch and writes any new console warnings.
+   * @private
+   */
+  _flushFeatureWrapWarnings() {
+    const pending = this._pendingFeatureWrapWarnings;
+    this._pendingFeatureWrapWarnings = undefined;
+    const groups = new Map();
+    for (const feature of pending || []) {
+      if (this.objects(feature.cgvID) !== feature || !feature.range) { continue; }
+      const contig = feature.contig;
+      const wrapped = feature.range.isWrapped() || (feature.hasLocations &amp;&amp;
+        feature.locations.some((location, index, locations) => index > 0 &amp;&amp; location[0] &lt; locations[index - 1][0]));
+      if (!wrapped || contig.topology === 'circular') {
+        feature._wrapWarningKey = undefined;
+        continue;
+      }
+      // The synthetic map contig is recreated during ordinary contig updates.
+      const owner = contig.isMapContig &amp;&amp; this.sequence.hasMultipleContigs ? 'map' : contig.cgvID;
+      const key = JSON.stringify([owner, contig.topology, contig.length, feature.start, feature.stop, feature.locations]);
+      if (key === feature._wrapWarningKey) { continue; }
+      feature._wrapWarningKey = key;
+      if (!groups.has(contig)) { groups.set(contig, []); }
+      groups.get(contig).push(feature);
+    }
+    for (const [contig, features] of groups) {
+      const examples = features.slice(0, 5).map(feature =>
+        `${JSON.stringify(feature.name)} (${feature.start}..${feature.stop})`).join(', ');
+      const remainder = features.length > 5 ? `; and ${features.length - 5} more` : '';
+      const reason = contig.topology === 'linear' ?
+        'This conflicts with its declared linear topology.' : 'Its circularity is unconfirmed.';
+      console.warn(`[CGView] ${features.length} wrapped feature(s) on contig ${JSON.stringify(contig.name)} ` +
+        `(topology: ${contig.topology}): ${examples}${remainder}. ${reason} ` +
+        'Rendering wraps within the owning contig; topology is unchanged.');
+    }
+  }
+
+  /**
    * Remove features.
    * See [removing records](../docs.html#s.removing-records) for details.
    * @param {Feature|Array} features - Feature or a array of features to remove
@@ -1211,36 +1277,28 @@ class Viewer {
   updateFeatures(featuresOrUpdates, attributes) {
     const { records: features, updates } = this.updateRecords(featuresOrUpdates, attributes, {
       recordClass: 'Feature',
-      validKeys: ['name', 'type', 'contig', 'legendItem', 'source', 'tags', 'favorite', 'selected', 'visible', 'strand', 'start', 'stop','score', 'mapStart', 'mapStop']
+      applyAttributes: (feature, values) => feature._applyAttributes(values),
+      validKeys: ['name', 'type', 'contig', 'legendItem', 'source', 'tags', 'favorite', 'selected', 'visible', 'strand', 'start', 'stop', 'locations', 'score', 'mapStart', 'mapStop']
     });
-    // Refresh tracks if any attribute is source, type, tags
-    let refreshTracks;
-    if (updates) {
-      const values = Object.values(updates);
-      for (let value of values) {
-        refreshTracks = Object.keys(values).some( a => ['source', 'type', 'tags'].includes(a));
-      }
-    } else if (attributes) {
-      refreshTracks = Object.keys(attributes).some( a => ['source', 'type', 'tags'].includes(a));
-    }
-    if (refreshTracks) {
-      for (let track of cgv.tracks()) {
+    if (!features?.length) { return; }
+    const geometryKeys = ['start', 'stop', 'mapStart', 'mapStop', 'locations', 'contig'];
+    const geometryChanges = new Set(this.recordsWithChangedAttributes(geometryKeys, features, attributes, updates));
+    const trackChanges = this.recordsWithChangedAttributes(
+      ['source', 'type', 'tags', 'strand', 'legendItem'], features, attributes, updates);
+    if (trackChanges.length) {
+      for (const track of this.tracks()) {
         track.refresh();
       }
-    }
-    // Refresh labels if any attribute is start, stop or visible
-    let updateLabels;
-    if (updates) {
-      const values = Object.values(updates);
-      for (let value of values) {
-        if (Object.keys(value).includes('start') || Object.keys(value).includes('stop') || Object.keys(value).includes('visible') || Object.keys(value).includes('name')) {
-          updateLabels = true;
-        }
+    } else if (geometryChanges.size) {
+      // Wrapped index entries store projected segment endpoints. Rebuild only
+      // affected slots after the complete coordinate update, never mid-edit.
+      for (const slot of this.slots()) {
+        if (slot.features().some(feature => geometryChanges.has(feature))) { slot.refresh(); }
       }
-    } else {
-      updateLabels = attributes &amp;&amp; (Object.keys(attributes).includes('start') || Object.keys(attributes).includes('stop') || Object.keys(attributes).includes('visible') || Object.keys(attributes).includes('name'));
     }
-    if (updateLabels) {
+    const labelChanges = this.recordsWithChangedAttributes(
+      [...geometryKeys, 'visible', 'name'], features, attributes, updates);
+    if (labelChanges.length || trackChanges.length) {
       this.annotation.refresh();
     }
     this.trigger('features-update', { features, attributes, updates });

@@ -528,7 +528,7 @@
 
 <dt>
     <div class="nameContainer">
-        <h4 class="name" id="codonStart">codonStart<span class="type-signature type string">String</span> </h4>
+        <h4 class="name" id="codonStart">codonStart<span class="type-signature type number">Number</span> </h4>
     </div>
 
 
@@ -536,7 +536,8 @@
 <dd>
 
     <div class="description">
-        <p>Get or set the Codon start (Default: 1)</p>
+        <p>First codon position (1, 2, or 3) in the strand-oriented feature sequence [Default: 1].
+Numeric strings are accepted. Invalid values log an error and leave the current offset unchanged.</p>
     </div>
 
 
@@ -1271,7 +1272,7 @@ TODO:</li>
 
 <dt>
     <div class="nameContainer">
-        <h4 class="name" id="mapRange">mapRange<span class="type-signature type range">Range</span> </h4>
+        <h4 class="name" id="mapRange">mapRange<span class="type-signature type cgrange"><a href="CGRange.html">CGRange</a></span> </h4>
     </div>
 
 
@@ -1279,8 +1280,7 @@ TODO:</li>
 <dd>
 
     <div class="description">
-        <p>Get or set the range of the feature with respect to its contig.
-All ranges are assumed to be going in a clockwise direction.</p>
+        <p>The feature's full range in map coordinates, retaining its contig's wrap boundaries.</p>
     </div>
 
 
@@ -1308,6 +1308,60 @@ All ranges are assumed to be going in a clockwise direction.</p>
 
 
 </dl>
+
+
+
+</dd>
+
+
+
+<dt>
+    <div class="nameContainer">
+        <h4 class="name" id="mapRanges">mapRanges<span class="type-signature type array.<cgrange>">Array.&lt;<a href="CGRange.html">CGRange</a>></span> </h4>
+    </div>
+
+
+</dt>
+<dd>
+
+    <div class="description">
+        <p>Non-wrapping map segments of the full feature range, including gaps between locations.
+Returns new ranges in clockwise traversal order without changing the feature.</p>
+    </div>
+
+
+
+<dl class="details">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</dl>
+
+
+
+        <h5>Example</h5>
+
+
+
+    <pre class="language-javascript"><code><p>feature.mapRanges.map(range =&gt; [range.start, range.stop]);</p></code></pre>
 
 
 
@@ -2570,7 +2624,7 @@ the reverse strand. The setter also accepts '+' and '-'. Defaults to 1.</p>
 
 
         <div class="tag-source">
-            <a href="Feature.js.html">Feature.js</a>, <a href="Feature.js.html#line806">line 806</a>
+            <a href="Feature.js.html">Feature.js</a>, <a href="Feature.js.html#line892">line 892</a>
         </div>
 
     </div>
@@ -2687,7 +2741,7 @@ in which case the feature will only be highlighted on the slot.</p>
 
 
         <div class="tag-source">
-            <a href="Feature.js.html">Feature.js</a>, <a href="Feature.js.html#line915">line 915</a>
+            <a href="Feature.js.html">Feature.js</a>, <a href="Feature.js.html#line1001">line 1001</a>
         </div>
 
     </div>
@@ -2976,7 +3030,7 @@ in which case the feature will only be highlighted on the slot.</p>
 
 
         <div class="tag-source">
-            <a href="Feature.js.html">Feature.js</a>, <a href="Feature.js.html#line905">line 905</a>
+            <a href="Feature.js.html">Feature.js</a>, <a href="Feature.js.html#line991">line 991</a>
         </div>
 
     </div>
@@ -3047,7 +3101,7 @@ in which case the feature will only be highlighted on the slot.</p>
 
 
         <div class="tag-source">
-            <a href="Feature.js.html">Feature.js</a>, <a href="Feature.js.html#line890">line 890</a>
+            <a href="Feature.js.html">Feature.js</a>, <a href="Feature.js.html#line976">line 976</a>
         </div>
 
     </div>
@@ -3118,7 +3172,7 @@ in which case the feature will only be highlighted on the slot.</p>
 
 
         <div class="tag-source">
-            <a href="Feature.js.html">Feature.js</a>, <a href="Feature.js.html#line137">line 137</a>
+            <a href="Feature.js.html">Feature.js</a>, <a href="Feature.js.html#line138">line 138</a>
         </div>
 
     </div>
@@ -3221,7 +3275,7 @@ in which case the feature will only be highlighted on the slot.</p>
 
 
         <div class="tag-source">
-            <a href="Feature.js.html">Feature.js</a>, <a href="Feature.js.html#line872">line 872</a>
+            <a href="Feature.js.html">Feature.js</a>, <a href="Feature.js.html#line958">line 958</a>
         </div>
 
     </div>
@@ -3294,7 +3348,7 @@ FIXME: this will not return the tracks for features on tracks with 'from' = 'seq
 
 
         <div class="tag-source">
-            <a href="Feature.js.html">Feature.js</a>, <a href="Feature.js.html#line951">line 951</a>
+            <a href="Feature.js.html">Feature.js</a>, <a href="Feature.js.html#line1041">line 1041</a>
         </div>
 
     </div>
@@ -3305,7 +3359,9 @@ FIXME: this will not return the tracks for features on tracks with 'from' = 'seq
 
 
     <div class="description">
-        <p>Translate the sequence of this feature.</p>
+        <p>Translate the sequence of this feature.
+The codonStart offset is applied after joining wrapped ends or locations
+and orienting the sequence to the feature's strand.</p>
 <p>The source of the genetic code used for translation uses the following precedence:
 geneticCode (provided to translate method) &gt; geneticCode (of Feature) &gt; geneticCode (of Viewer)</p>
 <p>Note: if the feature has a translation property, it will be used instead of translating the sequence.</p>
@@ -3448,7 +3504,7 @@ geneticCode (provided to translate method) &gt; geneticCode (of Feature) &gt; ge
 
 
         <div class="tag-source">
-            <a href="Feature.js.html">Feature.js</a>, <a href="Feature.js.html#line623">line 623</a>
+            <a href="Feature.js.html">Feature.js</a>, <a href="Feature.js.html#line692">line 692</a>
         </div>
 
     </div>
@@ -3460,7 +3516,10 @@ geneticCode (provided to translate method) &gt; geneticCode (of Feature) &gt; ge
 
     <div class="description">
         <p>Update feature <a href="#attributes">attributes</a>.
-See <a href="../docs.html#s.updating-records">updating records</a> for details.</p>
+See <a href="../docs.html#s.updating-records">updating records</a> for details.
+When changing contig, start/stop and locations use the destination contig's
+coordinates, regardless of attribute order. Explicit locations take precedence.
+A rejected contig conversion leaves all attributes unchanged.</p>
     </div>
 
 

@@ -43,6 +43,13 @@ maps = {
     url: 'maps/contigs_ecoli_pa2.json',
   },
 
+  // WRAPPED FEATURES
+  wrapped_contig_origin: {
+    name: 'Contig origin crossing (issue #34) [300 bp]',
+    type: 'wrapped',
+    url: 'maps/wrapped_features_contig_origin.json',
+  },
+
   // LARGE - NOT WORKING
   large: {
     name: 'L. guizhouensis [9,997,872 bp]',

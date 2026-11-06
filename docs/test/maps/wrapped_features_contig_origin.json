@@ -1,0 +1,109 @@
+{
+  "cgview": {
+    "version": "1.9.0",
+    "name": "Contig origin crossing (issue #34)",
+    "settings": {
+      "format": "circular",
+      "showShading": false
+    },
+    "sequence": {
+      "visible": false,
+      "contigs": [
+        {
+          "name": "A",
+          "topology": "linear",
+          "length": 100,
+          "color": "#7b8794"
+        },
+        {
+          "name": "B",
+          "topology": "unknown",
+          "length": 100,
+          "color": "#d7b856"
+        },
+        {
+          "name": "C",
+          "topology": "linear",
+          "length": 100,
+          "color": "#7b8794"
+        }
+      ]
+    },
+    "backbone": {
+      "thickness": 8
+    },
+    "annotation": {
+      "labelPosition": "outside"
+    },
+    "captions": [
+      {
+        "name": "Issue #34: origin crossing within contig B\nB is gold: map bp 101..200. Its 90..10 feature is 21 bp.\nRed should cover the same two intervals as blue.",
+        "position": "bottom-center",
+        "textAlignment": "center",
+        "font": "sans-serif,plain,14"
+      }
+    ],
+    "legend": {
+      "position": "top-right",
+      "items": [
+        {
+          "name": "Wrapped input",
+          "swatchColor": "#d63c51",
+          "decoration": "arrow"
+        },
+        {
+          "name": "Expected segments",
+          "swatchColor": "#247ba0",
+          "decoration": "arc"
+        }
+      ]
+    },
+    "features": [
+      {
+        "name": "B: 90..10 (21 bp)",
+        "contig": "B",
+        "start": 90,
+        "stop": 10,
+        "strand": 1,
+        "source": "wrapped-input",
+        "legend": "Wrapped input"
+      },
+      {
+        "name": "B tail: 90..100",
+        "contig": "B",
+        "start": 90,
+        "stop": 100,
+        "strand": 1,
+        "source": "expected-segments",
+        "legend": "Expected segments"
+      },
+      {
+        "name": "B head: 1..10",
+        "contig": "B",
+        "start": 1,
+        "stop": 10,
+        "strand": 1,
+        "source": "expected-segments",
+        "legend": "Expected segments"
+      }
+    ],
+    "tracks": [
+      {
+        "name": "Wrapped input",
+        "position": "outside",
+        "separateFeaturesBy": "none",
+        "dataType": "feature",
+        "dataMethod": "source",
+        "dataKeys": ["wrapped-input"]
+      },
+      {
+        "name": "Expected segments",
+        "position": "inside",
+        "separateFeaturesBy": "none",
+        "dataType": "feature",
+        "dataMethod": "source",
+        "dataKeys": ["expected-segments"]
+      }
+    ]
+  }
+}

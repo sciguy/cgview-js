@@ -55,9 +55,13 @@ const BASE_BOX_ARROW_FULL_PIXELS = 10;
  * - length: provide the sequence length without sequence
  * - contigs: an array of contigs. Each contig must then include its length or sequence.
  *
+ * Contigs store biological topology independently of the map's display format.
+ * For single-sequence input, `topology` accompanies `seq` or `length` and is
+ * assigned to the sole contig. Missing topology defaults to `unknown`.
+ *
  * The seq and length properties are read only and cannot be changed unless a new
  * map is loaded (see [IO.loadJSON](IO.html#loadJSON)). With contigs, the updateContigs and
- * moveContig methods can be used to change the name, orientation, visibility and
+ * moveContig methods can be used to change the name, orientation, topology, visibility and
  * order, however, the seq and length property of each contig is still read only.
  *
  * ### Sequence Coordinates:
@@ -563,12 +567,20 @@ class Sequence extends CGObject {
     return pixelsPerBp >= 1 && scaleFactor >= 0.5;
   }
 
+  /**
+   * @member {String} - Topology of the sole contig, or unknown for a collection of contigs.
+   * A concatenated map coordinate space has no inferred biological topology.
+   */
+  get topology() {
+    return this.hasMultipleContigs ? 'unknown' : this.mapContig.topology;
+  }
+
   get isLinear() {
-    return false;
+    return this.topology === 'linear';
   }
 
   get isCircular() {
-    return true;
+    return this.topology === 'circular';
   }
 
   /**
@@ -658,7 +670,7 @@ class Sequence extends CGObject {
   updateContigs(contigsOrUpdates, attributes) {
     const { records: contigs, updates } = this.viewer.updateRecords(contigsOrUpdates, attributes, {
       recordClass: 'Contig',
-      validKeys: ['name', 'orientation', 'color', 'visible']
+      validKeys: ['name', 'orientation', 'topology', 'color', 'visible']
     });
 
     // FIXME: this should only update if orientation, order or visible changes
@@ -715,11 +727,11 @@ class Sequence extends CGObject {
   createMapContig(data) {
     if (data.seq) {
       // this._mapContig = new Contig(this, data);
-      this.addContigs([{seq: data.seq}]);
+      this.addContigs([{seq: data.seq, topology: data.topology}]);
     } else if (data.contigs) {
       this.addContigs(data.contigs);
     } else if (data.length) {
-      this.addContigs([{length: data.length}]);
+      this.addContigs([{length: data.length, topology: data.topology}]);
     } else {
       // console.error('A "seq", "contigs", or "length" must be provided');
       this.addContigs([{length: 1000}]);

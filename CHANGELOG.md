@@ -3,6 +3,7 @@
 --------------------------------------------------------------------------------
 
 ## 1.9.0 - Unreleased
+- Added per-contig `topology` (`circular`, `linear`, or `unknown`) independently of map format and support for features that wrap within their owning contig, including joined locations and translation that respects `codonStart`. Wrapped features are supported for all topologies, with grouped warnings for linear or unknown contigs.
 - Added `contextmenu` events with map element details for custom right-click menus and restricted Shift-drag selection to the primary mouse button.
 - Added `trackLabel` mouse-event targets for visible track labels, exposing the Track as `element` and the clicked lane as `slot`.
 - Added bookmark reordering through `Bookmark.move(newIndex)` and `Viewer.moveBookmark(oldIndex, newIndex)`, with a `bookmarks-moved` event.
