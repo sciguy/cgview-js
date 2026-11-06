@@ -528,7 +528,7 @@
 
 <dt>
     <div class="nameContainer">
-        <h4 class="name" id="codonStart">codonStart<span class="type-signature type string">String</span> </h4>
+        <h4 class="name" id="codonStart">codonStart<span class="type-signature type number">Number</span> </h4>
     </div>
 
 
@@ -536,7 +536,7 @@
 <dd>
 
     <div class="description">
-        <p>Get or set the Codon start (Default: 1)</p>
+        <p>First codon position (1, 2, or 3) in the strand-oriented feature sequence [Default: 1].</p>
     </div>
 
 
@@ -3347,7 +3347,7 @@ FIXME: this will not return the tracks for features on tracks with 'from' = 'seq
 
 
         <div class="tag-source">
-            <a href="Feature.js.html">Feature.js</a>, <a href="Feature.js.html#line988">line 988</a>
+            <a href="Feature.js.html">Feature.js</a>, <a href="Feature.js.html#line990">line 990</a>
         </div>
 
     </div>
@@ -3358,7 +3358,9 @@ FIXME: this will not return the tracks for features on tracks with 'from' = 'seq
 
 
     <div class="description">
-        <p>Translate the sequence of this feature.</p>
+        <p>Translate the sequence of this feature.
+The codonStart offset is applied after joining wrapped ends or locations
+and orienting the sequence to the feature's strand.</p>
 <p>The source of the genetic code used for translation uses the following precedence:
 geneticCode (provided to translate method) &gt; geneticCode (of Feature) &gt; geneticCode (of Viewer)</p>
 <p>Note: if the feature has a translation property, it will be used instead of translating the sequence.</p>

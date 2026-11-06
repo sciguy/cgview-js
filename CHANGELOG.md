@@ -3,6 +3,7 @@
 --------------------------------------------------------------------------------
 
 ## 1.9.0 - Unreleased
+- Fixed feature translation to honor `codonStart` offsets 2 and 3, including wrapped features and joined locations on either strand.
 - Fixed origin-crossing features on multi-contig maps to wrap within their own contig across rendering, labels, lookup, selection, and navigation, including joined locations.
 - Added per-contig `topology` (`circular`, `linear`, or `unknown`) independently of map format. Wrapped features remain supported for every topology, with grouped warnings for linear or unknown contigs.
 - Added `contextmenu` events with map element details for custom right-click menus and restricted Shift-drag selection to the primary mouse button.

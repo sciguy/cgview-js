@@ -190,7 +190,7 @@ class Feature extends CGObject {
   }
 
   /**
-   * @member {String} - Get or set the Codon start (Default: 1)
+   * @member {Number} - First codon position (1, 2, or 3) in the strand-oriented feature sequence [Default: 1].
    */
   get codonStart() {
     return this._codonStart || 1;
@@ -975,6 +975,8 @@ class Feature extends CGObject {
 
   /**
    * Translate the sequence of this feature.
+   * The codonStart offset is applied after joining wrapped ends or locations
+   * and orienting the sequence to the feature's strand.
    *
    * The source of the genetic code used for translation uses the following precedence:
    * geneticCode (provided to translate method) > geneticCode (of Feature) > geneticCode (of Viewer)
@@ -991,7 +993,7 @@ class Feature extends CGObject {
     } else {
       const code = geneticCode || this.geneticCode || this.viewer.geneticCode;
       const table = this.viewer.codonTables.byID(code);
-      return table && table.translate(this.seq, this.start_codon);
+      return table && table.translate(this.seq, this.codonStart);
     }
   }
 
