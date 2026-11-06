@@ -536,7 +536,8 @@
 <dd>
 
     <div class="description">
-        <p>First codon position (1, 2, or 3) in the strand-oriented feature sequence [Default: 1].</p>
+        <p>First codon position (1, 2, or 3) in the strand-oriented feature sequence [Default: 1].
+Numeric strings are accepted. Invalid values log an error and leave the current offset unchanged.</p>
     </div>
 
 
@@ -2623,7 +2624,7 @@ the reverse strand. The setter also accepts '+' and '-'. Defaults to 1.</p>
 
 
         <div class="tag-source">
-            <a href="Feature.js.html">Feature.js</a>, <a href="Feature.js.html#line841">line 841</a>
+            <a href="Feature.js.html">Feature.js</a>, <a href="Feature.js.html#line892">line 892</a>
         </div>
 
     </div>
@@ -2740,7 +2741,7 @@ in which case the feature will only be highlighted on the slot.</p>
 
 
         <div class="tag-source">
-            <a href="Feature.js.html">Feature.js</a>, <a href="Feature.js.html#line950">line 950</a>
+            <a href="Feature.js.html">Feature.js</a>, <a href="Feature.js.html#line1001">line 1001</a>
         </div>
 
     </div>
@@ -3029,7 +3030,7 @@ in which case the feature will only be highlighted on the slot.</p>
 
 
         <div class="tag-source">
-            <a href="Feature.js.html">Feature.js</a>, <a href="Feature.js.html#line940">line 940</a>
+            <a href="Feature.js.html">Feature.js</a>, <a href="Feature.js.html#line991">line 991</a>
         </div>
 
     </div>
@@ -3100,7 +3101,7 @@ in which case the feature will only be highlighted on the slot.</p>
 
 
         <div class="tag-source">
-            <a href="Feature.js.html">Feature.js</a>, <a href="Feature.js.html#line925">line 925</a>
+            <a href="Feature.js.html">Feature.js</a>, <a href="Feature.js.html#line976">line 976</a>
         </div>
 
     </div>
@@ -3274,7 +3275,7 @@ in which case the feature will only be highlighted on the slot.</p>
 
 
         <div class="tag-source">
-            <a href="Feature.js.html">Feature.js</a>, <a href="Feature.js.html#line907">line 907</a>
+            <a href="Feature.js.html">Feature.js</a>, <a href="Feature.js.html#line958">line 958</a>
         </div>
 
     </div>
@@ -3347,7 +3348,7 @@ FIXME: this will not return the tracks for features on tracks with 'from' = 'seq
 
 
         <div class="tag-source">
-            <a href="Feature.js.html">Feature.js</a>, <a href="Feature.js.html#line990">line 990</a>
+            <a href="Feature.js.html">Feature.js</a>, <a href="Feature.js.html#line1041">line 1041</a>
         </div>
 
     </div>
@@ -3503,7 +3504,7 @@ geneticCode (provided to translate method) &gt; geneticCode (of Feature) &gt; ge
 
 
         <div class="tag-source">
-            <a href="Feature.js.html">Feature.js</a>, <a href="Feature.js.html#line641">line 641</a>
+            <a href="Feature.js.html">Feature.js</a>, <a href="Feature.js.html#line692">line 692</a>
         </div>
 
     </div>
@@ -3515,7 +3516,10 @@ geneticCode (provided to translate method) &gt; geneticCode (of Feature) &gt; ge
 
     <div class="description">
         <p>Update feature <a href="#attributes">attributes</a>.
-See <a href="../docs.html#s.updating-records">updating records</a> for details.</p>
+See <a href="../docs.html#s.updating-records">updating records</a> for details.
+When changing contig, start/stop and locations use the destination contig's
+coordinates, regardless of attribute order. Explicit locations take precedence.
+A rejected contig conversion leaves all attributes unchanged.</p>
     </div>
 
 

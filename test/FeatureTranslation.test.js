@@ -59,4 +59,37 @@ describe('Feature translation codonStart', () => {
     expect(feature.translate()).toBe('IMPORTED');
     expect(feature.translate(1)).toBe(options.protein);
   });
+
+  const stringCases = [{codonStart: 1, protein: 'NETL'}, ...offsets].flatMap(offset =>
+    ['ordinary', 'wrapped', 'joined'].flatMap(shape =>
+      [1, -1].map(strand => ({...offset, codonStart: String(offset.codonStart), shape, strand}))));
+
+  test.each(stringCases)('normalizes string codonStart $codonStart for $shape features on strand $strand', options => {
+    const feature = createFeature(options);
+    expect(feature.codonStart).toBe(Number(options.codonStart));
+    expect(feature.translate()).toBe(options.protein);
+    if (feature.codonStart !== 1) { expect(feature.toJSON().codonStart).toBe(Number(options.codonStart)); }
+  });
+
+  test.each([undefined, null])('resets codonStart to the default for %s', value => {
+    const feature = createFeature({codonStart: 2});
+    feature.codonStart = value;
+    expect(feature.codonStart).toBe(1);
+    expect(feature.translate()).toBe('NETL');
+  });
+
+  test.each([0, 4, -1, 2.5, NaN, Infinity, '', ' ', '2oops', true, false, [], [2], {}])(
+    'rejects invalid codonStart %p without changing the current translation', value => {
+      const feature = createFeature({codonStart: 2});
+      const error = jest.spyOn(console, 'error').mockImplementation(() => {});
+      try {
+        feature.codonStart = value;
+        expect(feature.codonStart).toBe(2);
+        expect(feature.translate()).toBe('MKP*');
+        expect(error).toHaveBeenCalledTimes(1);
+      } finally {
+        error.mockRestore();
+      }
+    }
+  );
 });

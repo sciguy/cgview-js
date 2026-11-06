@@ -981,6 +981,9 @@ class Viewer {
       return;
     }
     // Update Records
+    if (options.applyAttributes) {
+      return records.filter(record => options.applyAttributes(record, attributes) !== false);
+    }
     records.attr(attributes);
     return records;
   }
@@ -1007,6 +1010,9 @@ class Viewer {
       return;
     }
     // Update Records
+    if (options.applyAttributes) {
+      return records.filter(record => options.applyAttributes(record, updates[record.cgvID]) !== false);
+    }
     for (const record of records) {
       const attributes = Object.keys(updates[record.cgvID]);
       for (const attribute of attributes) {
@@ -1018,6 +1024,8 @@ class Viewer {
 
   // Returns records (CGArray), updates, attributes
   // NOTE: Not used by Viewer.updateTracks or Viewer.update
+  // Optional applyAttributes(record, attributes) applies a record atomically;
+  // returning false excludes rejected records from the result and update events.
   updateRecords(recordsOrUpdates = [], attributes = {}, options = {}) {
     let records, updates;
     if (recordsOrUpdates.toString() === '[object Object]') {
@@ -1027,6 +1035,9 @@ class Viewer {
     } else {
       // Assume recordsOrUpdate is an individual record or an array of records
       records = this.updateRecordsWithAttributes(recordsOrUpdates, attributes, options);
+    }
+    if (updates && options.applyAttributes && records) {
+      updates = Object.fromEntries(records.map(record => [record.cgvID, updates[record.cgvID]]));
     }
     return { records, updates, attributes };
   }
@@ -1167,8 +1178,10 @@ class Viewer {
   updateFeatures(featuresOrUpdates, attributes) {
     const { records: features, updates } = this.updateRecords(featuresOrUpdates, attributes, {
       recordClass: 'Feature',
+      applyAttributes: (feature, values) => feature._applyAttributes(values),
       validKeys: ['name', 'type', 'contig', 'legendItem', 'source', 'tags', 'favorite', 'selected', 'visible', 'strand', 'start', 'stop', 'locations', 'score', 'mapStart', 'mapStop']
     });
+    if (!features?.length) { return; }
     const geometryKeys = ['start', 'stop', 'mapStart', 'mapStop', 'locations', 'contig'];
     const geometryChanges = new Set(this.recordsWithChangedAttributes(geometryKeys, features, attributes, updates));
     const trackChanges = this.recordsWithChangedAttributes(

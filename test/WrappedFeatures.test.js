@@ -274,6 +274,101 @@ describe('Contig-local wrapped features', () => {
     expect(warn.mock.calls[0][0]).toContain('must retain its contig');
   });
 
+  test.each(['feature', 'shared', 'individual'].flatMap(api =>
+    [false, true].map(coordinatesFirst => ({api, coordinatesFirst}))))(
+    'applies compound map conversion atomically via $api (coordinatesFirst=$coordinatesFirst)', ({api, coordinatesFirst}) => {
+      const feature = createViewer();
+      const oldContig = feature.contig;
+      const attributes = coordinatesFirst ? {start: 190, stop: 200, contig: undefined} :
+        {contig: undefined, start: 190, stop: 200};
+      if (api === 'feature') { feature.update(attributes); }
+      if (api === 'shared') { viewer.updateFeatures([feature], attributes); }
+      if (api === 'individual') { viewer.updateFeatures({[feature.cgvID]: attributes}); }
+      expect(feature.contig).toBe(viewer.sequence.mapContig);
+      expect([feature.start, feature.stop, feature.length]).toEqual([190, 200, 11]);
+      expect(oldContig.features()).not.toContain(feature);
+      expect(viewer.sequence.mapContig.features()).toContain(feature);
+      expect(viewer.slots(1).findFeaturesForBp(195)).toContain(feature);
+      expect(viewer.slots(1).findFeaturesForBp(105)).not.toContain(feature);
+      expect(feature.label.bpDefault).toBe(195);
+      expect(warn).not.toHaveBeenCalled();
+    }
+  );
+
+  test('uses supplied map coordinates when converting with a map-contig object', () => {
+    const feature = createViewer();
+    feature.update({mapStop: 200, contig: viewer.sequence.mapContig});
+    expect(feature.contig).toBe(viewer.sequence.mapContig);
+    expect([feature.start, feature.stop, feature.length]).toEqual([190, 200, 11]);
+  });
+
+  test('uses replacement locations in the destination contig coordinates', () => {
+    const feature = createViewer({feature: {locations: [[90, 100], [1, 10]]}});
+    feature.update({locations: [[190, 195], [198, 200]], contig: undefined});
+    expect(feature.contig).toBe(viewer.sequence.mapContig);
+    expect(feature.locations).toEqual([[190, 195], [198, 200]]);
+    expect([feature.start, feature.stop, feature.length]).toEqual([190, 200, 9]);
+    expect(feature.seq).toBe('C'.repeat(9));
+  });
+
+  test('preserves joined segments when converting to map coordinates without replacement locations', () => {
+    const feature = createViewer({feature: {locations: [[20, 30], [40, 50]]}});
+    feature.update({contig: undefined});
+    expect(feature.contig).toBe(viewer.sequence.mapContig);
+    expect(feature.locations).toEqual([[120, 130], [140, 150]]);
+    expect([feature.start, feature.stop, feature.length]).toEqual([120, 150, 22]);
+    expect(feature.seq).toBe('C'.repeat(22));
+  });
+
+  test.each([
+    {contig: 'missing'},
+    {contig: undefined, locations: [[190, 180]]},
+    {contig: undefined, start: 'invalid', stop: 200},
+  ])('rejects invalid destination geometry without changing other fields: %p', attributes => {
+    const feature = createViewer();
+    const oldContig = feature.contig;
+    const error = jest.spyOn(console, 'error').mockImplementation(() => {});
+    feature.update({name: 'changed', ...attributes});
+    expect(feature.contig).toBe(oldContig);
+    expect([feature.name, feature.start, feature.stop, feature.length]).toEqual(['G', 90, 10, 21]);
+    expect(oldContig.features()).toContain(feature);
+    expect(viewer.sequence.mapContig.features()).not.toContain(feature);
+    expect(error).toHaveBeenCalledTimes(1);
+  });
+
+  test.each([false, true])('rejects an unsafe conversion without partially applying other fields (contigFirst=%s)', contigFirst => {
+    const feature = createViewer();
+    const oldContig = feature.contig;
+    const attributes = contigFirst ? {contig: undefined, name: 'changed', start: 190, stop: 110} :
+      {name: 'changed', start: 190, stop: 110, contig: undefined};
+    const events = jest.fn();
+    viewer.on('features-update.atomic-test', events);
+    feature.update(attributes);
+    expect(feature.contig).toBe(oldContig);
+    expect([feature.name, feature.start, feature.stop, feature.length]).toEqual(['G', 90, 10, 21]);
+    expect(oldContig.features()).toContain(feature);
+    expect(viewer.sequence.mapContig.features()).not.toContain(feature);
+    expect(viewer.slots(1).findFeaturesForBp(105)).toContain(feature);
+    expect(events).not.toHaveBeenCalled();
+    expect(warn).toHaveBeenCalledTimes(1);
+  });
+
+  test('keeps rejected records out of mixed update events', () => {
+    const wrapped = createViewer();
+    const ordinary = viewer.addFeatures({name: 'other', contig: 'C', start: 20, stop: 30})[0];
+    const events = jest.fn();
+    viewer.on('features-update.atomic-test', events);
+    viewer.updateFeatures({
+      [wrapped.cgvID]: {name: 'rejected', contig: undefined},
+      [ordinary.cgvID]: {name: 'accepted'},
+    });
+    expect(wrapped.name).toBe('G');
+    expect(ordinary.name).toBe('accepted');
+    expect(events).toHaveBeenCalledTimes(1);
+    expect(events.mock.calls[0][0].features).toEqual([ordinary]);
+    expect(Object.keys(events.mock.calls[0][0].updates)).toEqual([ordinary.cgvID]);
+  });
+
   test('does not repeat whole-map warnings when rebuilding the synthetic map contig', async () => {
     const feature = createViewer({feature: {contig: undefined, start: 290, stop: 10}});
     await Promise.resolve();

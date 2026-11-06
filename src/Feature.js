@@ -191,13 +191,18 @@ class Feature extends CGObject {
 
   /**
    * @member {Number} - First codon position (1, 2, or 3) in the strand-oriented feature sequence [Default: 1].
+   * Numeric strings are accepted. Invalid values log an error and leave the current offset unchanged.
    */
   get codonStart() {
     return this._codonStart || 1;
   }
 
   set codonStart(value) {
-    this._codonStart = value;
+    const input = value ?? 1;
+    const start = typeof input === 'number' || typeof input === 'string' ? Number(input) : NaN;
+    if (utils.validate(start, [1, 2, 3])) {
+      this._codonStart = start;
+    }
   }
 
   /**
@@ -399,8 +404,21 @@ class Feature extends CGObject {
   }
 
   set locations(value) {
-    let locs = [];
-    if (Array.isArray(value)) {
+    const locs = this._validatedLocations(value);
+    if (!locs) { return; }
+    this.updateRanges(locs[0][0], locs[locs.length - 1][1]);
+    this._locations = locs;
+  }
+
+  /**
+   * Validate and copy locations without changing the feature.
+   * @param {Array<Number[]>} value - Ordered start/stop pairs.
+   * @returns {Array<Number[]>|undefined} Copied locations, or undefined after logging an invalid input.
+   * @private
+   */
+  _validatedLocations(value) {
+    const locs = [];
+    if (Array.isArray(value) && value.length > 0) {
       for (const location of value) {
         if (Array.isArray(location) && !isNaN(location[0]) && !isNaN(location[1])) {
           if (location[0] <= location[1]) {
@@ -415,11 +433,10 @@ class Feature extends CGObject {
         }
       }
     } else {
-      console.error('Feature locations must be an array of arrays of numbers: ', value);
+      console.error('Feature locations must be a nonempty array of arrays of numbers: ', value);
       return;
     }
-    this.updateRanges(locs[0][0], locs[locs.length - 1][1]);
-    this._locations = locs;
+    return locs;
   }
 
   /**
@@ -557,54 +574,85 @@ class Feature extends CGObject {
   }
 
   set contig(value) {
-    const oldContig = this._contig;
-    let newContig;
+    this._applyAttributes({contig: value});
+  }
+
+  /**
+   * Resolve a contig without changing ownership or coordinates.
+   * @param {Contig|String|undefined} value - A contig, its name, or undefined for the map contig.
+   * @returns {Contig|undefined} Resolved contig, or undefined after logging a missing contig.
+   * @private
+   */
+  _resolveContig(value) {
     if (value === undefined || value === this.sequence.mapContig) {
-      // this._contig = undefined;
-      newContig = this.sequence.mapContig;
-      // If feature was on a contig update the positions
-      if (oldContig) {
-      }
+      return this.sequence.mapContig;
     } else if (value && (value.toString() === 'Contig') && value !== 'Contig') {
-      // this._contig  = value;
-      newContig = value;
-    } else {
-      const contig = this.viewer.sequence.contigs(value);
-      // const contig = this.viewer.sequence.contigs().filter( c => c.id && c.id.toLowerCase() === value.toLowerCase() )[0];
-      if (contig) {
-        // this._contig  = contig;
-        newContig = contig;
-      } else {
-        console.error(`Feature '${this.name}' could not find contig '${value}'`)
-        return;
-      }
+      return value;
     }
-    if (oldContig && newContig.isMapContig && this.sequence.contigs().includes(oldContig) &&
-      this.range.isWrapped() && !this.range.isMapDomain()) {
-      console.warn(`[CGView] Feature ${JSON.stringify(this.name)} must retain its contig to preserve its wrap boundaries.`);
-      return;
-    }
-    if (oldContig !== newContig) {
-      // Add feature to new Contig
-      if (newContig) {
-        newContig._features.push(this);
-      }
-      // Remove feature from old Contig
+    const contig = this.sequence.contigs(value);
+    if (!contig) { console.error(`Feature '${this.name}' could not find contig '${value}'`); }
+    return contig;
+  }
+
+  /**
+   * Apply an update, validating a contig change and its final coordinates before mutation.
+   * Coordinates accompanying a contig change belong to the destination contig;
+   * explicit locations take precedence over start/stop coordinates.
+   * @param {Object} attributes - Validated update keys from Viewer.updateFeatures.
+   * @returns {Boolean} True after applying the update; false after logging a rejected conversion.
+   * Updates contig membership and queues wrap diagnostics only after validation succeeds.
+   * @private
+   */
+  _applyAttributes(attributes) {
+    const changingContig = Object.prototype.hasOwnProperty.call(attributes, 'contig');
+    const geometryKeys = ['contig', 'start', 'stop', 'mapStart', 'mapStop', 'locations'];
+    if (changingContig) {
+      const oldContig = this.contig;
+      const newContig = this._resolveContig(attributes.contig);
+      if (!newContig) { return false; }
+      let range, locations;
       if (oldContig) {
-        Contig.removeFeatures(this);
+        const offset = newContig.isMapContig ? oldContig.lengthOffset : 0;
+        const replacesLocations = Object.prototype.hasOwnProperty.call(attributes, 'locations');
+        locations = replacesLocations ? this._validatedLocations(attributes.locations) :
+          this._locations?.map(([start, stop]) => [start + offset, stop + offset]);
+        if (replacesLocations && !locations) { return false; }
+        if (replacesLocations || locations?.length > 1) {
+          range = new CGRange(newContig, locations[0][0], locations[locations.length - 1][1]);
+        } else {
+          range = new CGRange(newContig, this.start + offset, this.stop + offset);
+          for (const key of ['start', 'stop', 'mapStart', 'mapStop']) {
+            if (Object.prototype.hasOwnProperty.call(attributes, key)) {
+              range[key] = Number(attributes[key]);
+              locations = undefined;
+            }
+          }
+        }
+        if (!Number.isFinite(range.start) || !Number.isFinite(range.stop)) {
+          console.error(`[CGView] Feature ${JSON.stringify(this.name)} has invalid destination coordinates.`);
+          return false;
+        }
+        if (newContig.isMapContig && this.sequence.contigs().includes(oldContig) &&
+          this.range.isWrapped() && !this.range.isMapDomain() && range.isWrapped()) {
+          console.warn(`[CGView] Feature ${JSON.stringify(this.name)} must retain its contig to preserve its wrap boundaries.`);
+          return false;
+        }
+      }
+      if (oldContig !== newContig) {
+        newContig._features.push(this);
+        if (oldContig) { Contig.removeFeatures(this); }
+      }
+      this._contig = newContig;
+      if (range) {
+        this._locations = locations;
+        this.range = range;
       }
     }
-    // Must be done after calling Contig.removeFeatures()
-    this._contig = newContig;
-    if (oldContig) {
-      // FIXME: adjust start/stop if the new contig is shorter than old contig
-      // and the position needs to be constrained. Try to keep the same length.
-      if (newContig.isMapContig) {
-        this.updateRanges(this.mapStart, this.mapStop);
-      } else {
-        this.updateRanges(this.start, this.stop);
-      }
+    for (const key of Object.keys(attributes)) {
+      if (changingContig && geometryKeys.includes(key)) { continue; }
+      this[key] = attributes[key];
     }
+    return true;
   }
 
   /**
@@ -636,6 +684,9 @@ class Feature extends CGObject {
   /**
    * Update feature [attributes](#attributes).
    * See [updating records](../docs.html#s.updating-records) for details.
+   * When changing contig, start/stop and locations use the destination contig's
+   * coordinates, regardless of attribute order. Explicit locations take precedence.
+   * A rejected contig conversion leaves all attributes unchanged.
    * @param {Object} attributes - Object describing the properties to change
    */
   update(attributes) {
