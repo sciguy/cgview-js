@@ -1,0 +1,672 @@
+{
+  "baseline": "46e7c32c",
+  "environment": {
+    "node": "v24.2.0",
+    "platform": "darwin",
+    "architecture": "arm64"
+  },
+  "unitTests": {
+    "passed": 863,
+    "suites": 44
+  },
+  "browserCases": 144,
+  "fittedCandidateChecks": 528,
+  "opaqueTextPixelsOutsideShapes": 0,
+  "panSamples": 808,
+  "browserErrors": [],
+  "timingMethod": "Median of nine warm-cache samples after four warmups, alternating before/after order. Redraws are synchronous drawExport calls; placements include candidate metrics, not only collision-accepted labels.",
+  "timings": [
+    {
+      "engine": "chromium",
+      "format": "linear",
+      "variant": "ordinary",
+      "before": {
+        "features": 8,
+        "fittedLabels": 8,
+        "medianRedrawMs": 0.15,
+        "medianPer1000PlacementsMs": 0.8624999821186066,
+        "redrawSamplesMs": [
+          0.15,
+          0.15,
+          0.16000001430511473,
+          0.16000001430511473,
+          0.14000000953674316,
+          0.13000001907348632,
+          0.15,
+          0.11999998092651368,
+          0.13999998569488525
+        ],
+        "placementSamplesMs": [
+          0.9375,
+          0.887499988079071,
+          0.8624999821186066,
+          0.9249999821186066,
+          0.875,
+          0.8499999940395355,
+          0.824999988079071,
+          0.7875000238418579,
+          0.7874999940395355
+        ]
+      },
+      "after": {
+        "features": 8,
+        "fittedLabels": 8,
+        "medianRedrawMs": 0.14000000953674316,
+        "medianPer1000PlacementsMs": 0.9000000059604645,
+        "redrawSamplesMs": [
+          0.14000000953674316,
+          0.14000000953674316,
+          0.13000001907348632,
+          0.17000000476837157,
+          0.1799999952316284,
+          0.12000000476837158,
+          0.14000000953674316,
+          0.15,
+          0.13000001907348632
+        ],
+        "placementSamplesMs": [
+          0.949999988079071,
+          0.9749999940395355,
+          0.9874999821186066,
+          0.949999988079071,
+          0.8250000178813934,
+          0.8624999821186066,
+          0.875,
+          0.9000000059604645,
+          0.8374999761581421
+        ]
+      }
+    },
+    {
+      "engine": "chromium",
+      "format": "linear",
+      "variant": "dense",
+      "before": {
+        "features": 10000,
+        "fittedLabels": 0,
+        "medianRedrawMs": 10.020000004768372,
+        "medianPer1000PlacementsMs": null,
+        "redrawSamplesMs": [
+          9.25,
+          9.479999995231628,
+          9.17999999523163,
+          10.980000019073486,
+          10.889999985694885,
+          9.17999999523163,
+          10.020000004768372,
+          10.45,
+          10.120000004768372
+        ],
+        "placementSamplesMs": []
+      },
+      "after": {
+        "features": 10000,
+        "fittedLabels": 0,
+        "medianRedrawMs": 11.090000009536743,
+        "medianPer1000PlacementsMs": null,
+        "redrawSamplesMs": [
+          9.689999985694886,
+          9.420000004768372,
+          10.660000014305115,
+          12.079999995231628,
+          11.090000009536743,
+          12.439999985694886,
+          11.290000009536744,
+          10.35,
+          11.35
+        ],
+        "placementSamplesMs": []
+      }
+    },
+    {
+      "engine": "chromium",
+      "format": "linear",
+      "variant": "overlap",
+      "before": {
+        "features": 1000,
+        "fittedLabels": 1000,
+        "medianRedrawMs": 2.3,
+        "medianPer1000PlacementsMs": 0.8250000178813934,
+        "redrawSamplesMs": [
+          2.35,
+          2.3299999952316286,
+          2.1600000143051146,
+          2.1299999952316284,
+          2.060000014305115,
+          2.539999985694885,
+          2.6700000047683714,
+          2.3,
+          2.2699999809265137
+        ],
+        "placementSamplesMs": [
+          0.8250000178813934,
+          0.9749999940395355,
+          0.875,
+          0.800000011920929,
+          0.7874999940395355,
+          0.862500011920929,
+          0.8624999821186066,
+          0.8125,
+          0.8250000178813934
+        ]
+      },
+      "after": {
+        "features": 1000,
+        "fittedLabels": 1000,
+        "medianRedrawMs": 2.289999985694885,
+        "medianPer1000PlacementsMs": 0.8250000178813934,
+        "redrawSamplesMs": [
+          2.25,
+          2.2200000047683717,
+          2.35,
+          2.3399999856948854,
+          2.2700000047683715,
+          2.290000009536743,
+          2.6799999952316282,
+          2.289999985694885,
+          2.0599999904632567
+        ],
+        "placementSamplesMs": [
+          0.8624999821186066,
+          0.800000011920929,
+          0.7999999821186066,
+          0.862500011920929,
+          0.887499988079071,
+          0.800000011920929,
+          0.8500000238418579,
+          0.8250000178813934,
+          0.7750000059604645
+        ]
+      }
+    },
+    {
+      "engine": "chromium",
+      "format": "circular",
+      "variant": "ordinary",
+      "before": {
+        "features": 8,
+        "fittedLabels": 8,
+        "medianRedrawMs": 0.27999999523162844,
+        "medianPer1000PlacementsMs": 1.1124999821186066,
+        "redrawSamplesMs": [
+          0.27999999523162844,
+          0.2700000047683716,
+          0.31000001430511476,
+          0.31000001430511476,
+          0.3,
+          0.2700000047683716,
+          0.3099999904632568,
+          0.2700000047683716,
+          0.26999998092651367
+        ],
+        "placementSamplesMs": [
+          1.112500011920929,
+          1.1624999940395355,
+          1.1124999821186066,
+          1.137499988079071,
+          1.074999988079071,
+          1.0750000178813934,
+          1.0374999940395355,
+          1.0125000178813934,
+          1.112500011920929
+        ]
+      },
+      "after": {
+        "features": 8,
+        "fittedLabels": 8,
+        "medianRedrawMs": 0.31000001430511476,
+        "medianPer1000PlacementsMs": 1.1749999821186066,
+        "redrawSamplesMs": [
+          0.3200000047683716,
+          0.31000001430511476,
+          0.35,
+          0.32999999523162843,
+          0.31000001430511476,
+          0.29000000953674315,
+          0.29000000953674315,
+          0.2700000047683716,
+          0.29000000953674315
+        ],
+        "placementSamplesMs": [
+          1.125,
+          1.125,
+          1.2625000178813934,
+          1.199999988079071,
+          1.1749999821186066,
+          1.199999988079071,
+          1.1124999821186066,
+          1.149999976158142,
+          1.212499976158142
+        ]
+      }
+    },
+    {
+      "engine": "chromium",
+      "format": "circular",
+      "variant": "dense",
+      "before": {
+        "features": 10000,
+        "fittedLabels": 0,
+        "medianRedrawMs": 9.840000009536743,
+        "medianPer1000PlacementsMs": null,
+        "redrawSamplesMs": [
+          6.830000019073486,
+          10.479999995231628,
+          10.340000009536743,
+          10.17999999523163,
+          9.840000009536743,
+          10.2,
+          9.55,
+          9.370000004768372,
+          9.6
+        ],
+        "placementSamplesMs": []
+      },
+      "after": {
+        "features": 10000,
+        "fittedLabels": 0,
+        "medianRedrawMs": 8.840000009536743,
+        "medianPer1000PlacementsMs": null,
+        "redrawSamplesMs": [
+          6.679999995231628,
+          6.459999990463257,
+          9.15,
+          10.040000009536744,
+          8.840000009536743,
+          8.3,
+          8.029999995231629,
+          9.639999985694885,
+          8.870000004768372
+        ],
+        "placementSamplesMs": []
+      }
+    },
+    {
+      "engine": "chromium",
+      "format": "circular",
+      "variant": "overlap",
+      "before": {
+        "features": 1000,
+        "fittedLabels": 1000,
+        "medianRedrawMs": 2.5,
+        "medianPer1000PlacementsMs": 0.9874999821186066,
+        "redrawSamplesMs": [
+          2.6199999809265138,
+          2.5700000047683718,
+          2.3799999952316284,
+          2.4200000047683714,
+          2.189999985694885,
+          2.5,
+          2.5200000047683715,
+          2.5100000143051147,
+          2.35
+        ],
+        "placementSamplesMs": [
+          1.0125000178813934,
+          1.0250000059604645,
+          0.9874999821186066,
+          0.9625000059604645,
+          0.9749999940395355,
+          1.0250000059604645,
+          1.050000011920929,
+          0.9874999821186066,
+          0.9625000059604645
+        ]
+      },
+      "after": {
+        "features": 1000,
+        "fittedLabels": 1000,
+        "medianRedrawMs": 2.6900000095367433,
+        "medianPer1000PlacementsMs": 1.112500011920929,
+        "redrawSamplesMs": [
+          2.7799999952316283,
+          2.6199999809265138,
+          2.5900000095367433,
+          2.7200000047683717,
+          2.6900000095367433,
+          2.45,
+          2.8099999904632567,
+          2.7,
+          2.4700000047683717
+        ],
+        "placementSamplesMs": [
+          1.1500000059604645,
+          1.112500011920929,
+          1.0625,
+          1.1500000059604645,
+          1.0875000059604645,
+          1.0499999821186066,
+          1.125,
+          1.137499988079071,
+          1.112500011920929
+        ]
+      }
+    },
+    {
+      "engine": "webkit",
+      "format": "linear",
+      "variant": "ordinary",
+      "before": {
+        "features": 8,
+        "fittedLabels": 8,
+        "medianRedrawMs": 0.2,
+        "medianPer1000PlacementsMs": 1,
+        "redrawSamplesMs": [
+          0.3,
+          0.3,
+          0.2,
+          0.2,
+          0.1,
+          0.2,
+          0.2,
+          0.2,
+          0.2
+        ],
+        "placementSamplesMs": [
+          1.25,
+          1.25,
+          1.25,
+          1,
+          1.125,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      "after": {
+        "features": 8,
+        "fittedLabels": 8,
+        "medianRedrawMs": 0.2,
+        "medianPer1000PlacementsMs": 1.125,
+        "redrawSamplesMs": [
+          0.2,
+          0.2,
+          0.2,
+          0.2,
+          0.2,
+          0.2,
+          0.2,
+          0.2,
+          0.2
+        ],
+        "placementSamplesMs": [
+          1.375,
+          1.375,
+          1.25,
+          1.125,
+          1,
+          1.125,
+          1,
+          1.125,
+          1.125
+        ]
+      }
+    },
+    {
+      "engine": "webkit",
+      "format": "linear",
+      "variant": "dense",
+      "before": {
+        "features": 10000,
+        "fittedLabels": 0,
+        "medianRedrawMs": 10.7,
+        "medianPer1000PlacementsMs": null,
+        "redrawSamplesMs": [
+          9.7,
+          10.2,
+          10.8,
+          12.2,
+          10.7,
+          10.7,
+          11,
+          11.1,
+          10.2
+        ],
+        "placementSamplesMs": []
+      },
+      "after": {
+        "features": 10000,
+        "fittedLabels": 0,
+        "medianRedrawMs": 10.9,
+        "medianPer1000PlacementsMs": null,
+        "redrawSamplesMs": [
+          10.9,
+          10.8,
+          9.9,
+          11.2,
+          10.2,
+          11.4,
+          10.9,
+          10.7,
+          12.6
+        ],
+        "placementSamplesMs": []
+      }
+    },
+    {
+      "engine": "webkit",
+      "format": "linear",
+      "variant": "overlap",
+      "before": {
+        "features": 1000,
+        "fittedLabels": 1000,
+        "medianRedrawMs": 2.6,
+        "medianPer1000PlacementsMs": 0.875,
+        "redrawSamplesMs": [
+          2.6,
+          2.6,
+          2.7,
+          2.4,
+          3.1,
+          2.7,
+          2.6,
+          2.4,
+          2.3
+        ],
+        "placementSamplesMs": [
+          0.75,
+          0.875,
+          1,
+          0.875,
+          1,
+          0.75,
+          0.75,
+          0.75,
+          0.875
+        ]
+      },
+      "after": {
+        "features": 1000,
+        "fittedLabels": 1000,
+        "medianRedrawMs": 2.8,
+        "medianPer1000PlacementsMs": 1,
+        "redrawSamplesMs": [
+          2.9,
+          2.8,
+          3,
+          2.6,
+          2.8,
+          2.9,
+          2.9,
+          2.6,
+          2.6
+        ],
+        "placementSamplesMs": [
+          0.875,
+          1,
+          1,
+          0.875,
+          0.875,
+          1,
+          1,
+          1,
+          0.875
+        ]
+      }
+    },
+    {
+      "engine": "webkit",
+      "format": "circular",
+      "variant": "ordinary",
+      "before": {
+        "features": 8,
+        "fittedLabels": 8,
+        "medianRedrawMs": 0.3,
+        "medianPer1000PlacementsMs": 1,
+        "redrawSamplesMs": [
+          0.4,
+          0.3,
+          0.3,
+          0.3,
+          0.2,
+          0.3,
+          0.3,
+          0.3,
+          0.3
+        ],
+        "placementSamplesMs": [
+          1,
+          1.125,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1.125
+        ]
+      },
+      "after": {
+        "features": 8,
+        "fittedLabels": 8,
+        "medianRedrawMs": 0.3,
+        "medianPer1000PlacementsMs": 1.125,
+        "redrawSamplesMs": [
+          0.3,
+          0.2,
+          0.3,
+          0.3,
+          0.3,
+          0.3,
+          0.3,
+          0.3,
+          0.3
+        ],
+        "placementSamplesMs": [
+          1.125,
+          1.25,
+          1.25,
+          1.25,
+          1.125,
+          1.25,
+          1.125,
+          1.125,
+          1.125
+        ]
+      }
+    },
+    {
+      "engine": "webkit",
+      "format": "circular",
+      "variant": "dense",
+      "before": {
+        "features": 10000,
+        "fittedLabels": 0,
+        "medianRedrawMs": 9.1,
+        "medianPer1000PlacementsMs": null,
+        "redrawSamplesMs": [
+          9.4,
+          9.5,
+          8.6,
+          9.6,
+          8,
+          9,
+          9.1,
+          9.1,
+          9.1
+        ],
+        "placementSamplesMs": []
+      },
+      "after": {
+        "features": 10000,
+        "fittedLabels": 0,
+        "medianRedrawMs": 8.7,
+        "medianPer1000PlacementsMs": null,
+        "redrawSamplesMs": [
+          9.5,
+          10,
+          8.3,
+          8.2,
+          8,
+          8,
+          9.3,
+          8.7,
+          9.1
+        ],
+        "placementSamplesMs": []
+      }
+    },
+    {
+      "engine": "webkit",
+      "format": "circular",
+      "variant": "overlap",
+      "before": {
+        "features": 1000,
+        "fittedLabels": 1000,
+        "medianRedrawMs": 4.1,
+        "medianPer1000PlacementsMs": 1.25,
+        "redrawSamplesMs": [
+          4.1,
+          3.9,
+          4,
+          4,
+          4.1,
+          4.9,
+          4.8,
+          4.1,
+          5.1
+        ],
+        "placementSamplesMs": [
+          1.25,
+          1.25,
+          1.25,
+          1.25,
+          1.25,
+          1.625,
+          1.25,
+          1.375,
+          1.375
+        ]
+      },
+      "after": {
+        "features": 1000,
+        "fittedLabels": 1000,
+        "medianRedrawMs": 4.5,
+        "medianPer1000PlacementsMs": 1.5,
+        "redrawSamplesMs": [
+          4.5,
+          4.4,
+          4.5,
+          4.3,
+          5,
+          4.6,
+          4.5,
+          4.2,
+          5.7
+        ],
+        "placementSamplesMs": [
+          1.375,
+          1.25,
+          1.5,
+          1.375,
+          1.5,
+          1.5,
+          1.625,
+          1.5,
+          1.625
+        ]
+      }
+    }
+  ]
+}

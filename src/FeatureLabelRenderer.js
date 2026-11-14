@@ -350,15 +350,30 @@ class FeatureLabelRenderer {
     return {
       tip: feature.isDirect() ? range.mapStop : range.mapStart,
       length: range.length,
+      range,
     };
   }
 
-  _segmentGeometry(feature, segment, centerOffset, width) {
+  _segmentGeometry(feature, segment, centerOffset, width, pixelsPerBp) {
     const start = segment.startEdge ?? segment.start - 0.5;
     const stop = start + segment.length;
     const arrow = this._terminalArrow(feature);
-    if (!arrow || !this._segmentContains(segment, arrow.tip)) {
+    if (!arrow) {
       return {start, stop, arrowHeadLength: 0};
+    }
+
+    const containsTip = this._segmentContains(segment, arrow.tip);
+    let tipOutside = 0;
+    if (!containsTip) {
+      const direct = feature.isDirect();
+      const edge = direct ? segment.stop : segment.start;
+      if (!(direct ? segment.stopClipped : segment.startClipped) ||
+          !arrow.range.containsMapBp(edge)) {
+        return {start, stop, arrowHeadLength: 0};
+      }
+      let distance = direct ? arrow.tip + 0.5 - edge : edge - (arrow.tip - 0.5);
+      if (distance < 0) { distance += this.viewer.sequence.length; }
+      tipOutside = distance * pixelsPerBp;
     }
 
     const arrowHeadLength = this.canvas.arrowHeadLengthPixels({
@@ -367,7 +382,7 @@ class FeatureLabelRenderer {
       featureLengthBp: arrow.length,
       width,
     });
-    return {start, stop, arrowHeadLength};
+    return {start, stop, arrowHeadLength: tipOutside < arrowHeadLength ? arrowHeadLength : 0, tipOutside};
   }
 
   /**
@@ -406,6 +421,63 @@ class FeatureLabelRenderer {
       inset = Math.max(inset, radius * Math.atan2(t * dy, radius + t * dx));
     }
     return inset;
+  }
+
+  /**
+   * Distance toward the tail from the full-span midpoint to the area centroid.
+   * On a circle, project the centroid of the annular body and triangular head
+   * onto the track centerline. Work relative to the midpoint so neither strand
+   * nor the map's rotation changes the calculation. Called once per fitted
+   * arrow label; it does not sample the path or inspect sequence bases.
+   * @private
+   */
+  _arrowCenterShift(length, headLength, width, radius, tipOutside = 0) {
+    const span = length + tipOutside;
+    const head = Math.min(headLength, span);
+    const visibleHead = Math.max(0, head - tipOutside);
+    if (visibleHead <= 0) { return 0; }
+    // Integrate the rectangle and the visible part of the taper. This reduces
+    // to h(3L - 2h) / (6(2L - h)) when the complete head is visible.
+    const linearShift = visibleHead * visibleHead * (3 * length - 2 * visibleHead) /
+      (6 * (2 * head * length - visibleHead * visibleHead));
+    if (this.viewer.format === 'linear' || radius <= width / 2 ||
+        headLength > span || span / radius < 1e-4) {
+      return linearShift;
+    }
+
+    const body = span - head;
+    const halfBodyAngle = body / (2 * radius);
+    const halfHeadAngle = head / (2 * radius);
+    // Areas are divided by width and centroid radii by radius. These common
+    // factors cancel, keeping the moments stable at large zoom factors.
+    const bodyMoment = body * (1 + width * width / (12 * radius * radius)) *
+      (halfBodyAngle === 0 ? 1 : Math.sin(halfBodyAngle) / halfBodyAngle);
+    const headArea = radius * Math.sin(2 * halfHeadAngle) / 2;
+    const tipAngle = span / (2 * radius);
+    const baseAngle = tipAngle - 2 * halfHeadAngle;
+    let x = bodyMoment * Math.cos(halfHeadAngle) + headArea *
+      (2 * Math.cos(baseAngle) + Math.cos(tipAngle)) / 3;
+    let y = -bodyMoment * Math.sin(halfHeadAngle) + headArea *
+      (2 * Math.sin(baseAngle) + Math.sin(tipAngle)) / 3;
+    if (tipOutside > 0) {
+      // Remove the offscreen tip triangle, intersecting the two straight head
+      // sides with the clipping ray. Weighting then changes smoothly as the
+      // head enters the visible range, instead of switching on at the tip.
+      const outsideAngle = tipOutside / radius;
+      const clipAngle = tipAngle - outsideAngle;
+      const sinHead = Math.sin(head / radius), sinOutside = Math.sin(outsideAngle);
+      const sinVisible = Math.sin(visibleHead / radius);
+      const outer = radius + width / 2, inner = radius - width / 2;
+      const outerCut = radius * outer * sinHead / (radius * sinOutside + outer * sinVisible);
+      const innerCut = radius * inner * sinHead / (radius * sinOutside + inner * sinVisible);
+      const missingArea = (outerCut - innerCut) * radius * sinOutside / (2 * width);
+      const cutRadius = (outerCut + innerCut) / radius;
+      x -= missingArea * (cutRadius * Math.cos(clipAngle) + Math.cos(tipAngle)) / 3;
+      y -= missingArea * (cutRadius * Math.sin(clipAngle) + Math.sin(tipAngle)) / 3;
+    }
+    // A nearly complete, almost uniform ring has no reliable centroid angle.
+    if (Math.hypot(x, y) < length * 1e-10) { return linearShift; }
+    return Math.max(0, Math.min(visibleHead / 2, -radius * Math.atan2(y, x) - tipOutside / 2));
   }
 
   metricsFor(feature, centerOffset, slotThickness, visibleRange, slot) {
@@ -456,32 +528,51 @@ class FeatureLabelRenderer {
         feature,
         segment,
         adjustedCenterOffset,
-        adjustedWidth
+        adjustedWidth,
+        pixelsPerBp
       );
       const segmentWidth = (geometry.stop - geometry.start) * pixelsPerBp;
       const availableWidth = segmentWidth - (padding * 2);
       if (availableWidth <= 0) { continue; }
       const widthForFontSize = geometry.arrowHeadLength > 0 ? size => segmentWidth - 2 * Math.max(
         padding,
-        this._arrowHeadInset(geometry.arrowHeadLength, adjustedWidth, size, adjustedCenterOffset)
+        this._arrowHeadInset(geometry.arrowHeadLength, adjustedWidth, size, adjustedCenterOffset) - geometry.tipOutside
       ) : undefined;
       const textPlan = this._textPlan(feature, availableWidth, availableHeight, measurement, widthForFontSize);
       if (!textPlan) { continue; }
 
-      // When a feature spans the viewport, keep its label on the exact map
-      // center instead of an integer base-pair approximation. The float
-      // visible range handles one-sided clipping continuously as well.
-      let bp = this._normalizeBp((geometry.start + geometry.stop) / 2);
+      let centerShift = 0;
+      let fittedWidth = availableWidth;
+      if (geometry.arrowHeadLength > 0) {
+        const headInset = Math.max(padding, this._arrowHeadInset(
+          geometry.arrowHeadLength, adjustedWidth, textPlan.fontSize, adjustedCenterOffset
+        ) - geometry.tipOutside);
+        const preferred = segmentWidth / 2 - this._arrowCenterShift(
+          segmentWidth, geometry.arrowHeadLength, adjustedWidth, adjustedCenterOffset, geometry.tipOutside
+        );
+        // Preserve the existing text plan. Move only as far toward the weighted
+        // center as the tail padding and the taper permit at this text size.
+        const halfText = textPlan.textWidth / 2;
+        const fromTail = Math.max(padding + halfText,
+          Math.min(segmentWidth - headInset - halfText, preferred));
+        centerShift = (fromTail - segmentWidth / 2) / pixelsPerBp * feature.strand;
+        fittedWidth = 2 * Math.min(fromTail - padding, segmentWidth - fromTail - headInset);
+      }
+
+      // When a feature spans the viewport, use the exact map center as the
+      // reference for the weighted displacement, avoiding integer-bp jumps.
+      // A visible rectangle still stays exactly centered in the viewport.
+      let bp = this._normalizeBp((geometry.start + geometry.stop) / 2 + centerShift);
       if (segment.startClipped && segment.stopClipped) {
         const viewportBp = this._normalizeBp(this.viewer.bpFloat);
         if (Number.isFinite(viewportBp) && this._segmentContains(segment, viewportBp)) {
-          bp = viewportBp;
+          bp = this._normalizeBp(viewportBp + centerShift);
         }
       }
       return {
         bp,
         centerOffset: adjustedCenterOffset,
-        availableWidth: widthForFontSize ? widthForFontSize(textPlan.fontSize) : availableWidth,
+        availableWidth: fittedWidth,
         pixelsPerBp,
         color: this._labelColor(feature, slot, bp),
         ...textPlan,
