@@ -602,7 +602,7 @@ describe('Inline feature labels', () => {
       return cgv;
     }
 
-    test.each([1, -1])('centers arrow and auto labels for strand %i at every head length', strand => {
+    test.each([1, -1])('weights arrow and auto labels toward the tail for strand %i', strand => {
       const cgv = arrowViewer({
         strand,
         annotation: {font: 'sans-serif, plain, 8', labelPosition: 'inline'},
@@ -622,7 +622,12 @@ describe('Inline feature labels', () => {
         for (const feature of cgv.features()) {
           const metrics = renderer.metricsFor(feature, centerOffset, 20, fullRange(cgv));
 
-          expect(metrics.bp).toBeCloseTo(150);
+          if (arrowHeadLength === 0) {
+            expect(metrics.bp).toBeCloseTo(150);
+          } else {
+            expect((150 - metrics.bp) * strand).toBeGreaterThan(0);
+            expect(Math.abs(metrics.bp - 150)).toBeLessThan(20 * arrowHeadLength / 2);
+          }
           expect(metrics.text).toBe('gene');
           expect(metrics.textWidth).toBeLessThanOrEqual(metrics.availableWidth + 0.01);
         }
@@ -652,15 +657,15 @@ describe('Inline feature labels', () => {
         // A 31px feature with a 12px head previously left only 11px for text.
         const metrics = renderer.metricsFor(feature, centerOffset, 40, fullRange(cgv));
 
-        expect(metrics.bp).toBeCloseTo(115);
+        expect(metrics.bp).toBeCloseTo(115 - strand);
         expect(metrics.fontSize).toBe(8);
         expect(metrics.text).toBe('fit');
         expect(metrics.textWidth).toBe(21);
-        expect(metrics.availableWidth).toBeCloseTo(23);
+        expect(metrics.availableWidth).toBeCloseTo(21);
       }
     });
 
-    test.each([1, -1])('keeps auto labels centered as their heads grow with zoom for strand %i', strand => {
+    test.each([1, -1])('weights auto labels using the drawn head as zoom changes for strand %i', strand => {
       const cgv = arrowViewer({
         strand,
         glyphWidth: 3,
@@ -699,7 +704,8 @@ describe('Inline feature labels', () => {
 
         if (fits) {
           expect(arrowHeadLength).toHaveReturnedWith(headLength);
-          expect(metrics.bp).toBeCloseTo(115);
+          expect((115 - metrics.bp) * strand).toBeGreaterThan(0);
+          expect(Math.abs(metrics.bp - 115) * pixelsPerBp).toBeLessThan(headLength / 2);
           expect(metrics.fontSize).toBe(8);
           expect(metrics.text).toBe('fit');
           expect(metrics.textWidth).toBeLessThanOrEqual(metrics.availableWidth + 0.01);
@@ -722,7 +728,7 @@ describe('Inline feature labels', () => {
       const renderer = cgv.annotation._featureLabelRenderer;
       const metrics = renderer.metricsFor(feature, centerOffset, 40, fullRange(cgv));
 
-      expect(metrics.bp).toBeCloseTo(130);
+      expect((130 - metrics.bp) * strand).toBeGreaterThanOrEqual(0);
       expect(metrics.text).toBe('shrink');
       expect(metrics.fontSize).toBeGreaterThanOrEqual(8);
       expect(metrics.fontSize).toBeLessThan(16);
@@ -756,7 +762,7 @@ describe('Inline feature labels', () => {
       const renderer = cgv.annotation._featureLabelRenderer;
       const metrics = renderer.metricsFor(feature, centerOffset, 40, fullRange(cgv));
 
-      expect(metrics.bp).toBeCloseTo(125);
+      expect((125 - metrics.bp) * strand).toBeGreaterThanOrEqual(0);
       expect(metrics.fontSize).toBe(8);
       expect(metrics.text.endsWith('…')).toBe(true);
       expect(metrics.text.length).toBeGreaterThanOrEqual(4);
@@ -790,9 +796,54 @@ describe('Inline feature labels', () => {
       for (const {range, center} of clippedRanges) {
         const metrics = renderer.metricsFor(feature, centerOffset, 20, range);
 
-        expect(metrics.bp).toBeCloseTo(center);
+        const containsHead = strand === 1 ? range.containsMapBp(200) : range.containsMapBp(100);
+        if (containsHead) {
+          expect((center - metrics.bp) * strand).toBeGreaterThan(0);
+        } else {
+          expect(metrics.bp).toBeCloseTo(center);
+        }
         expect(metrics.text).toBe('gene');
       }
+    });
+
+    test.each([1, -1])('changes weighting continuously as the tip enters the viewport for strand %i', strand => {
+      const cgv = arrowViewer({
+        strand,
+        annotation: {font: 'sans-serif, plain, 8', labelPosition: 'inline'},
+        settings: {arrowHeadLength: 1},
+        legend: {items: [{name: 'Arrow', decoration: 'arrow'}]},
+        features: [{name: 'gene', start: 100, stop: 200, legend: 'Arrow'}],
+      });
+      const feature = cgv.features(1), renderer = cgv.annotation._featureLabelRenderer;
+      let previousBp, finalShift;
+      for (let distance = 21; distance >= 0; distance -= 0.125) {
+        const range = strand === 1 ? {start: 1, stop: 200 - distance} :
+          {start: 100 + distance, stop: 1000};
+        const segment = renderer._visibleSegments(feature, range)[0];
+        const midpoint = segment.startEdge + segment.length / 2;
+        const metrics = renderer.metricsFor(feature, centerOffset, 20, range);
+        if (previousBp !== undefined) {
+          expect(Math.abs(metrics.bp - previousBp)).toBeLessThan(0.125);
+        }
+        previousBp = metrics.bp;
+        finalShift = (midpoint - metrics.bp) * strand;
+      }
+      expect(finalShift).toBeGreaterThan(4);
+    });
+
+    test.each([1, -1])('keeps long labels inside a partially visible head for strand %i', strand => {
+      const cgv = arrowViewer({
+        strand, glyphWidth: 15,
+        annotation: {font: 'sans-serif, plain, 16', labelPosition: 'inline'},
+        settings: {arrowHeadLength: 1},
+        legend: {items: [{name: 'Arrow', decoration: 'arrow'}]},
+        features: [{name: 'long label', start: 100, stop: 200, legend: 'Arrow'}],
+      });
+      const renderer = cgv.annotation._featureLabelRenderer;
+      const range = strand === 1 ? {start: 1, stop: 199} : {start: 101, stop: 1000};
+      const metrics = renderer.metricsFor(cgv.features(1), centerOffset, 20, range);
+      expect(metrics).toBeDefined();
+      expect(metrics.textWidth).toBeLessThanOrEqual(metrics.availableWidth + 0.01);
     });
 
     test.each([1, -1])('centers wrapped and multi-location arrows for strand %i', strand => {
@@ -811,8 +862,21 @@ describe('Inline feature labels', () => {
       const wrappedMetrics = renderer.metricsFor(cgv.features(1), centerOffset, 20, wrappedRange);
       const locationMetrics = renderer.metricsFor(cgv.features(2), centerOffset, 20, fullRange(cgv));
 
-      expect(wrappedMetrics.bp).toBeCloseTo(format === 'circular' ? 1000 : 950);
-      expect(locationMetrics.bp).toBeCloseTo(500);
+      const midpoint = format === 'circular' ? 1000 : 950;
+      let shift = midpoint - wrappedMetrics.bp;
+      if (shift > 500) { shift -= 1000; }
+      if (shift < -500) { shift += 1000; }
+      // Linear splitting places the direct-strand arrow on the other segment.
+      if (format === 'circular' || strand === -1) {
+        expect(shift * strand).toBeGreaterThan(0);
+      } else {
+        expect(shift).toBeCloseTo(0);
+      }
+      if (strand === 1) {
+        expect(locationMetrics.bp).toBeLessThan(500);
+      } else {
+        expect(locationMetrics.bp).toBeCloseTo(500);
+      }
     });
   });
 
